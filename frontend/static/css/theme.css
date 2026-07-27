@@ -1,0 +1,193 @@
+/* =========================================================================
+   Автомойка №1 — общая дизайн-система
+   Направление: спокойная японская эстетика (васи-бумага, суми, вермильон-
+   печать/ханко, волна сейгайха) — без неона и "геймерских" градиентов.
+   ========================================================================= */
+
+:root{
+  --sumi:#14171C;         /* тушь — тёмный, почти чёрный */
+  --indigo:#1E2A44;       /* глубокий индиго — вторичный тёмный */
+  --washi:#F7F2E7;        /* бумага васи — основной светлый фон */
+  --washi-card:#FFFDF8;   /* поверхность карточек на васи */
+  --washi-2:#EFE6D3;      /* чуть темнее васи, для полос/подложек */
+  --line:rgba(20,23,28,0.13);
+  --line-soft:rgba(20,23,28,0.07);
+  --vermillion:#BE3B3B;   /* ханко — красная печать */
+  --vermillion-dark:#9C2E2E;
+  --jade:#1E8A72;         /* приглушённый нефрит вместо неоновой бирюзы */
+  --jade-dark:#166A58;
+  --gold:#AD8A52;         /* латунь — премиальный акцент, точечно */
+  --ink-soft:#5B5646;     /* тёплый серо-коричневый для вторичного текста */
+  --ink-soft-2:#8A8371;
+  --radius:16px;
+  --shadow:0 24px 60px -28px rgba(20,15,5,0.35);
+  --shadow-soft:0 10px 30px -14px rgba(20,15,5,0.22);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Manrope',sans-serif;
+  background:var(--washi);
+  color:var(--sumi);
+  line-height:1.6;
+  overflow-x:hidden;
+  position:relative;
+}
+/* тонкое зерно бумаги поверх всего сайта — едва заметное, но считывается как "печать", а не CSS-градиент */
+body::before{
+  content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:0.035;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+h1,h2,h3,.display{font-family:'Spectral',serif;font-weight:600;letter-spacing:-0.01em;line-height:1.22;}
+.mono{font-family:'Space Mono',monospace;font-variant-numeric:tabular-nums;}
+a{color:inherit;text-decoration:none;}
+img,svg{display:block;max-width:100%;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important;}}
+
+/* ---------- сейгайха (волна) — тонкая текстура для тёмных секций ---------- */
+.seigaiha{
+  background-image:
+    radial-gradient(circle at 0 100%, transparent 22px, rgba(247,242,231,0.05) 23px, rgba(247,242,231,0.05) 24px, transparent 25px),
+    radial-gradient(circle at 40px 100%, transparent 22px, rgba(247,242,231,0.05) 23px, rgba(247,242,231,0.05) 24px, transparent 25px);
+  background-size:40px 24px;
+  background-position:0 0, 20px 0;
+  background-repeat:repeat-x;
+}
+
+/* ---------- hanko — печать-акцент (ненавязчивая деталь) ---------- */
+.hanko{
+  position:absolute;width:56px;height:56px;border-radius:6px;
+  border:2px solid var(--vermillion);color:var(--vermillion);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Spectral',serif;font-weight:600;font-size:22px;
+  transform:rotate(-6deg);opacity:0.9;background:rgba(255,253,248,0.85);
+  box-shadow:0 6px 16px -8px rgba(190,59,59,0.45);
+}
+
+/* ---------- типографика секций ---------- */
+section{padding:86px 0;}
+.section-head{max-width:640px;margin-bottom:48px;}
+.section-head .kicker{
+  font-size:12.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+  color:var(--vermillion);margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+.section-head .kicker::before{content:"";width:18px;height:1.5px;background:var(--vermillion);display:inline-block;}
+.section-head h2{font-size:clamp(26px,3vw,36px);color:var(--sumi);}
+.section-head p{color:var(--ink-soft);margin-top:12px;font-size:16px;}
+
+/* ---------- кнопки ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 26px;border-radius:8px;font-weight:700;font-size:14.5px;
+  transition:transform .16s ease, box-shadow .16s ease, background .16s ease;
+  letter-spacing:0.2px;
+}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--vermillion);color:#fff;box-shadow:0 12px 24px -12px rgba(190,59,59,0.55);}
+.btn-primary:hover{background:var(--vermillion-dark);transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0) scale(0.97);}
+.btn-ghost{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.28);}
+.btn-ghost:hover{background:rgba(255,255,255,0.16);}
+.btn-dark{background:var(--sumi);color:#fff;}
+.btn-dark:hover{transform:translateY(-1px);background:#22262E;}
+.btn-outline{background:transparent;border:1.5px solid var(--sumi);color:var(--sumi);}
+.btn-outline:hover{background:var(--sumi);color:#fff;}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none !important;}
+
+/* ---------- карточки / поля форм ---------- */
+.card{background:var(--washi-card);border:1px solid var(--line);border-radius:var(--radius);}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.field input, .field select{
+  width:100%;padding:12px 14px;border-radius:9px;border:1.5px solid var(--line);font-family:inherit;font-size:15px;
+  background:var(--washi-2);color:var(--sumi);
+}
+.field input:focus, .field select:focus{outline:none;border-color:var(--jade);}
+
+/* ---------- reveal-анимация при скролле ---------- */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+/* ---------- галерея ---------- */
+.gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:170px;gap:14px;}
+.gallery-item{position:relative;border-radius:14px;overflow:hidden;grid-column:span 1;}
+.gallery-item.span-2{grid-column:span 2;}
+.gallery-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;}
+.gallery-item:hover img{transform:scale(1.06);}
+.gallery-cap{position:absolute;left:0;right:0;bottom:0;padding:10px 12px 8px;background:linear-gradient(0deg, rgba(0,0,0,0.72), transparent);color:#fff;font-size:12.5px;font-weight:600;}
+@media (max-width:900px){.gallery-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:150px;}}
+@media (max-width:560px){.gallery-grid{grid-template-columns:1fr;}.gallery-item.span-2{grid-column:span 1;}}
+
+/* ---------- пуш-карта с ананасами ---------- */
+.punch-card{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+.punch-slot{aspect-ratio:1;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative;background:var(--washi-2);}
+.punch-slot .num{position:absolute;top:-8px;right:-4px;font-size:10px;font-weight:700;color:var(--ink-soft-2);background:var(--washi-card);border:1px solid var(--line);padding:1px 5px;border-radius:100px;}
+.punch-slot.reward-50{border-color:var(--vermillion);}
+.punch-slot.reward-100{border-color:var(--gold);}
+.punch-slot .reward-label{font-size:11px;font-weight:800;color:var(--sumi);}
+.punch-slot.filled{background:rgba(30,138,114,0.12);border-color:var(--jade);}
+.punch-slot svg{width:54%;height:54%;color:var(--jade-dark);}
+.punch-card.on-dark .punch-slot{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.22);}
+.punch-card.on-dark .punch-slot .num{background:var(--sumi);color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);}
+.punch-card.on-dark .punch-slot .reward-label{color:#fff;}
+@media (max-width:700px){.punch-card{grid-template-columns:repeat(4,1fr);}}
+
+/* ---------- бейджи/статусы ---------- */
+.badge{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:100px;background:var(--washi-2);color:var(--jade-dark);}
+.badge.status-pending{color:var(--gold);}
+.badge.status-done{color:var(--jade-dark);}
+.badge.status-cancelled{color:var(--vermillion);}
+
+/* ---------- утилиты ---------- */
+.text-muted{color:var(--ink-soft);}
+.divider{height:1px;background:var(--line);margin:24px 0;border:none;}
+.divider-gold{height:1px;background:linear-gradient(90deg, var(--gold), transparent);margin:24px 0;border:none;}
+
+/* ---------- единый цветокор фотографий ---------- */
+/* приводит разнобойные по свету/балансу фото к одному строю — тёплые тени, приглушённые света */
+.photo-grade{filter:sepia(0.14) saturate(1.12) contrast(1.06) brightness(0.97);}
+
+/* ---------- "+" при наведении на фото — сигнал "можно посмотреть крупнее" ---------- */
+.gallery-item{cursor:zoom-in;}
+.gallery-item::after{
+  content:"";position:absolute;top:14px;left:14px;width:30px;height:30px;border-radius:50%;
+  background:rgba(20,23,28,0.55);opacity:0;transform:scale(0.7);
+  transition:opacity .2s ease, transform .2s ease;
+  background-image:linear-gradient(#fff,#fff), linear-gradient(#fff,#fff);
+  background-size:12px 1.5px, 1.5px 12px;background-position:center;background-repeat:no-repeat;
+}
+.gallery-item:hover::after{opacity:1;transform:scale(1);}
+
+/* ---------- скелетон-загрузка ---------- */
+.skeleton{position:relative;overflow:hidden;background:var(--washi-2);border-radius:10px;}
+.skeleton::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+  transform:translateX(-100%);animation:skeletonShine 1.6s ease-in-out infinite;
+}
+@keyframes skeletonShine{100%{transform:translateX(100%);}}
+.skeleton-card{height:230px;}
+.skeleton-line{height:14px;margin-bottom:8px;}
+
+/* ---------- степпер (шаги формы записи) ---------- */
+.stepper{display:flex;align-items:center;gap:8px;margin-bottom:20px;}
+.stepper .step{display:flex;align-items:center;gap:8px;}
+.stepper .dot{
+  width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;font-weight:700;background:var(--washi-2);color:var(--ink-soft-2);
+  border:1.5px solid var(--line);transition:.25s;
+}
+.stepper .step.active .dot{background:var(--vermillion);border-color:var(--vermillion);color:#fff;}
+.stepper .step.done .dot{background:var(--jade);border-color:var(--jade);color:#fff;}
+.stepper .label{font-size:11.5px;font-weight:700;color:var(--ink-soft-2);}
+.stepper .step.active .label{color:var(--sumi);}
+.stepper .line{flex:1;height:1.5px;background:var(--line);}
+.stepper .line.done{background:var(--jade);}
+
+/* ---------- анимированные числа (счётчик) ---------- */
+.count-up{font-variant-numeric:tabular-nums;}

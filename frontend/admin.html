@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админ-панель — Автомойка №1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/css/theme.css">
+<style>
+  body{background:var(--washi-2);}
+  .topbar{position:sticky;top:0;z-index:50;background:var(--sumi);}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;}
+  .brand{display:flex;align-items:center;gap:12px;color:#fff;}
+  .brand img{width:32px;height:32px;border-radius:8px;object-fit:cover;}
+  .brand b{font-family:'Spectral',serif;font-size:16.5px;}
+  .topbar a.back{color:#CBC3B2;font-size:13.5px;font-weight:600;}
+  .topbar a.back:hover{color:#fff;}
+
+  .auth-wrap{max-width:400px;margin:80px auto;}
+  .auth-card{padding:32px;}
+  .auth-status{font-size:13px;margin-top:10px;min-height:18px;}
+  .auth-status.ok{color:var(--jade-dark);}
+  .auth-status.err{color:var(--vermillion);}
+
+  .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 64px);}
+  .sidebar{background:var(--washi-card);border-right:1px solid var(--line);padding:22px 14px;}
+  .sidebar .tab-btn{display:block;width:100%;text-align:left;padding:11px 14px;border-radius:9px;font-size:14px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;}
+  .sidebar .tab-btn:hover{background:var(--washi-2);}
+  .sidebar .tab-btn.active{background:var(--sumi);color:#fff;}
+  .content{padding:32px 36px;max-width:1100px;}
+  .content h2{font-size:22px;margin-bottom:20px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;padding:10px 12px;color:var(--ink-soft-2);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--line);}
+  td{padding:10px 12px;border-bottom:1px solid var(--line-soft);}
+  tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background .12s ease;}
+  tbody tr:hover{background:var(--washi-2);}
+  select.status-select{padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--washi-2);font-size:12.5px;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .stat-box{padding:20px;}
+  .stat-box b{display:block;font-family:'Spectral',serif;font-size:26px;}
+  .stat-box span{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px;}
+
+  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:end;margin-bottom:22px;}
+  .form-grid .field{margin-bottom:0;}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+
+  @media (max-width:900px){.layout{grid-template-columns:1fr;}.sidebar{display:flex;overflow-x:auto;gap:4px;padding:12px;}.sidebar .tab-btn{white-space:nowrap;}.stat-grid{grid-template-columns:repeat(2,1fr);}.form-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand"><img src="static/img/logo.png" alt=""><b>Автомойка №1 · Админ</b></div>
+    <a class="back" href="index.html">← на сайт</a>
+  </div>
+</div>
+
+<!-- ЭКРАН ВХОДА -->
+<div id="authScreen" class="auth-wrap">
+  <div class="card auth-card">
+    <h2 style="font-size:20px;margin-bottom:6px;">Вход в админ-панель</h2>
+    <p class="text-muted" style="font-size:13px;margin-bottom:20px;">Для сотрудников и администратора. Стартовый доступ: admin / admin.</p>
+    <div class="field"><label>Логин</label><input type="text" id="loginInput" placeholder="admin"></div>
+    <div class="field"><label>Пароль</label><input type="password" id="passwordInput" placeholder="••••••••"></div>
+    <button class="btn btn-primary" style="width:100%;" id="loginBtn">Войти</button>
+    <div class="auth-status" id="authStatus"></div>
+  </div>
+</div>
+
+<!-- ПАНЕЛЬ -->
+<div id="panel" class="layout" style="display:none;">
+  <div class="sidebar">
+    <button class="tab-btn active" data-tab="overview">Обзор</button>
+    <button class="tab-btn" data-tab="bookings">Записи</button>
+    <button class="tab-btn" data-tab="walkin">Мойки без записи</button>
+    <button class="tab-btn" data-tab="drycleaning">Химчистка</button>
+    <button class="tab-btn" data-tab="services">Услуги</button>
+    <button class="tab-btn" data-tab="schedule">График</button>
+    <button class="tab-btn" data-tab="logout" style="color:var(--vermillion);margin-top:16px;">Выйти</button>
+  </div>
+
+  <div class="content">
+    <!-- ОБЗОР -->
+    <div class="tab-page" id="tab-overview">
+      <h2>Обзор за последние 30 дней</h2>
+      <div class="stat-grid">
+        <div class="card stat-box"><b id="statWashCount">—</b><span>моек (записи + без записи)</span></div>
+        <div class="card stat-box"><b id="statWashRevenue">—</b><span>выручка по мойке</span></div>
+        <div class="card stat-box"><b id="statDryCount">—</b><span>заказов химчистки</span></div>
+        <div class="card stat-box"><b id="statDryRevenue">—</b><span>выручка химчистки</span></div>
+      </div>
+      <p class="text-muted" style="font-size:13px;">Период считается от текущей даты сервера минус 30 дней. Более гибкий выбор периода — следующим шагом.</p>
+    </div>
+
+    <!-- ЗАПИСИ -->
+    <div class="tab-page" id="tab-bookings" style="display:none;">
+      <div class="toolbar"><h2 style="margin:0;">Записи клиентов</h2><button class="btn btn-outline" id="refreshBookings">Обновить</button></div>
+      <div class="card" style="padding:6px 16px;overflow-x:auto;">
+        <table id="bookingsTable">
+          <thead><tr><th>№</th><th>Дата/время</th><th>Услуга</th><th>Цена</th><th>Скидка</th><th>Статус</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- МОЙКИ БЕЗ ЗАПИСИ -->
+    <div class="tab-page" id="tab-walkin" style="display:none;">
+      <h2>Добавить заказ (без записи)</h2>
+      <div class="card" style="padding:20px;margin-bottom:22px;">
+        <div class="form-grid">
+          <div class="field"><label>Дата</label><input type="date" id="wDate"></div>
+          <div class="field"><label>Услуга (текст)</label><input type="text" id="wService" placeholder="Комплекс"></div>
+          <div class="field"><label>Марка авто</label><input type="text" id="wCar" placeholder="Kia Rio"></div>
+          <div class="field"><label>Доп. услуга</label><input type="text" id="wExtra" placeholder="коврики"></div>
+          <div class="field"><label>Сумма ₽</label><input type="number" id="wAmount" placeholder="900"></div>
+          <div class="field"><label>Телефон клиента (необязательно)</label><input type="tel" id="wPhone" placeholder="+7900..."></div>
+        </div>
+        <button class="btn btn-primary" id="wSubmit">Добавить в журнал</button>
+        <div class="auth-status" id="wStatus"></div>
+      </div>
+      <div class="toolbar"><h3 style="margin:0;font-size:16px;">Журнал за последние заказы</h3><button class="btn btn-outline" id="refreshWalkin">Обновить</button></div>
+      <div class="card" style="padding:6px 16px;overflow-x:auto;">
+        <table id="walkinTable">
+          <thead><tr><th>Дата</th><th>Услуга</th><th>Авто</th><th>Доп.</th><th>Сумма</th><th>Контакт</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ХИМЧИСТКА -->
+    <div class="tab-page" id="tab-drycleaning" style="display:none;">
+      <h2>Добавить заказ химчистки</h2>
+      <div class="card" style="padding:20px;margin-bottom:22px;">
+        <div class="form-grid">
+          <div class="field"><label>Дата</label><input type="date" id="dDate"></div>
+          <div class="field"><label>Марка авто</label><input type="text" id="dCar" placeholder="Toyota Mark II"></div>
+          <div class="field"><label>Работы</label><input type="text" id="dWorks" placeholder="Химчистка сидений"></div>
+          <div class="field"><label>Сумма ₽</label><input type="number" id="dAmount" placeholder="2000"></div>
+          <div class="field"><label>З/п мастера ₽</label><input type="number" id="dPayout" placeholder="600"></div>
+          <div class="field"><label>Телефон (необязательно)</label><input type="tel" id="dPhone" placeholder="+7900..."></div>
+        </div>
+        <button class="btn btn-primary" id="dSubmit">Добавить заказ</button>
+        <div class="auth-status" id="dStatus"></div>
+      </div>
+      <div class="toolbar"><h3 style="margin:0;font-size:16px;">Журнал заказов химчистки</h3><button class="btn btn-outline" id="refreshDry">Обновить</button></div>
+      <div class="card" style="padding:6px 16px;overflow-x:auto;">
+        <table id="dryTable">
+          <thead><tr><th>Дата</th><th>Авто</th><th>Работы</th><th>Сумма</th><th>З/п мастера</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- УСЛУГИ -->
+    <div class="tab-page" id="tab-services" style="display:none;">
+      <h2>Услуги мойки и химчистки</h2>
+      <div class="card" style="padding:6px 16px;overflow-x:auto;">
+        <table id="servicesTable">
+          <thead><tr><th>Категория</th><th>Название</th><th>Цена</th><th>Мин.</th><th>Ставит ананас</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ГРАФИК -->
+    <div class="tab-page" id="tab-schedule" style="display:none;">
+      <h2>Сотрудники</h2>
+      <div class="card" style="padding:6px 16px;overflow-x:auto;">
+        <table id="employeesTable">
+          <thead><tr><th>Имя</th><th>Должность</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="text-muted" style="font-size:13px;margin-top:14px;">Простановка смен по дням — через API (`PUT /schedule`), визуальный календарь — следующим шагом.</p>
+    </div>
+  </div>
+</div>
+
+<script src="static/js/api.js"></script>
+<script>
+  const statusLabels = {pending:'ожидает', confirmed:'подтверждена', in_progress:'в работе', done:'выполнена', cancelled:'отменена'};
+
+  const authStatusEl = document.getElementById('authStatus');
+  function setAuthStatus(msg, type) { authStatusEl.textContent = msg; authStatusEl.className = 'auth-status ' + (type || ''); }
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const login = document.getElementById('loginInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+    try {
+      const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ login, password }) });
+      if (data.role === 'client') { setAuthStatus('Этот вход только для сотрудников/админа', 'err'); return; }
+      setAuthToken(data.access_token, data.role);
+      showPanel();
+    } catch (e) { setAuthStatus('Неверный логин или пароль', 'err'); }
+  });
+
+  function showPanel() {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('panel').style.display = 'grid';
+    loadOverview(); loadBookings(); loadWalkin(); loadDry(); loadServices(); loadEmployees();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.tab === 'logout') { clearAuth(); location.reload(); return; }
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-page').forEach(p => p.style.display = 'none');
+      document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
+    });
+  });
+
+  async function loadOverview() {
+    try {
+      const s = await api('/admin/stats/summary');
+      animateCount(document.getElementById('statWashCount'), s.wash_bookings_count);
+      animateCount(document.getElementById('statWashRevenue'), Math.round(s.wash_revenue), { suffix: ' ₽' });
+      animateCount(document.getElementById('statDryCount'), s.dry_cleaning_orders_count);
+      animateCount(document.getElementById('statDryRevenue'), Math.round(s.dry_cleaning_revenue), { suffix: ' ₽' });
+    } catch (e) {}
+  }
+
+  async function loadBookings() {
+    try {
+      const rows = await api('/bookings/admin/all');
+      document.querySelector('#bookingsTable tbody').innerHTML = rows.map(b => `
+        <tr>
+          <td>${b.id}</td>
+          <td>${new Date(b.scheduled_at).toLocaleString('ru-RU')}</td>
+          <td>#${b.service_id}</td>
+          <td>${b.price != null ? Math.round(b.price) + ' ₽' : '—'}</td>
+          <td>${b.discount_pct ? b.discount_pct + '%' : '—'}</td>
+          <td>
+            <select class="status-select" data-id="${b.id}">
+              ${Object.entries(statusLabels).map(([k,v]) => `<option value="${k}" ${k===b.status?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </td>
+        </tr>`).join('');
+      document.querySelectorAll('.status-select').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          try {
+            await api('/bookings/admin/' + sel.dataset.id, { method: 'PATCH', body: JSON.stringify({ status: sel.value }) });
+            loadBookings();
+          } catch (e) { alert('Не удалось изменить статус: ' + e.message); }
+        });
+      });
+    } catch (e) {}
+  }
+  document.getElementById('refreshBookings').addEventListener('click', loadBookings);
+
+  async function loadWalkin() {
+    try {
+      const rows = await api('/walk-in');
+      document.querySelector('#walkinTable tbody').innerHTML = rows.slice(0, 50).map(o => `
+        <tr><td>${o.order_date}</td><td>${o.service_name_raw}</td><td>${o.car_model || '—'}</td><td>${o.extra_service || '—'}</td><td>${Math.round(o.amount)} ₽</td><td>${o.contact_name || '—'}</td></tr>`).join('');
+    } catch (e) {}
+  }
+  document.getElementById('refreshWalkin').addEventListener('click', loadWalkin);
+
+  const wStatusEl = document.getElementById('wStatus');
+  document.getElementById('wSubmit').addEventListener('click', async () => {
+    const body = {
+      order_date: document.getElementById('wDate').value,
+      service_name_raw: document.getElementById('wService').value,
+      car_model: document.getElementById('wCar').value,
+      extra_service: document.getElementById('wExtra').value,
+      amount: parseFloat(document.getElementById('wAmount').value),
+      client_phone: document.getElementById('wPhone').value || null,
+    };
+    if (!body.order_date || !body.service_name_raw || !body.amount) {
+      wStatusEl.textContent = 'Заполните дату, услугу и сумму'; wStatusEl.className = 'auth-status err'; return;
+    }
+    try {
+      await api('/walk-in', { method: 'POST', body: JSON.stringify(body) });
+      wStatusEl.textContent = 'Добавлено'; wStatusEl.className = 'auth-status ok';
+      loadWalkin();
+    } catch (e) { wStatusEl.textContent = e.message; wStatusEl.className = 'auth-status err'; }
+  });
+
+  async function loadDry() {
+    try {
+      const rows = await api('/dry-cleaning/orders');
+      document.querySelector('#dryTable tbody').innerHTML = rows.slice(0, 50).map(o => `
+        <tr><td>${o.order_date}</td><td>${o.car_model}</td><td>${o.works_description}</td><td>${Math.round(o.amount)} ₽</td><td>${o.employee_payout != null ? Math.round(o.employee_payout) + ' ₽' : '—'}</td></tr>`).join('');
+    } catch (e) {}
+  }
+  document.getElementById('refreshDry').addEventListener('click', loadDry);
+
+  const dStatusEl = document.getElementById('dStatus');
+  document.getElementById('dSubmit').addEventListener('click', async () => {
+    const body = {
+      order_date: document.getElementById('dDate').value,
+      car_model: document.getElementById('dCar').value,
+      works_description: document.getElementById('dWorks').value,
+      amount: parseFloat(document.getElementById('dAmount').value),
+      employee_payout: parseFloat(document.getElementById('dPayout').value) || null,
+      phone: document.getElementById('dPhone').value || null,
+    };
+    if (!body.order_date || !body.car_model || !body.works_description || !body.amount) {
+      dStatusEl.textContent = 'Заполните дату, авто, работы и сумму'; dStatusEl.className = 'auth-status err'; return;
+    }
+    try {
+      await api('/dry-cleaning/orders', { method: 'POST', body: JSON.stringify(body) });
+      dStatusEl.textContent = 'Добавлено'; dStatusEl.className = 'auth-status ok';
+      loadDry();
+    } catch (e) { dStatusEl.textContent = e.message; dStatusEl.className = 'auth-status err'; }
+  });
+
+  async function loadServices() {
+    try {
+      const wash = await api('/services?category=wash');
+      const dry = await api('/services?category=dry_cleaning');
+      const all = [...wash, ...dry];
+      document.querySelector('#servicesTable tbody').innerHTML = all.map(s => `
+        <tr><td>${s.category === 'wash' ? 'Мойка' : 'Химчистка'}</td><td>${s.name}</td><td>${Math.round(s.price_from)} ₽</td><td>${s.duration_min || '—'}</td><td>${s.counts_towards_loyalty ? '🍍 да' : '—'}</td></tr>`).join('');
+    } catch (e) {}
+  }
+
+  async function loadEmployees() {
+    try {
+      const rows = await api('/schedule/employees');
+      document.querySelector('#employeesTable tbody').innerHTML = rows.map(e => `<tr><td>${e.full_name}</td><td>${e.position}</td></tr>`).join('');
+    } catch (e) {}
+  }
+
+  if (getAuthToken() && getAuthRole() !== 'client') { showPanel(); }
+</script>
+</body>
+</html>
