@@ -1,14 +1,16 @@
 from datetime import date
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import WalkInOrder, Service, User, UserRole
-from app.schemas import WalkInOrderCreate, WalkInOrderOut
-from app.dependencies import require_staff
+from app.schemas import WalkInOrderCreate, WalkInOrderOut, WalkInOrderUpdate
+from app.dependencies import require_staff, require_admin
 from app.loyalty import register_wash, price_with_discount
+from app.excel_utils import export_walkin_xlsx, parse_walkin_xlsx
 
 router = APIRouter(prefix="/walk-in", tags=["Журнал заказов (без записи)"])
 
@@ -63,3 +65,61 @@ def create_order(data: WalkInOrderCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(order)
     return order
+
+
+@router.patch("/{order_id}", response_model=WalkInOrderOut, dependencies=[Depends(require_staff)], summary="Изменить заказ")
+def update_order(order_id: int, data: WalkInOrderUpdate, db: Session = Depends(get_db)):
+    order = db.query(WalkInOrder).get(order_id)
+    if not order:
+        raise HTTPException(404, "Заказ не найден")
+    for k, v in data.model_dump(exclude_unset=True).items():
+        setattr(order, k, v)
+    db.commit()
+    db.refresh(order)
+    return order
+
+
+@router.delete("/{order_id}", dependencies=[Depends(require_admin)], summary="Удалить заказ (только админ)")
+def delete_order(order_id: int, db: Session = Depends(get_db)):
+    order = db.query(WalkInOrder).get(order_id)
+    if not order:
+        raise HTTPException(404, "Заказ не найден")
+    db.delete(order)
+    db.commit()
+    return {"detail": "Заказ удалён"}
+
+
+@router.get("/export", dependencies=[Depends(require_staff)], summary="Скачать журнал целиком как .xlsx")
+def export_orders(
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    db: Session = Depends(get_db),
+):
+    q = db.query(WalkInOrder)
+    if date_from:
+        q = q.filter(WalkInOrder.order_date >= date_from)
+    if date_to:
+        q = q.filter(WalkInOrder.order_date <= date_to)
+    orders = q.order_by(WalkInOrder.order_date).all()
+    buf = export_walkin_xlsx(orders)
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=uchet-avtomoyka.xlsx"},
+    )
+
+
+@router.post("/import", dependencies=[Depends(require_admin)], summary="Загрузить строки из .xlsx (формат — как в экспорте)")
+async def import_orders(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    content = await file.read()
+    try:
+        rows = parse_walkin_xlsx(content)
+    except Exception as e:
+        raise HTTPException(400, f"Не удалось прочитать файл: {e}")
+
+    created = 0
+    for row in rows:
+        db.add(WalkInOrder(**row))
+        created += 1
+    db.commit()
+    return {"detail": f"Импортировано строк: {created}"}

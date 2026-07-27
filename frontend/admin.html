@@ -77,10 +77,11 @@
   <div class="sidebar">
     <button class="tab-btn active" data-tab="overview">Обзор</button>
     <button class="tab-btn" data-tab="bookings">Записи</button>
-    <button class="tab-btn" data-tab="walkin">Мойки без записи</button>
+    <button class="tab-btn" data-tab="walkin">Учёт (автомойка)</button>
     <button class="tab-btn" data-tab="drycleaning">Химчистка</button>
     <button class="tab-btn" data-tab="services">Услуги</button>
     <button class="tab-btn" data-tab="schedule">График</button>
+    <button class="tab-btn" data-tab="vk">Новости ВК</button>
     <button class="tab-btn" data-tab="logout" style="color:var(--vermillion);margin-top:16px;">Выйти</button>
   </div>
 
@@ -108,9 +109,9 @@
       </div>
     </div>
 
-    <!-- МОЙКИ БЕЗ ЗАПИСИ -->
+    <!-- УЧЁТ (АВТОМОЙКА) -->
     <div class="tab-page" id="tab-walkin" style="display:none;">
-      <h2>Добавить заказ (без записи)</h2>
+      <h2 id="walkinFormTitle">Добавить заказ (без записи)</h2>
       <div class="card" style="padding:20px;margin-bottom:22px;">
         <div class="form-grid">
           <div class="field"><label>Дата</label><input type="date" id="wDate"></div>
@@ -121,12 +122,21 @@
           <div class="field"><label>Телефон клиента (необязательно)</label><input type="tel" id="wPhone" placeholder="+7900..."></div>
         </div>
         <button class="btn btn-primary" id="wSubmit">Добавить в журнал</button>
+        <button class="btn btn-outline" id="wCancelEdit" style="display:none;">Отменить редактирование</button>
         <div class="auth-status" id="wStatus"></div>
       </div>
-      <div class="toolbar"><h3 style="margin:0;font-size:16px;">Журнал за последние заказы</h3><button class="btn btn-outline" id="refreshWalkin">Обновить</button></div>
+      <div class="toolbar">
+        <h3 style="margin:0;font-size:16px;">Журнал заказов — Учёт (автомойка)</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" id="refreshWalkin">Обновить</button>
+          <button class="btn btn-outline" id="exportWalkin">⬇ Экспорт .xlsx</button>
+          <label class="btn btn-outline" style="cursor:pointer;">⬆ Импорт .xlsx<input type="file" id="importWalkinFile" accept=".xlsx" style="display:none;"></label>
+        </div>
+      </div>
+      <div class="auth-status" id="walkinImportStatus"></div>
       <div class="card" style="padding:6px 16px;overflow-x:auto;">
         <table id="walkinTable">
-          <thead><tr><th>Дата</th><th>Услуга</th><th>Авто</th><th>Доп.</th><th>Сумма</th><th>Контакт</th></tr></thead>
+          <thead><tr><th>Дата</th><th>Услуга</th><th>Авто</th><th>Доп.</th><th>Сумма</th><th>Контакт</th><th>Действия</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -134,7 +144,7 @@
 
     <!-- ХИМЧИСТКА -->
     <div class="tab-page" id="tab-drycleaning" style="display:none;">
-      <h2>Добавить заказ химчистки</h2>
+      <h2 id="dryFormTitle">Добавить заказ химчистки</h2>
       <div class="card" style="padding:20px;margin-bottom:22px;">
         <div class="form-grid">
           <div class="field"><label>Дата</label><input type="date" id="dDate"></div>
@@ -145,12 +155,21 @@
           <div class="field"><label>Телефон (необязательно)</label><input type="tel" id="dPhone" placeholder="+7900..."></div>
         </div>
         <button class="btn btn-primary" id="dSubmit">Добавить заказ</button>
+        <button class="btn btn-outline" id="dCancelEdit" style="display:none;">Отменить редактирование</button>
         <div class="auth-status" id="dStatus"></div>
       </div>
-      <div class="toolbar"><h3 style="margin:0;font-size:16px;">Журнал заказов химчистки</h3><button class="btn btn-outline" id="refreshDry">Обновить</button></div>
+      <div class="toolbar">
+        <h3 style="margin:0;font-size:16px;">Журнал заказов химчистки</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" id="refreshDry">Обновить</button>
+          <button class="btn btn-outline" id="exportDry">⬇ Экспорт .xlsx</button>
+          <label class="btn btn-outline" style="cursor:pointer;">⬆ Импорт .xlsx<input type="file" id="importDryFile" accept=".xlsx" style="display:none;"></label>
+        </div>
+      </div>
+      <div class="auth-status" id="dryImportStatus"></div>
       <div class="card" style="padding:6px 16px;overflow-x:auto;">
         <table id="dryTable">
-          <thead><tr><th>Дата</th><th>Авто</th><th>Работы</th><th>Сумма</th><th>З/п мастера</th></tr></thead>
+          <thead><tr><th>Дата</th><th>Авто</th><th>Работы</th><th>Сумма</th><th>З/п мастера</th><th>Действия</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -178,6 +197,23 @@
       </div>
       <p class="text-muted" style="font-size:13px;margin-top:14px;">Простановка смен по дням — через API (`PUT /schedule`), визуальный календарь — следующим шагом.</p>
     </div>
+
+    <!-- НОВОСТИ ВК -->
+    <div class="tab-page" id="tab-vk" style="display:none;">
+      <h2>Новости из группы ВКонтакте</h2>
+      <div class="card" style="padding:20px;margin-bottom:22px;">
+        <div class="form-grid" style="grid-template-columns:1fr 1fr auto;">
+          <div class="field"><label>Домен группы</label><input type="text" id="vkDomain" placeholder="carwash_one_zkm"></div>
+          <div class="field"><label>Access token</label><input type="password" id="vkToken" placeholder="vk1.a...."></div>
+          <button class="btn btn-dark" id="vkSaveSettings">Сохранить</button>
+        </div>
+        <button class="btn btn-primary" id="vkSyncBtn">Синхронизировать посты сейчас</button>
+        <span class="text-muted" style="font-size:12.5px;margin-left:10px;" id="vkLastSync"></span>
+        <div class="auth-status" id="vkStatus"></div>
+      </div>
+      <h3 style="font-size:16px;margin-bottom:12px;">Последние синхронизированные посты</h3>
+      <div class="gallery-grid" id="vkPostsPreview" style="grid-auto-rows:auto;"></div>
+    </div>
   </div>
 </div>
 
@@ -202,7 +238,7 @@
   function showPanel() {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('panel').style.display = 'grid';
-    loadOverview(); loadBookings(); loadWalkin(); loadDry(); loadServices(); loadEmployees();
+    loadOverview(); loadBookings(); loadWalkin(); loadDry(); loadServices(); loadEmployees(); loadVk();
   }
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -253,14 +289,59 @@
   }
   document.getElementById('refreshBookings').addEventListener('click', loadBookings);
 
+  let walkinEditingId = null;
+
   async function loadWalkin() {
     try {
       const rows = await api('/walk-in');
-      document.querySelector('#walkinTable tbody').innerHTML = rows.slice(0, 50).map(o => `
-        <tr><td>${o.order_date}</td><td>${o.service_name_raw}</td><td>${o.car_model || '—'}</td><td>${o.extra_service || '—'}</td><td>${Math.round(o.amount)} ₽</td><td>${o.contact_name || '—'}</td></tr>`).join('');
+      document.querySelector('#walkinTable tbody').innerHTML = rows.slice(0, 100).map(o => `
+        <tr>
+          <td>${o.order_date}</td><td>${o.service_name_raw}</td><td>${o.car_model || '—'}</td>
+          <td>${o.extra_service || '—'}</td><td>${Math.round(o.amount)} ₽</td><td>${o.contact_name || '—'}</td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-edit-walkin="${o.id}">Изменить</button>
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;color:var(--vermillion);border-color:var(--vermillion);" data-delete-walkin="${o.id}">Удалить</button>
+          </td>
+        </tr>`).join('');
+
+      document.querySelectorAll('[data-edit-walkin]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const o = rows.find(r => r.id == btn.dataset.editWalkin);
+          if (!o) return;
+          walkinEditingId = o.id;
+          document.getElementById('wDate').value = o.order_date;
+          document.getElementById('wService').value = o.service_name_raw;
+          document.getElementById('wCar').value = o.car_model || '';
+          document.getElementById('wExtra').value = o.extra_service || '';
+          document.getElementById('wAmount').value = o.amount;
+          document.getElementById('wPhone').value = '';
+          document.getElementById('walkinFormTitle').textContent = `Редактирование заказа #${o.id}`;
+          document.getElementById('wSubmit').textContent = 'Сохранить изменения';
+          document.getElementById('wCancelEdit').style.display = 'inline-flex';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+      document.querySelectorAll('[data-delete-walkin]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Удалить эту запись из журнала?')) return;
+          try {
+            await api('/walk-in/' + btn.dataset.deleteWalkin, { method: 'DELETE' });
+            loadWalkin();
+          } catch (e) { alert('Не удалось удалить: ' + e.message); }
+        });
+      });
     } catch (e) {}
   }
   document.getElementById('refreshWalkin').addEventListener('click', loadWalkin);
+
+  function resetWalkinForm() {
+    walkinEditingId = null;
+    ['wDate','wService','wCar','wExtra','wAmount','wPhone'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('walkinFormTitle').textContent = 'Добавить заказ (без записи)';
+    document.getElementById('wSubmit').textContent = 'Добавить в журнал';
+    document.getElementById('wCancelEdit').style.display = 'none';
+  }
+  document.getElementById('wCancelEdit').addEventListener('click', resetWalkinForm);
 
   const wStatusEl = document.getElementById('wStatus');
   document.getElementById('wSubmit').addEventListener('click', async () => {
@@ -276,20 +357,101 @@
       wStatusEl.textContent = 'Заполните дату, услугу и сумму'; wStatusEl.className = 'auth-status err'; return;
     }
     try {
-      await api('/walk-in', { method: 'POST', body: JSON.stringify(body) });
-      wStatusEl.textContent = 'Добавлено'; wStatusEl.className = 'auth-status ok';
+      if (walkinEditingId) {
+        const { client_phone, ...updateBody } = body;
+        await api('/walk-in/' + walkinEditingId, { method: 'PATCH', body: JSON.stringify(updateBody) });
+        wStatusEl.textContent = 'Изменения сохранены'; wStatusEl.className = 'auth-status ok';
+        resetWalkinForm();
+      } else {
+        await api('/walk-in', { method: 'POST', body: JSON.stringify(body) });
+        wStatusEl.textContent = 'Добавлено'; wStatusEl.className = 'auth-status ok';
+      }
       loadWalkin();
     } catch (e) { wStatusEl.textContent = e.message; wStatusEl.className = 'auth-status err'; }
   });
 
+  async function downloadFile(path, filename) {
+    const res = await fetch(API_BASE + path, { headers: { 'Authorization': 'Bearer ' + getAuthToken() } });
+    if (!res.ok) { alert('Не удалось скачать файл'); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById('exportWalkin').addEventListener('click', () => downloadFile('/walk-in/export', 'uchet-avtomoyka.xlsx'));
+
+  const walkinImportStatusEl = document.getElementById('walkinImportStatus');
+  document.getElementById('importWalkinFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await fetch(API_BASE + '/walk-in/import', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + getAuthToken() }, body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Ошибка импорта');
+      walkinImportStatusEl.textContent = data.detail; walkinImportStatusEl.className = 'auth-status ok';
+      loadWalkin();
+    } catch (err) { walkinImportStatusEl.textContent = err.message; walkinImportStatusEl.className = 'auth-status err'; }
+    e.target.value = '';
+  });
+
+  let dryEditingId = null;
+
   async function loadDry() {
     try {
       const rows = await api('/dry-cleaning/orders');
-      document.querySelector('#dryTable tbody').innerHTML = rows.slice(0, 50).map(o => `
-        <tr><td>${o.order_date}</td><td>${o.car_model}</td><td>${o.works_description}</td><td>${Math.round(o.amount)} ₽</td><td>${o.employee_payout != null ? Math.round(o.employee_payout) + ' ₽' : '—'}</td></tr>`).join('');
+      document.querySelector('#dryTable tbody').innerHTML = rows.slice(0, 100).map(o => `
+        <tr>
+          <td>${o.order_date}</td><td>${o.car_model}</td><td>${o.works_description}</td>
+          <td>${Math.round(o.amount)} ₽</td><td>${o.employee_payout != null ? Math.round(o.employee_payout) + ' ₽' : '—'}</td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-edit-dry="${o.id}">Изменить</button>
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;color:var(--vermillion);border-color:var(--vermillion);" data-delete-dry="${o.id}">Удалить</button>
+          </td>
+        </tr>`).join('');
+
+      document.querySelectorAll('[data-edit-dry]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const o = rows.find(r => r.id == btn.dataset.editDry);
+          if (!o) return;
+          dryEditingId = o.id;
+          document.getElementById('dDate').value = o.order_date;
+          document.getElementById('dCar').value = o.car_model;
+          document.getElementById('dWorks').value = o.works_description;
+          document.getElementById('dAmount').value = o.amount;
+          document.getElementById('dPayout').value = o.employee_payout || '';
+          document.getElementById('dPhone').value = o.phone || '';
+          document.getElementById('dryFormTitle').textContent = `Редактирование заказа #${o.id}`;
+          document.getElementById('dSubmit').textContent = 'Сохранить изменения';
+          document.getElementById('dCancelEdit').style.display = 'inline-flex';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+      document.querySelectorAll('[data-delete-dry]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Удалить этот заказ химчистки?')) return;
+          try {
+            await api('/dry-cleaning/orders/' + btn.dataset.deleteDry, { method: 'DELETE' });
+            loadDry();
+          } catch (e) { alert('Не удалось удалить: ' + e.message); }
+        });
+      });
     } catch (e) {}
   }
   document.getElementById('refreshDry').addEventListener('click', loadDry);
+
+  function resetDryForm() {
+    dryEditingId = null;
+    ['dDate','dCar','dWorks','dAmount','dPayout','dPhone'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('dryFormTitle').textContent = 'Добавить заказ химчистки';
+    document.getElementById('dSubmit').textContent = 'Добавить заказ';
+    document.getElementById('dCancelEdit').style.display = 'none';
+  }
+  document.getElementById('dCancelEdit').addEventListener('click', resetDryForm);
 
   const dStatusEl = document.getElementById('dStatus');
   document.getElementById('dSubmit').addEventListener('click', async () => {
@@ -305,10 +467,36 @@
       dStatusEl.textContent = 'Заполните дату, авто, работы и сумму'; dStatusEl.className = 'auth-status err'; return;
     }
     try {
-      await api('/dry-cleaning/orders', { method: 'POST', body: JSON.stringify(body) });
-      dStatusEl.textContent = 'Добавлено'; dStatusEl.className = 'auth-status ok';
+      if (dryEditingId) {
+        await api('/dry-cleaning/orders/' + dryEditingId, { method: 'PATCH', body: JSON.stringify(body) });
+        dStatusEl.textContent = 'Изменения сохранены'; dStatusEl.className = 'auth-status ok';
+        resetDryForm();
+      } else {
+        await api('/dry-cleaning/orders', { method: 'POST', body: JSON.stringify(body) });
+        dStatusEl.textContent = 'Добавлено'; dStatusEl.className = 'auth-status ok';
+      }
       loadDry();
     } catch (e) { dStatusEl.textContent = e.message; dStatusEl.className = 'auth-status err'; }
+  });
+
+  document.getElementById('exportDry').addEventListener('click', () => downloadFile('/dry-cleaning/orders/export', 'himchistka.xlsx'));
+
+  const dryImportStatusEl = document.getElementById('dryImportStatus');
+  document.getElementById('importDryFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await fetch(API_BASE + '/dry-cleaning/orders/import', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + getAuthToken() }, body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Ошибка импорта');
+      dryImportStatusEl.textContent = data.detail; dryImportStatusEl.className = 'auth-status ok';
+      loadDry();
+    } catch (err) { dryImportStatusEl.textContent = err.message; dryImportStatusEl.className = 'auth-status err'; }
+    e.target.value = '';
   });
 
   async function loadServices() {
@@ -327,6 +515,49 @@
       document.querySelector('#employeesTable tbody').innerHTML = rows.map(e => `<tr><td>${e.full_name}</td><td>${e.position}</td></tr>`).join('');
     } catch (e) {}
   }
+
+  const vkStatusEl = document.getElementById('vkStatus');
+  async function loadVk() {
+    try {
+      const s = await api('/vk/settings');
+      document.getElementById('vkDomain').value = s.group_domain || '';
+      document.getElementById('vkLastSync').textContent = s.last_synced_at
+        ? 'Последний синк: ' + new Date(s.last_synced_at).toLocaleString('ru-RU')
+        : 'Синхронизации ещё не было';
+    } catch (e) {}
+    try {
+      const posts = await api('/vk/posts');
+      document.getElementById('vkPostsPreview').innerHTML = posts.length ? posts.map(p => `
+        <div class="gallery-item" style="height:auto;aspect-ratio:auto;">
+          ${p.photo_urls[0] ? `<img src="${p.photo_urls[0]}" style="aspect-ratio:16/10;object-fit:cover;">` : ''}
+          <div style="padding:10px;background:var(--washi-card);border:1px solid var(--line);border-top:none;">
+            <p style="font-size:12.5px;color:var(--ink-soft);max-height:60px;overflow:hidden;">${(p.text || '').slice(0,140)}</p>
+            <span style="font-size:11px;color:var(--ink-soft-2);">${p.published_at ? new Date(p.published_at).toLocaleDateString('ru-RU') : ''} · ♥ ${p.likes}</span>
+          </div>
+        </div>`).join('') : '<p class="text-muted" style="font-size:13px;">Постов ещё нет — сохрани настройки и нажми «Синхронизировать».</p>';
+    } catch (e) {}
+  }
+
+  document.getElementById('vkSaveSettings').addEventListener('click', async () => {
+    const group_domain = document.getElementById('vkDomain').value.trim();
+    const access_token = document.getElementById('vkToken').value.trim();
+    const body = { group_domain };
+    if (access_token) body.access_token = access_token;
+    try {
+      await api('/vk/settings', { method: 'PUT', body: JSON.stringify(body) });
+      vkStatusEl.textContent = 'Настройки сохранены'; vkStatusEl.className = 'auth-status ok';
+      document.getElementById('vkToken').value = '';
+    } catch (e) { vkStatusEl.textContent = e.message; vkStatusEl.className = 'auth-status err'; }
+  });
+
+  document.getElementById('vkSyncBtn').addEventListener('click', async () => {
+    vkStatusEl.textContent = 'Синхронизация...'; vkStatusEl.className = 'auth-status';
+    try {
+      const res = await api('/vk/sync', { method: 'POST' });
+      vkStatusEl.textContent = res.detail; vkStatusEl.className = 'auth-status ok';
+      loadVk();
+    } catch (e) { vkStatusEl.textContent = e.message; vkStatusEl.className = 'auth-status err'; }
+  });
 
   if (getAuthToken() && getAuthRole() !== 'client') { showPanel(); }
 </script>

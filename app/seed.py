@@ -9,7 +9,7 @@
 время — это только стартовые данные, чтобы сайт и админка не были пустыми.
 """
 from app.database import SessionLocal, Base, engine
-from app.models import Service, ServiceCategory, Employee, User, UserRole, GisSettings
+from app.models import Service, ServiceCategory, Employee, User, UserRole, GisSettings, VkSettings
 from app.security import hash_password
 from app.config import settings
 
@@ -79,6 +79,13 @@ def seed():
 
         if not db.query(GisSettings).first():
             db.add(GisSettings(org_url="https://go.2gis.com/TnzMN"))
+            db.commit()
+
+        if not db.query(VkSettings).first():
+            db.add(VkSettings(
+                group_domain=settings.vk_group_domain or "carwash_one_zkm",
+                access_token=settings.vk_access_token,
+            ))
             db.commit()
 
         print("Готово: услуги, сотрудники, админ и настройки 2ГИС созданы (если их ещё не было).")

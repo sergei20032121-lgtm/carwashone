@@ -265,3 +265,31 @@ class GisReview(Base):
     text = Column(Text, nullable=True)
     published_at = Column(DateTime, nullable=True)
     fetched_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ---------------------------------------------------------------------------
+# ВКонтакте — настройки группы + кэш постов (новости на сайт)
+# ---------------------------------------------------------------------------
+
+class VkSettings(Base):
+    """Единственная запись-настройка: домен группы и токен доступа VK API."""
+    __tablename__ = "vk_settings"
+
+    id = Column(Integer, primary_key=True)
+    group_domain = Column(String(120), nullable=True)   # например 'carwash_one_zkm'
+    access_token = Column(String(255), nullable=True)    # НЕ храним в git, только в БД/переменных окружения
+    last_synced_at = Column(DateTime, nullable=True)
+
+
+class VkPost(Base):
+    """Кэш постов со стены группы — рендерится как сетка новостей на сайте."""
+    __tablename__ = "vk_posts"
+
+    id = Column(Integer, primary_key=True)
+    vk_post_id = Column(Integer, unique=True, nullable=False)
+    text = Column(Text, nullable=True)
+    photo_urls = Column(JSON, default=list)   # ссылки на прикреплённые фото поста
+    likes = Column(Integer, default=0)
+    published_at = Column(DateTime, nullable=True)
+    is_pinned = Column(Boolean, default=False)
+    fetched_at = Column(DateTime, default=datetime.utcnow)

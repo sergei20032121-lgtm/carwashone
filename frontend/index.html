@@ -110,6 +110,7 @@
       <a href="#services">Мойка</a>
       <a href="#dry-cleaning">Химчистка</a>
       <a href="#loyalty">Бонусы</a>
+      <a href="#news">Новости</a>
       <a href="cabinet.html">Кабинет</a>
       <a href="#contacts">Контакты</a>
     </div>
@@ -275,6 +276,19 @@
   </div>
 </section>
 
+<section id="news" style="background:var(--washi-2);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="kicker">Новости</div>
+      <h2>Что у нас происходит</h2>
+      <p>Последние посты из нашей группы ВКонтакте — акции, новые услуги, фото готовых машин.</p>
+    </div>
+    <div class="gallery-grid reveal" id="newsGrid" style="grid-auto-rows:auto;">
+      <p class="text-muted" style="font-size:13.5px;">Загружаем новости…</p>
+    </div>
+  </div>
+</section>
+
 <div class="admin-strip">
   <div class="wrap">
     <p>Управление сайтом — записи, химчистка, график, статистика — в отдельной админ-панели.</p>
@@ -389,6 +403,27 @@
     } catch (e) {}
   }
 
+  async function loadNews() {
+    const grid = document.getElementById('newsGrid');
+    try {
+      const posts = await api('/vk/posts');
+      if (!posts.length) {
+        grid.innerHTML = '<p class="text-muted" style="font-size:13.5px;">Новостей пока нет.</p>';
+        return;
+      }
+      grid.innerHTML = posts.slice(0, 6).map(p => `
+        <div class="gallery-item span-2" style="height:auto;position:relative;">
+          ${p.photo_urls[0] ? `<img src="${p.photo_urls[0]}" class="photo-grade" style="aspect-ratio:16/10;object-fit:cover;">` : ''}
+          <div style="padding:14px 16px;background:var(--washi-card);border:1px solid var(--line);border-top:none;border-radius:0 0 14px 14px;">
+            <p style="font-size:13.5px;color:var(--sumi);margin-bottom:8px;">${(p.text || '').slice(0, 220)}${(p.text||'').length > 220 ? '…' : ''}</p>
+            <span style="font-size:12px;color:var(--ink-soft-2);">${p.published_at ? new Date(p.published_at).toLocaleDateString('ru-RU') : ''} · ♥ ${p.likes}</span>
+          </div>
+        </div>`).join('');
+    } catch (e) {
+      grid.innerHTML = '<p class="text-muted" style="font-size:13.5px;">Новости пока недоступны.</p>';
+    }
+  }
+
   const stepPhone = document.getElementById('stepPhone');
   const stepCode = document.getElementById('stepCode');
   const stepBooking = document.getElementById('stepBooking');
@@ -445,6 +480,7 @@
 
   loadServices();
   loadGis();
+  loadNews();
 </script>
 </body>
 </html>

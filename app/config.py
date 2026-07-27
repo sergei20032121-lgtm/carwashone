@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     twogis_org_id: str = ""
     twogis_org_url: str = ""
 
+    # ВКонтакте — токен НЕ коммитим в git, задаётся через .env / переменные окружения на сервере
+    vk_group_domain: str = ""
+    vk_access_token: str = ""
+
     admin_phone: str = "+79990000000"
     admin_password: str = "change-me"
 

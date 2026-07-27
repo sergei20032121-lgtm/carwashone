@@ -149,6 +149,18 @@ class WalkInOrderOut(BaseModel):
         from_attributes = True
 
 
+class WalkInOrderUpdate(BaseModel):
+    order_date: Optional[date] = None
+    service_name_raw: Optional[str] = None
+    service_id: Optional[int] = None
+    extra_service: Optional[str] = None
+    car_model: Optional[str] = None
+    amount: Optional[float] = None
+    contact_name: Optional[str] = None
+    employee_id: Optional[int] = None
+    time_note: Optional[str] = None
+
+
 # ---------- Dry cleaning ----------
 
 class DryCleaningOrderCreate(BaseModel):
@@ -175,6 +187,16 @@ class DryCleaningOrderOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class DryCleaningOrderUpdate(BaseModel):
+    order_date: Optional[date] = None
+    car_model: Optional[str] = None
+    works_description: Optional[str] = None
+    phone: Optional[str] = None
+    amount: Optional[float] = None
+    employee_payout: Optional[float] = None
+    employee_id: Optional[int] = None
 
 
 # ---------- Schedule ----------
@@ -252,3 +274,30 @@ class StatsSummary(BaseModel):
     dry_cleaning_orders_count: int
     dry_cleaning_revenue: float
     dry_cleaning_payouts: float
+
+
+# ---------- VK ----------
+
+class VkSettingsOut(BaseModel):
+    group_domain: Optional[str]
+    last_synced_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class VkSettingsUpdate(BaseModel):
+    group_domain: Optional[str] = None
+    access_token: Optional[str] = None
+
+
+class VkPostOut(BaseModel):
+    vk_post_id: int
+    text: Optional[str]
+    photo_urls: List[str] = []
+    likes: int
+    published_at: Optional[datetime]
+    is_pinned: bool
+
+    class Config:
+        from_attributes = True
