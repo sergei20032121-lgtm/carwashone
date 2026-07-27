@@ -61,3 +61,88 @@ function animateCountOnView(el, target, opts = {}) {
   }, { threshold: 0.3 });
   io.observe(el);
 }
+
+// ---- Reveal со стаггером: элементы с классом .reveal внутри контейнера
+// появляются по очереди, а не все разом. Вызывать после того, как DOM готов
+// (включая динамически отрисованные сетки — сервисы, галерею и т.п.)
+function initRevealObserver(selector = '.reveal') {
+  const els = document.querySelectorAll(selector);
+  els.forEach((el, i) => {
+    if (!el.style.getPropertyValue('--d')) {
+      el.style.setProperty('--d', Math.min(i * 0.06, 0.4) + 's');
+    }
+  });
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  els.forEach(el => io.observe(el));
+  return io;
+}
+
+// ---- Лайтбокс: клик по любой картинке внутри .gallery-item открывает
+// полноэкранный просмотр. Работает и с картинками, добавленными позже (делегирование).
+function initLightbox() {
+  if (document.getElementById('lightboxOverlay')) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay';
+  overlay.id = 'lightboxOverlay';
+  overlay.innerHTML = `
+    <button class="lightbox-close" aria-label="Закрыть">✕</button>
+    <img src="" alt="">
+    <div class="lightbox-caption"></div>
+  `;
+  document.body.appendChild(overlay);
+  const imgEl = overlay.querySelector('img');
+  const capEl = overlay.querySelector('.lightbox-caption');
+
+  function close() { overlay.classList.remove('open'); }
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelector('.lightbox-close').addEventListener('click', close);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  document.addEventListener('click', (e) => {
+    const item = e.target.closest('.gallery-item');
+    if (!item) return;
+    const img = item.querySelector('img');
+    if (!img) return;
+    const cap = item.querySelector('.gallery-cap');
+    imgEl.src = img.src;
+    imgEl.alt = img.alt || '';
+    capEl.textContent = cap ? cap.textContent : (img.alt || '');
+    overlay.classList.add('open');
+  });
+}
+
+// ---- Scroll-spy: подсвечивает активный пункт навигации по текущей секции
+function initScrollSpy(navSelector = '.navlinks a', sectionSelector = 'section[id]') {
+  const links = document.querySelectorAll(navSelector);
+  const sections = document.querySelectorAll(sectionSelector);
+  if (!links.length || !sections.length) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + entry.target.id));
+      }
+    });
+  }, { threshold: 0.4, rootMargin: '-80px 0px -60% 0px' });
+  sections.forEach(s => io.observe(s));
+}
+
+// ---- Курсор-подсветка: следует за мышью внутри контейнера (обычно .hero)
+function initCursorGlow(containerSelector) {
+  const container = document.querySelector(containerSelector);
+  if (!container) return;
+  const glow = document.createElement('div');
+  glow.className = 'cursor-glow';
+  container.prepend(glow);
+  container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    glow.style.setProperty('--x', (e.clientX - rect.left) + 'px');
+    glow.style.setProperty('--y', (e.clientY - rect.top) + 'px');
+  });
+}

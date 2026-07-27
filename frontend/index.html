@@ -210,6 +210,14 @@
       <div class="gallery-item"><img src="static/img/gallery/07-iron-remover.jpg" alt="Очиститель Iron Remover" loading="lazy" class="photo-grade"><span class="gallery-cap">Очистка кузова от металлических вкраплений</span></div>
       <div class="gallery-item span-2"><img src="static/img/gallery/05-engine-before-after.jpg" alt="Мойка подкапотного пространства до и после" loading="lazy" class="photo-grade"><span class="gallery-cap">Подкапотное пространство — до и после</span></div>
       <div class="gallery-item span-2"><img src="static/img/gallery/06-wheel-before-after.jpg" alt="Диски до и после мойки" loading="lazy" class="photo-grade"><span class="gallery-cap">Диски и арки — отдельным этапом</span></div>
+      <div class="gallery-item"><img src="static/img/gallery/08-foam-bmw.jpg" alt="Пена на BMW" loading="lazy" class="photo-grade"><span class="gallery-cap">Активная пена в арках и на дисках</span></div>
+      <div class="gallery-item"><img src="static/img/gallery/09-detail-chemistry.jpg" alt="Химия Detail для салона" loading="lazy" class="photo-grade"><span class="gallery-cap">Профессиональная химия Detail</span></div>
+      <div class="gallery-item span-2 hanko-anchor" style="position:relative;">
+        <img src="static/img/gallery/11-markii-sign.jpg" alt="Вывеска Автомойка №1 и Mark II" loading="lazy" class="photo-grade">
+        <span class="gallery-cap">Наш бокс — ул. Магистральная, 90</span>
+      </div>
+      <div class="gallery-item"><img src="static/img/gallery/12-black-sedan-hre.jpg" alt="Тюнинг-седан на дисках HRE" loading="lazy" class="photo-grade"><span class="gallery-cap">Диски HRE — моем аккуратно</span></div>
+      <div class="gallery-item"><img src="static/img/gallery/10-iron-remover.jpg" alt="Очиститель Iron Remover на кузове" loading="lazy" class="photo-grade"><span class="gallery-cap">Реагент против металлических вкраплений</span></div>
     </div>
   </div>
 </section>
@@ -243,9 +251,16 @@
       <div class="skeleton skeleton-card" style="background:rgba(255,255,255,0.06);"></div>
       <div class="skeleton skeleton-card" style="background:rgba(255,255,255,0.06);"></div>
     </div>
-    <div class="photo-note">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 15l-5-5-4 4-3-3-6 6"/></svg>
-      <span>Здесь появится галерея «до / после» по конкретным заказам химчистки.</span>
+    <div class="section-head" style="margin-top:44px;margin-bottom:26px;">
+      <h3 style="font-family:'Spectral',serif;font-size:19px;color:#fff;">До / после</h3>
+      <p style="color:#C9C2AF;font-size:14px;margin-top:6px;">Реальные заказы наших мастеров — без фильтров и постановки.</p>
+    </div>
+    <div class="gallery-grid reveal">
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/03-console.jpg" alt="Центральная консоль до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Салон целиком — до и после</span></div>
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/01-carpet.jpg" alt="Ковролин до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Ковролин заднего ряда</span></div>
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/02-door-panel.jpg" alt="Обшивка двери до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Обшивка двери и стеклоподъёмники</span></div>
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/04-seatback.jpg" alt="Спинка сиденья до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Спинка заднего сиденья</span></div>
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/05-sill.jpg" alt="Порог и кнопки лючка до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Порог и блок кнопок лючка</span></div>
     </div>
   </div>
 </section>
@@ -346,7 +361,8 @@
       let inner = filled ? pineappleIcon : '';
       if (!filled && i === 6) inner = '<span class="reward-label">50%</span>';
       if (!filled && i === 12) inner = '<span class="reward-label">100%</span>';
-      html += `<div class="punch-slot ${filled ? 'filled' : ''} ${rewardClass}"><span class="num">${i}</span>${inner}</div>`;
+      const style = filled ? `style="--d:${(i * 0.06).toFixed(2)}s"` : '';
+      html += `<div class="punch-slot ${filled ? 'filled' : ''} ${rewardClass}" ${style}><span class="num">${i}</span>${inner}</div>`;
     }
     el.innerHTML = html;
   }
@@ -475,8 +491,10 @@
     } catch (e) { setStatus('Не удалось создать запись', 'err'); }
   });
 
-  const io = new IntersectionObserver((entries)=>{entries.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});},{threshold:.15});
-  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  initRevealObserver();
+  initLightbox();
+  initScrollSpy();
+  initCursorGlow('.hero');
 
   loadServices();
   loadGis();

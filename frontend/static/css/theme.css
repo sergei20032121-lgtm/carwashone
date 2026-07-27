@@ -22,6 +22,8 @@
   --radius:16px;
   --shadow:0 24px 60px -28px rgba(20,15,5,0.35);
   --shadow-soft:0 10px 30px -14px rgba(20,15,5,0.22);
+  --ease:cubic-bezier(.16,1,.3,1);   /* премиальный easing — быстрый старт, мягкое затухание */
+  --ease-soft:cubic-bezier(.4,0,.2,1);
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -83,20 +85,26 @@ section{padding:86px 0;}
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   padding:13px 26px;border-radius:8px;font-weight:700;font-size:14.5px;
-  transition:transform .16s ease, box-shadow .16s ease, background .16s ease;
-  letter-spacing:0.2px;
+  transition:transform .35s var(--ease), box-shadow .35s var(--ease), background .25s var(--ease-soft);
+  letter-spacing:0.2px;position:relative;overflow:hidden;isolation:isolate;
 }
+.btn::before{
+  content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.28) 50%, transparent 70%);
+  transform:translateX(-120%);transition:transform .6s var(--ease);
+}
+.btn:hover::before{transform:translateX(120%);}
 .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 .btn:active{transform:scale(0.97);}
 .btn-primary{background:var(--vermillion);color:#fff;box-shadow:0 12px 24px -12px rgba(190,59,59,0.55);}
-.btn-primary:hover{background:var(--vermillion-dark);transform:translateY(-1px);}
+.btn-primary:hover{background:var(--vermillion-dark);transform:translateY(-2px);box-shadow:0 16px 32px -12px rgba(190,59,59,0.65);}
 .btn-primary:active{transform:translateY(0) scale(0.97);}
 .btn-ghost{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.28);}
-.btn-ghost:hover{background:rgba(255,255,255,0.16);}
+.btn-ghost:hover{background:rgba(255,255,255,0.16);transform:translateY(-2px);}
 .btn-dark{background:var(--sumi);color:#fff;}
-.btn-dark:hover{transform:translateY(-1px);background:#22262E;}
+.btn-dark:hover{transform:translateY(-2px);background:#22262E;}
 .btn-outline{background:transparent;border:1.5px solid var(--sumi);color:var(--sumi);}
-.btn-outline:hover{background:var(--sumi);color:#fff;}
+.btn-outline:hover{background:var(--sumi);color:#fff;transform:translateY(-2px);}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none !important;}
 
 /* ---------- карточки / поля форм ---------- */
@@ -110,18 +118,39 @@ section{padding:86px 0;}
 .field input:focus, .field select:focus{outline:none;border-color:var(--jade);}
 
 /* ---------- reveal-анимация при скролле ---------- */
-.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s ease;}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s var(--ease), transform .8s var(--ease);transition-delay:var(--d,0s);}
 .reveal.in{opacity:1;transform:translateY(0);}
 
 /* ---------- галерея ---------- */
 .gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:170px;gap:14px;}
 .gallery-item{position:relative;border-radius:14px;overflow:hidden;grid-column:span 1;}
 .gallery-item.span-2{grid-column:span 2;}
-.gallery-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;}
-.gallery-item:hover img{transform:scale(1.06);}
-.gallery-cap{position:absolute;left:0;right:0;bottom:0;padding:10px 12px 8px;background:linear-gradient(0deg, rgba(0,0,0,0.72), transparent);color:#fff;font-size:12.5px;font-weight:600;}
+.gallery-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .7s var(--ease);}
+.gallery-item:hover img{transform:scale(1.08);}
+.gallery-cap{position:absolute;left:0;right:0;bottom:0;padding:10px 12px 8px;background:linear-gradient(0deg, rgba(0,0,0,0.72), transparent);color:#fff;font-size:12.5px;font-weight:600;transition:transform .4s var(--ease);}
 @media (max-width:900px){.gallery-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:150px;}}
 @media (max-width:560px){.gallery-grid{grid-template-columns:1fr;}.gallery-item.span-2{grid-column:span 1;}}
+
+/* ---------- лайтбокс для просмотра фото крупно ---------- */
+.lightbox-overlay{
+  position:fixed;inset:0;z-index:2000;background:rgba(15,12,8,0.92);
+  display:flex;align-items:center;justify-content:center;padding:40px;
+  opacity:0;pointer-events:none;transition:opacity .35s var(--ease-soft);
+}
+.lightbox-overlay.open{opacity:1;pointer-events:auto;}
+.lightbox-overlay img{
+  max-width:min(90vw, 1100px);max-height:85vh;border-radius:10px;
+  box-shadow:0 40px 100px -20px rgba(0,0,0,0.6);
+  transform:scale(0.94);transition:transform .35s var(--ease);
+}
+.lightbox-overlay.open img{transform:scale(1);}
+.lightbox-close{
+  position:absolute;top:24px;right:28px;width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,0.1);color:#fff;font-size:22px;display:flex;
+  align-items:center;justify-content:center;transition:background .2s;
+}
+.lightbox-close:hover{background:rgba(255,255,255,0.22);}
+.lightbox-caption{position:absolute;bottom:28px;left:0;right:0;text-align:center;color:#E7DFCB;font-size:13.5px;}
 
 /* ---------- пуш-карта с ананасами ---------- */
 .punch-card{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
@@ -130,7 +159,8 @@ section{padding:86px 0;}
 .punch-slot.reward-50{border-color:var(--vermillion);}
 .punch-slot.reward-100{border-color:var(--gold);}
 .punch-slot .reward-label{font-size:11px;font-weight:800;color:var(--sumi);}
-.punch-slot.filled{background:rgba(30,138,114,0.12);border-color:var(--jade);}
+.punch-slot.filled{background:rgba(30,138,114,0.12);border-color:var(--jade);animation:pineapplePop .5s var(--ease) backwards;animation-delay:var(--d,0s);}
+@keyframes pineapplePop{0%{transform:scale(0.4);opacity:0;}60%{transform:scale(1.15);opacity:1;}100%{transform:scale(1);}}
 .punch-slot svg{width:54%;height:54%;color:var(--jade-dark);}
 .punch-card.on-dark .punch-slot{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.22);}
 .punch-card.on-dark .punch-slot .num{background:var(--sumi);color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.2);}
@@ -143,10 +173,42 @@ section{padding:86px 0;}
 .badge.status-done{color:var(--jade-dark);}
 .badge.status-cancelled{color:var(--vermillion);}
 
+/* ---------- стаггер: карточки внутри reveal-секции проявляются по очереди ---------- */
+.reveal .service-card, .reveal .gallery-item, .reveal .tier-card{
+  opacity:0;transform:translateY(18px) scale(0.98);
+  transition:opacity .6s var(--ease), transform .6s var(--ease);
+}
+.reveal.in .service-card, .reveal.in .gallery-item, .reveal.in .tier-card{opacity:1;transform:translateY(0) scale(1);}
+.reveal.in .service-card:nth-child(1), .reveal.in .gallery-item:nth-child(1){transition-delay:.05s;}
+.reveal.in .service-card:nth-child(2), .reveal.in .gallery-item:nth-child(2){transition-delay:.11s;}
+.reveal.in .service-card:nth-child(3), .reveal.in .gallery-item:nth-child(3){transition-delay:.17s;}
+.reveal.in .service-card:nth-child(4), .reveal.in .gallery-item:nth-child(4){transition-delay:.23s;}
+.reveal.in .gallery-item:nth-child(5){transition-delay:.29s;}
+.reveal.in .gallery-item:nth-child(6){transition-delay:.35s;}
+.reveal.in .gallery-item:nth-child(7){transition-delay:.41s;}
+.reveal.in .gallery-item:nth-child(n+8){transition-delay:.46s;}
+
 /* ---------- утилиты ---------- */
 .text-muted{color:var(--ink-soft);}
 .divider{height:1px;background:var(--line);margin:24px 0;border:none;}
 .divider-gold{height:1px;background:linear-gradient(90deg, var(--gold), transparent);margin:24px 0;border:none;}
+
+/* ---------- курсор-подсветка в hero (следует за мышью, ненавязчиво) ---------- */
+.cursor-glow{
+  position:absolute;width:480px;height:480px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle, rgba(190,59,59,0.16), transparent 70%);
+  transform:translate(-50%,-50%);left:var(--x,50%);top:var(--y,30%);
+  transition:left .5s var(--ease-soft), top .5s var(--ease-soft);
+  z-index:0;
+}
+
+/* ---------- навигация: подчёркивание активного пункта ---------- */
+.navlinks a{position:relative;}
+.navlinks a::after{
+  content:"";position:absolute;left:0;bottom:-6px;width:0;height:1.5px;
+  background:currentColor;transition:width .3s var(--ease);
+}
+.navlinks a:hover::after, .navlinks a.active::after{width:100%;}
 
 /* ---------- единый цветокор фотографий ---------- */
 /* приводит разнобойные по свету/балансу фото к одному строю — тёплые тени, приглушённые света */

@@ -154,7 +154,8 @@
       let inner = filled ? pineappleIcon : '';
       if (!filled && i === 6) inner = '<span class="reward-label">50%</span>';
       if (!filled && i === 12) inner = '<span class="reward-label">100%</span>';
-      html += `<div class="punch-slot ${filled ? 'filled' : ''} ${rewardClass}"><span class="num">${i}</span>${inner}</div>`;
+      const style = filled ? `style="--d:${(i * 0.06).toFixed(2)}s"` : '';
+      html += `<div class="punch-slot ${filled ? 'filled' : ''} ${rewardClass}" ${style}><span class="num">${i}</span>${inner}</div>`;
     }
     el.innerHTML = html;
   }
