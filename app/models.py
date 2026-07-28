@@ -128,6 +128,11 @@ class Employee(Base):
     color_tag = Column(String(20), default="#00C2CB")  # для отображения в графике
     is_active = Column(Boolean, default=True)
 
+    # если True — в дни, когда у этого сотрудника смена, он считается
+    # "админом на смене" (получает 5% с каждой машины за день + 1000₽/день).
+    # Не привязано к тексту в position, чтобы не ловить рассинхрон при опечатках.
+    is_admin_role = Column(Boolean, default=False)
+
     user = relationship("User", back_populates="employee_profile")
     shifts = relationship("ShiftSchedule", back_populates="employee")
 
@@ -143,6 +148,24 @@ class ShiftSchedule(Base):
     note = Column(String(255), nullable=True)
 
     employee = relationship("Employee", back_populates="shifts")
+
+
+class JobAssignment(Base):
+    """
+    Кто именно работал над конкретным заказом — одну машину могут мыть
+    несколько сотрудников (в т.ч. руководитель), тогда 35% делится между
+    ними поровну. order_type: 'walk_in' | 'dry_cleaning' | 'booking'.
+    """
+    __tablename__ = "job_assignments"
+
+    id = Column(Integer, primary_key=True)
+    order_type = Column(String(20), nullable=False)
+    order_id = Column(Integer, nullable=False)
+    employee_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
+    share_amount = Column(Float, nullable=True)  # посчитанная доля з/п за этот заказ
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    employee = relationship("Employee")
 
 
 # ---------------------------------------------------------------------------
@@ -382,3 +405,14 @@ class BusinessSettings(Base):
 
     id = Column(Integer, primary_key=True)
     monthly_revenue_target = Column(Float, default=0)
+
+    # шаг времени в форме записи клиента: 60 / 30 / 15 / 10 минут
+    slot_granularity_minutes = Column(Integer, default=30)
+    # на сколько дней вперёд клиент видит свободные окна онлайн (дальше — по телефону)
+    client_booking_window_days = Column(Integer, default=3)
+    # доля админа на смене от суммы каждой машины за день (%% )
+    admin_shift_pct = Column(Float, default=5)
+    # фиксированная часть админа за смену, ₽
+    admin_shift_fixed = Column(Float, default=1000)
+    # гарантированный минимум в день на сотрудника, ₽ (если не набралось — доплата до этой суммы)
+    daily_guarantee_amount = Column(Float, default=1000)

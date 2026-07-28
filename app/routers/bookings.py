@@ -5,10 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Booking, Service, User, UserRole, BookingStatus, AuditLog
-from app.schemas import BookingCreate, BookingOut, BookingUpdate, RatingSubmit
+from app.models import Booking, Service, User, UserRole, BookingStatus, AuditLog, JobAssignment, Employee
+from app.schemas import BookingCreate, BookingOut, BookingUpdate, RatingSubmit, EmployeeAssignmentSet
 from app.dependencies import get_current_user, require_staff
 from app.loyalty import register_wash, price_with_discount, calc_employee_payout
+from app.payroll import get_business_settings
 
 router = APIRouter(prefix="/bookings", tags=["Запись на мойку"])
 
@@ -22,6 +23,18 @@ def create_booking(
     service = db.query(Service).get(data.service_id)
     if not service or not service.is_active:
         raise HTTPException(404, "Услуга не найдена")
+
+    # Клиент видит и может записаться онлайн только на ближайшие N дней (по умолчанию 3) —
+    # дальше по ТЗ "обговаривается по телефону". Персонал (админ/мойщик) это ограничение не касается.
+    if user.role == UserRole.CLIENT:
+        settings = get_business_settings(db)
+        max_date = date.today() + timedelta(days=settings.client_booking_window_days)
+        if data.scheduled_at.date() > max_date:
+            raise HTTPException(
+                400,
+                f"Онлайн запись доступна максимум на {settings.client_booking_window_days} дн. вперёд — "
+                f"на более поздние даты, пожалуйста, звоните нам по телефону.",
+            )
 
     # Превью скидки по карте — покажем клиенту сразу, чек начислится по факту при завершении мойки
     preview_discount = 0
@@ -85,10 +98,12 @@ def my_bookings(user: User = Depends(get_current_user), db: Session = Depends(ge
 @router.get("/slots", summary="Свободные слоты на день (публично, для формы записи)")
 def free_slots(day: date, db: Session = Depends(get_db)):
     """
-    Упрощённая логика: рабочие часы 09:00–21:00 с шагом 30 минут,
-    минус уже занятые слоты в этот день. Реальная логика (боксы,
-    занятость мастеров по 'Графику') подключается на следующем шаге.
+    Рабочие часы 09:00–21:00, шаг — из настроек бизнеса (60/30/15/10 минут).
+    Реальная занятость по боксам/мастерам подключается отдельно от графика смен.
     """
+    settings = get_business_settings(db)
+    step = settings.slot_granularity_minutes or 30
+
     taken = {
         b.scheduled_at.time()
         for b in db.query(Booking)
@@ -104,9 +119,16 @@ def free_slots(day: date, db: Session = Depends(get_db)):
     end = time(21, 0)
     while t < end:
         slots.append({"time": t.strftime("%H:%M"), "available": t not in taken})
-        minutes = t.hour * 60 + t.minute + 30
+        minutes = t.hour * 60 + t.minute + step
         t = time(minutes // 60, minutes % 60)
-    return {"date": str(day), "slots": slots}
+
+    max_online_date = date.today() + timedelta(days=settings.client_booking_window_days)
+    return {
+        "date": str(day),
+        "slots": slots,
+        "within_online_window": day <= max_online_date,
+        "max_online_date": str(max_online_date),
+    }
 
 
 # ---------------------- Админ / сотрудники ----------------------
@@ -131,6 +153,26 @@ def all_bookings(
             Booking.scheduled_at <= datetime.combine(day, time.max),
         )
     return q.order_by(Booking.scheduled_at).all()
+
+
+@router.put(
+    "/admin/{booking_id}/employees", response_model=BookingOut,
+    dependencies=[Depends(require_staff)],
+    summary="Назначить сотрудников на запись (кто мыл машину)",
+)
+def assign_booking_employees(booking_id: int, data: EmployeeAssignmentSet, db: Session = Depends(get_db)):
+    booking = db.query(Booking).get(booking_id)
+    if not booking:
+        raise HTTPException(404, "Запись не найдена")
+    db.query(JobAssignment).filter(JobAssignment.order_type == "booking", JobAssignment.order_id == booking_id).delete()
+    for emp_id in data.employee_ids:
+        if not db.query(Employee).get(emp_id):
+            raise HTTPException(400, f"Сотрудник id={emp_id} не найден")
+        db.add(JobAssignment(order_type="booking", order_id=booking_id, employee_id=emp_id))
+    booking.employee_id = data.employee_ids[0] if data.employee_ids else None
+    db.commit()
+    db.refresh(booking)
+    return booking
 
 
 @router.patch(

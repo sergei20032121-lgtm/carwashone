@@ -15,6 +15,8 @@ from app.schemas import (
     ClientSearchResult, AuditLogOut, BusinessSettingsOut, BusinessSettingsUpdate,
 )
 from app.dependencies import require_staff, require_admin, require_manager_or_admin
+from app import payroll
+from app.schemas import DailyPayrollOut, WeeklyPayrollOut
 
 router = APIRouter(prefix="/admin", tags=["Статистика (админ)"])
 
@@ -197,6 +199,26 @@ def update_business_settings(data: BusinessSettingsUpdate, db: Session = Depends
 # ---------------------------------------------------------------------------
 # Поиск клиента по телефону — вся история в одном месте
 # ---------------------------------------------------------------------------
+
+@router.get(
+    "/payroll/daily", response_model=DailyPayrollOut,
+    dependencies=[Depends(require_manager_or_admin)],
+    summary="Зарплата за день (тестовый режим) — по всем сотрудникам",
+)
+def payroll_daily(day: date, db: Session = Depends(get_db)):
+    return payroll.compute_daily_payroll(db, day)
+
+
+@router.get(
+    "/payroll/weekly", response_model=WeeklyPayrollOut,
+    dependencies=[Depends(require_manager_or_admin)],
+    summary="Зарплата за период (тестовый режим) — итоги по неделе/периоду",
+)
+def payroll_weekly(date_from: date, date_to: date, db: Session = Depends(get_db)):
+    if (date_to - date_from).days > 62:
+        raise HTTPException(400, "Слишком большой период — максимум ~2 месяца за раз")
+    return payroll.compute_weekly_payroll(db, date_from, date_to)
+
 
 @router.get(
     "/search", response_model=ClientSearchResult,

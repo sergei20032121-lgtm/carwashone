@@ -90,6 +90,7 @@
     <button class="tab-btn" data-tab="drycleaning">Химчистка</button>
     <button class="tab-btn" data-tab="services">Услуги</button>
     <button class="tab-btn" data-tab="schedule">График</button>
+    <button class="tab-btn" data-tab="payroll">Зарплата</button>
     <button class="tab-btn" data-tab="vk">Новости ВК</button>
     <button class="tab-btn" data-tab="clientsearch">Поиск клиента</button>
     <button class="tab-btn" data-tab="auditlog">Журнал изменений</button>
@@ -114,7 +115,7 @@
       <div class="toolbar"><h2 style="margin:0;">Записи клиентов</h2><button class="btn btn-outline" id="refreshBookings">Обновить</button></div>
       <div class="card" style="padding:6px 16px;overflow-x:auto;">
         <table id="bookingsTable">
-          <thead><tr><th>№</th><th>Дата/время</th><th>Услуга</th><th>Цена</th><th>Скидка</th><th>Статус</th></tr></thead>
+          <thead><tr><th>№</th><th>Дата/время</th><th>Услуга</th><th>Цена</th><th>Скидка</th><th>Статус</th><th>Действия</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -188,10 +189,31 @@
 
     <!-- УСЛУГИ -->
     <div class="tab-page" id="tab-services" style="display:none;">
-      <h2>Услуги мойки и химчистки</h2>
+      <h2 id="serviceFormTitle">Услуги мойки и химчистки</h2>
+      <div class="card" id="serviceEditCard" style="padding:20px;margin-bottom:22px;display:none;">
+        <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;">
+          <div class="field"><label>Название</label><input type="text" id="svcName"></div>
+          <div class="field"><label>Категория</label>
+            <select id="svcCategory"><option value="wash">Мойка</option><option value="dry_cleaning">Химчистка</option></select>
+          </div>
+          <div class="field"><label>Сортировка</label><input type="number" id="svcSort" value="0"></div>
+          <div class="field"><label>Цена «от» ₽</label><input type="number" id="svcPriceFrom"></div>
+          <div class="field"><label>Цена «до» ₽ (необязательно, для вилки)</label><input type="number" id="svcPriceTo"></div>
+          <div class="field"><label>Минуты</label><input type="number" id="svcDuration"></div>
+          <div class="field"><label>% сотрудникам (з/п)</label><input type="number" id="svcPayout" value="35"></div>
+          <div class="field"><label>Ставит ананас</label>
+            <select id="svcLoyalty"><option value="false">Нет</option><option value="true">Да</option></select>
+          </div>
+        </div>
+        <div class="field"><label>Описание</label><input type="text" id="svcDescription"></div>
+        <button class="btn btn-primary" id="svcSaveBtn">Сохранить</button>
+        <button class="btn btn-outline" id="svcCancelBtn">Отмена</button>
+        <div class="auth-status" id="svcStatus"></div>
+      </div>
+      <div class="toolbar"><span></span><button class="btn btn-primary" id="svcNewBtn">+ Новая услуга</button></div>
       <div class="card" style="padding:6px 16px;overflow-x:auto;">
         <table id="servicesTable">
-          <thead><tr><th>Категория</th><th>Название</th><th>Цена</th><th>Мин.</th><th>Ставит ананас</th></tr></thead>
+          <thead><tr><th>Категория</th><th>Название</th><th>Цена</th><th>Мин.</th><th>Ставит ананас</th><th>Действия</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -207,6 +229,41 @@
         </table>
       </div>
       <p class="text-muted" style="font-size:13px;margin-top:14px;">Простановка смен по дням — через API (`PUT /schedule`), визуальный календарь — следующим шагом.</p>
+    </div>
+
+    <!-- ЗАРПЛАТА -->
+    <div class="tab-page" id="tab-payroll" style="display:none;">
+      <h2>Зарплата (тестовый режим — оценочный расчёт)</h2>
+      <div class="card" style="padding:20px;margin-bottom:22px;">
+        <h3 style="font-size:15px;margin-bottom:12px;">За день</h3>
+        <div style="display:flex;gap:12px;align-items:end;">
+          <div class="field" style="margin-bottom:0;"><label>Дата</label><input type="date" id="payrollDay"></div>
+          <button class="btn btn-primary" id="payrollDayBtn">Показать</button>
+        </div>
+      </div>
+      <div class="card" style="padding:6px 16px;margin-bottom:22px;overflow-x:auto;">
+        <table id="payrollDayTable">
+          <thead><tr><th>Сотрудник</th><th>Заказов</th><th>Заработано</th><th>Гарантия</th><th>Итого</th></tr></thead>
+          <tbody><tr><td colspan="5" class="text-muted">Выбери дату выше</td></tr></tbody>
+        </table>
+      </div>
+      <div class="text-muted" style="font-size:13px;margin-bottom:24px;" id="payrollDayTotal"></div>
+
+      <div class="card" style="padding:20px;margin-bottom:22px;">
+        <h3 style="font-size:15px;margin-bottom:12px;">За период (неделя/месяц)</h3>
+        <div style="display:flex;gap:12px;align-items:end;">
+          <div class="field" style="margin-bottom:0;"><label>С</label><input type="date" id="payrollFrom"></div>
+          <div class="field" style="margin-bottom:0;"><label>По</label><input type="date" id="payrollTo"></div>
+          <button class="btn btn-primary" id="payrollWeekBtn">Показать</button>
+        </div>
+      </div>
+      <div class="card" style="padding:6px 16px;overflow-x:auto;">
+        <table id="payrollWeekTable">
+          <thead><tr><th>Сотрудник</th><th>Дней в смене</th><th>Заказов</th><th>Итого за период</th></tr></thead>
+          <tbody><tr><td colspan="4" class="text-muted">Выбери период выше</td></tr></tbody>
+        </table>
+      </div>
+      <div class="text-muted" style="font-size:13px;margin-top:10px;" id="payrollWeekTotal"></div>
     </div>
 
     <!-- НОВОСТИ ВК -->
@@ -273,7 +330,8 @@
   function showPanel() {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('panel').style.display = 'grid';
-    loadOverview(); loadBookings(); loadWalkin(); loadDry(); loadServices(); loadEmployees(); loadVk(); loadAuditLog();
+    loadEmployees(); loadOverview(); loadBookings(); loadWalkin(); loadDry(); loadServices(); loadVk(); loadAuditLog();
+    document.getElementById('payrollDay').value = new Date().toISOString().slice(0, 10);
   }
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -311,7 +369,20 @@
               ${Object.entries(statusLabels).map(([k,v]) => `<option value="${k}" ${k===b.status?'selected':''}>${v}</option>`).join('')}
             </select>
           </td>
+          <td><button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-assign-booking="${b.id}">👥 Сотрудники</button></td>
         </tr>`).join('');
+      document.querySelectorAll('[data-assign-booking]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const b = rows.find(r => r.id == btn.dataset.assignBooking);
+          const currentIds = b && b.employee_id ? [b.employee_id] : [];
+          openEmployeePicker(currentIds, async (ids) => {
+            try {
+              await api('/bookings/admin/' + btn.dataset.assignBooking + '/employees', { method: 'PUT', body: JSON.stringify({ employee_ids: ids }) });
+              loadBookings();
+            } catch (e) { alert('Не удалось назначить сотрудников: ' + e.message); }
+          });
+        });
+      });
       document.querySelectorAll('.status-select').forEach(sel => {
         sel.addEventListener('change', async () => {
           try {
@@ -335,9 +406,23 @@
           <td>${o.extra_service || '—'}</td><td>${Math.round(o.amount)} ₽</td><td>${o.contact_name || '—'}</td>
           <td style="white-space:nowrap;">
             <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-edit-walkin="${o.id}">Изменить</button>
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-assign-walkin="${o.id}">👥 Сотрудники</button>
             <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;color:var(--vermillion);border-color:var(--vermillion);" data-delete-walkin="${o.id}">Удалить</button>
           </td>
         </tr>`).join('');
+
+      document.querySelectorAll('[data-assign-walkin]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const o = rows.find(r => r.id == btn.dataset.assignWalkin);
+          const currentIds = o && o.employee_id ? [o.employee_id] : [];
+          openEmployeePicker(currentIds, async (ids) => {
+            try {
+              await api('/walk-in/' + btn.dataset.assignWalkin + '/employees', { method: 'PUT', body: JSON.stringify({ employee_ids: ids }) });
+              loadWalkin();
+            } catch (e) { alert('Не удалось назначить сотрудников: ' + e.message); }
+          });
+        });
+      });
 
       document.querySelectorAll('[data-edit-walkin]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -445,9 +530,23 @@
           <td>${Math.round(o.amount)} ₽</td><td>${o.employee_payout != null ? Math.round(o.employee_payout) + ' ₽' : '—'}</td>
           <td style="white-space:nowrap;">
             <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-edit-dry="${o.id}">Изменить</button>
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-assign-dry="${o.id}">👥 Сотрудники</button>
             <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;color:var(--vermillion);border-color:var(--vermillion);" data-delete-dry="${o.id}">Удалить</button>
           </td>
         </tr>`).join('');
+
+      document.querySelectorAll('[data-assign-dry]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const o = rows.find(r => r.id == btn.dataset.assignDry);
+          const currentIds = o && o.employee_id ? [o.employee_id] : [];
+          openEmployeePicker(currentIds, async (ids) => {
+            try {
+              await api('/dry-cleaning/orders/' + btn.dataset.assignDry + '/employees', { method: 'PUT', body: JSON.stringify({ employee_ids: ids }) });
+              loadDry();
+            } catch (e) { alert('Не удалось назначить сотрудников: ' + e.message); }
+          });
+        });
+      });
 
       document.querySelectorAll('[data-edit-dry]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -534,21 +633,113 @@
     e.target.value = '';
   });
 
+  let svcEditingId = null;
+  let allServicesCache = [];
+
   async function loadServices() {
     try {
       const wash = await api('/services?category=wash');
-      const dry = await api('/services?category=dry_cleaning');
-      const all = [...wash, ...dry];
-      document.querySelector('#servicesTable tbody').innerHTML = all.map(s => `
-        <tr><td>${s.category === 'wash' ? 'Мойка' : 'Химчистка'}</td><td>${s.name}</td><td>${Math.round(s.price_from)} ₽</td><td>${s.duration_min || '—'}</td><td>${s.counts_towards_loyalty ? '🍍 да' : '—'}</td></tr>`).join('');
+      const dry = await api('/dry-cleaning/services');
+      allServicesCache = [...wash, ...dry];
+      document.querySelector('#servicesTable tbody').innerHTML = allServicesCache.map(s => `
+        <tr>
+          <td>${s.category === 'wash' ? 'Мойка' : 'Химчистка'}</td><td>${s.name}</td>
+          <td>${Math.round(s.price_from)}${s.price_to ? '–' + Math.round(s.price_to) : ''} ₽</td>
+          <td>${s.duration_min || '—'}</td><td>${s.counts_towards_loyalty ? '🍍 да' : '—'}</td>
+          <td><button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-edit-svc="${s.id}">Изменить</button></td>
+        </tr>`).join('');
+      document.querySelectorAll('[data-edit-svc]').forEach(btn => {
+        btn.addEventListener('click', () => openServiceForm(allServicesCache.find(s => s.id == btn.dataset.editSvc)));
+      });
     } catch (e) {}
   }
+
+  function openServiceForm(s) {
+    document.getElementById('serviceEditCard').style.display = 'block';
+    svcEditingId = s ? s.id : null;
+    document.getElementById('serviceFormTitle').textContent = s ? `Изменить: ${s.name}` : 'Новая услуга';
+    document.getElementById('svcName').value = s ? s.name : '';
+    document.getElementById('svcCategory').value = s ? s.category : 'wash';
+    document.getElementById('svcSort').value = 0;
+    document.getElementById('svcPriceFrom').value = s ? s.price_from : '';
+    document.getElementById('svcPriceTo').value = (s && s.price_to) ? s.price_to : '';
+    document.getElementById('svcDuration').value = s ? (s.duration_min || '') : '';
+    document.getElementById('svcPayout').value = s ? (s.payout_pct ?? 35) : 35;
+    document.getElementById('svcLoyalty').value = s ? String(!!s.counts_towards_loyalty) : 'false';
+    document.getElementById('svcDescription').value = s ? (s.description || '') : '';
+  }
+  document.getElementById('svcNewBtn').addEventListener('click', () => openServiceForm(null));
+  document.getElementById('svcCancelBtn').addEventListener('click', () => { document.getElementById('serviceEditCard').style.display = 'none'; });
+
+  document.getElementById('svcSaveBtn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('svcStatus');
+    const body = {
+      name: document.getElementById('svcName').value.trim(),
+      category: document.getElementById('svcCategory').value,
+      sort_order: parseInt(document.getElementById('svcSort').value, 10) || 0,
+      price_from: parseFloat(document.getElementById('svcPriceFrom').value),
+      price_to: document.getElementById('svcPriceTo').value ? parseFloat(document.getElementById('svcPriceTo').value) : null,
+      duration_min: document.getElementById('svcDuration').value ? parseInt(document.getElementById('svcDuration').value, 10) : null,
+      payout_pct: parseFloat(document.getElementById('svcPayout').value) || 0,
+      counts_towards_loyalty: document.getElementById('svcLoyalty').value === 'true',
+      description: document.getElementById('svcDescription').value.trim() || null,
+    };
+    if (!body.name || !body.price_from) { statusEl.textContent = 'Заполните название и цену'; statusEl.className = 'auth-status err'; return; }
+    try {
+      if (svcEditingId) {
+        await api('/services/' + svcEditingId, { method: 'PATCH', body: JSON.stringify(body) });
+      } else {
+        await api('/services', { method: 'POST', body: JSON.stringify(body) });
+      }
+      statusEl.textContent = 'Сохранено'; statusEl.className = 'auth-status ok';
+      document.getElementById('serviceEditCard').style.display = 'none';
+      loadServices();
+    } catch (e) { statusEl.textContent = e.message; statusEl.className = 'auth-status err'; }
+  });
+
+  let employeesCache = [];
 
   async function loadEmployees() {
     try {
       const rows = await api('/schedule/employees');
-      document.querySelector('#employeesTable tbody').innerHTML = rows.map(e => `<tr><td>${e.full_name}</td><td>${e.position}</td></tr>`).join('');
+      employeesCache = rows;
+      document.querySelector('#employeesTable tbody').innerHTML = rows.map(e => `<tr><td>${e.full_name}${e.is_admin_role ? ' <span class="badge">админ смены</span>' : ''}</td><td>${e.position}</td></tr>`).join('');
     } catch (e) {}
+  }
+
+  // ---- Общий пикер сотрудников (мультивыбор) для назначения на заказ ----
+  function openEmployeePicker(currentIds, onSave) {
+    let overlay = document.getElementById('empPickerOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'empPickerOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,23,28,0.55);z-index:1000;display:flex;align-items:center;justify-content:center;';
+      overlay.innerHTML = `
+        <div class="card" style="width:340px;padding:24px;">
+          <h3 style="font-size:16px;margin-bottom:14px;">Кто мыл эту машину?</h3>
+          <div id="empPickerList" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;margin-bottom:16px;"></div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" id="empPickerSave" style="flex:1;">Сохранить</button>
+            <button class="btn btn-outline" id="empPickerCancel">Отмена</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+    }
+    const listEl = overlay.querySelector('#empPickerList');
+    listEl.innerHTML = employeesCache.map(e => `
+      <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;">
+        <input type="checkbox" value="${e.id}" ${currentIds.includes(e.id) ? 'checked' : ''}>
+        ${e.full_name}${e.is_admin_role ? ' 👑' : ''}
+      </label>`).join('');
+    overlay.style.display = 'flex';
+
+    const close = () => { overlay.style.display = 'none'; };
+    overlay.querySelector('#empPickerCancel').onclick = close;
+    overlay.querySelector('#empPickerSave').onclick = async () => {
+      const ids = Array.from(listEl.querySelectorAll('input:checked')).map(i => parseInt(i.value, 10));
+      await onSave(ids);
+      close();
+    };
   }
 
   const vkStatusEl = document.getElementById('vkStatus');
@@ -647,6 +838,34 @@
     } catch (e) {}
   }
   document.getElementById('refreshAudit').addEventListener('click', loadAuditLog);
+
+  document.getElementById('payrollDayBtn').addEventListener('click', async () => {
+    const day = document.getElementById('payrollDay').value;
+    if (!day) return;
+    try {
+      const d = await api('/admin/payroll/daily?day=' + day);
+      document.querySelector('#payrollDayTable tbody').innerHTML = d.employees.map(e => `
+        <tr>
+          <td>${e.full_name}</td><td>${e.jobs_count}</td>
+          <td class="mono">${Math.round(e.earned_raw)} ₽</td>
+          <td>${e.guarantee_applied ? '<span class="badge status-pending">доплата до минимума</span>' : '—'}</td>
+          <td class="mono" style="font-weight:700;">${Math.round(e.final_payout)} ₽</td>
+        </tr>`).join('') || '<tr><td colspan="5" class="text-muted">В этот день никто не работал</td></tr>';
+      document.getElementById('payrollDayTotal').textContent = `Выручка за день: ${Math.round(d.total_revenue).toLocaleString('ru-RU')} ₽`;
+    } catch (e) { alert('Не удалось загрузить отчёт: ' + e.message); }
+  });
+
+  document.getElementById('payrollWeekBtn').addEventListener('click', async () => {
+    const from = document.getElementById('payrollFrom').value;
+    const to = document.getElementById('payrollTo').value;
+    if (!from || !to) return;
+    try {
+      const d = await api(`/admin/payroll/weekly?date_from=${from}&date_to=${to}`);
+      document.querySelector('#payrollWeekTable tbody').innerHTML = d.employees.map(e => `
+        <tr><td>${e.full_name}</td><td>${e.days_worked}</td><td>${e.jobs_count}</td><td class="mono" style="font-weight:700;">${Math.round(e.total_payout)} ₽</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет данных за период</td></tr>';
+      document.getElementById('payrollWeekTotal').textContent = `Выручка за период: ${Math.round(d.total_revenue).toLocaleString('ru-RU')} ₽`;
+    } catch (e) { alert('Не удалось загрузить отчёт: ' + e.message); }
+  });
 
   document.getElementById('printScheduleBtn').addEventListener('click', () => window.print());
 

@@ -6,8 +6,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import WalkInOrder, Service, User, UserRole, AuditLog
-from app.schemas import WalkInOrderCreate, WalkInOrderOut, WalkInOrderUpdate
+from app.models import WalkInOrder, Service, User, UserRole, AuditLog, JobAssignment, Employee
+from app.schemas import WalkInOrderCreate, WalkInOrderOut, WalkInOrderUpdate, EmployeeAssignmentSet
 from app.dependencies import require_staff, require_admin
 from app.loyalty import register_wash, price_with_discount, calc_employee_payout
 from app.excel_utils import export_walkin_xlsx, parse_walkin_any
@@ -80,6 +80,28 @@ def update_order(order_id: int, data: WalkInOrderUpdate, actor: User = Depends(r
         setattr(order, k, v)
     db.add(AuditLog(actor_user_id=actor.id, action="update", entity="walk_in_order", entity_id=order.id,
                      note=f"Изменено: {', '.join(changes.keys())}"))
+    db.commit()
+    db.refresh(order)
+    return order
+
+
+@router.put("/{order_id}/employees", response_model=WalkInOrderOut, summary="Назначить сотрудников на заказ (кто мыл машину)")
+def assign_employees(order_id: int, data: EmployeeAssignmentSet, actor: User = Depends(require_staff), db: Session = Depends(get_db)):
+    order = db.query(WalkInOrder).get(order_id)
+    if not order:
+        raise HTTPException(404, "Заказ не найден")
+
+    db.query(JobAssignment).filter(JobAssignment.order_type == "walk_in", JobAssignment.order_id == order_id).delete()
+    for emp_id in data.employee_ids:
+        if not db.query(Employee).get(emp_id):
+            raise HTTPException(400, f"Сотрудник id={emp_id} не найден")
+        db.add(JobAssignment(order_type="walk_in", order_id=order_id, employee_id=emp_id))
+
+    # employee_id — по-прежнему "основной" исполнитель для обратной совместимости в таблицах
+    order.employee_id = data.employee_ids[0] if data.employee_ids else None
+
+    db.add(AuditLog(actor_user_id=actor.id, action="update", entity="walk_in_order", entity_id=order.id,
+                     note=f"Назначены сотрудники: {data.employee_ids}"))
     db.commit()
     db.refresh(order)
     return order

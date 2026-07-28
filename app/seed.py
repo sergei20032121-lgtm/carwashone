@@ -8,10 +8,11 @@
 ставит ананас на карту. З/П мастера — 35% от цены услуги (применяется
 автоматически при завершении записи/заказа, см. app/loyalty.py).
 """
+from datetime import date
 from app.database import SessionLocal, Base, engine
 from app.models import (
     Service, ServiceCategory, Employee, User, UserRole,
-    GisSettings, VkSettings, BusinessSettings,
+    GisSettings, VkSettings, BusinessSettings, ShiftSchedule, ShiftType,
 )
 from app.security import hash_password
 from app.config import settings
@@ -58,28 +59,45 @@ def seed():
                 ))
             db.commit()
 
-        if not db.query(Employee).first():
-            employees = [
-                ("Ваня", "Мойщик", "#1BE7A6"),
-                ("Лариса", "Мойщик", "#FF6B4A"),
-                ("Серёга", "Мойщик", "#3DD6FF"),
-                ("Саша", "Мойщик", "#9B6BFF"),
-                ("Даня", "Мойщик", "#7AA7E0"),
-                ("Мастер химчистки", "Химчист", "#B478E0"),
-            ]
-            for name, position, color in employees:
-                db.add(Employee(full_name=name, position=position, color_tag=color))
-            db.commit()
-
-        if not db.query(User).filter(User.username == "admin").first():
-            db.add(User(
+        admin_user = db.query(User).filter(User.username == "admin").first()
+        if not admin_user:
+            admin_user = User(
                 username="admin",
                 full_name="Администратор",
                 role=UserRole.ADMIN,
                 password_hash=hash_password("admin"),
+            )
+            db.add(admin_user)
+            db.commit()
+            db.refresh(admin_user)
+            print("Создан админ: логин 'admin', пароль 'admin' - ОБЯЗАТЕЛЬНО смени после первого входа.")
+
+        if not db.query(Employee).first():
+            employees = [
+                ("Ваня", "Мойщик", "#1BE7A6", False),
+                ("Лариса", "Мойщик", "#FF6B4A", False),
+                ("Серёга", "Мойщик", "#3DD6FF", False),
+                ("Саша", "Мойщик", "#9B6BFF", False),
+                ("Даня", "Мойщик", "#7AA7E0", False),
+                ("Мастер химчистки", "Химчист", "#B478E0", False),
+            ]
+            for name, position, color, is_admin in employees:
+                db.add(Employee(full_name=name, position=position, color_tag=color, is_admin_role=is_admin))
+
+            # отдельная запись сотрудника-администратора смены, привязанная к User admin —
+            # именно по ней считается 5% с машины + 1000₽/день, когда у него стоит смена в графике
+            db.add(Employee(
+                full_name=admin_user.full_name or "Администратор",
+                position="Администратор", color_tag="#E3B98A",
+                is_admin_role=True, user_id=admin_user.id,
             ))
             db.commit()
-            print("Создан админ: логин 'admin', пароль 'admin' - ОБЯЗАТЕЛЬНО смени после первого входа.")
+
+            # смена на сегодня всем — чтобы дневной/недельный отчёт по зарплате
+            # сразу показывал живые данные, а не пустоту
+            for emp in db.query(Employee).all():
+                db.add(ShiftSchedule(employee_id=emp.id, work_date=date.today(), shift_type=ShiftType.FULL_DAY))
+            db.commit()
 
         if not db.query(User).filter(User.username == "manager").first():
             db.add(User(

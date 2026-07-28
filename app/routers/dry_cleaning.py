@@ -6,8 +6,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import DryCleaningOrder, Service, ServiceCategory, User, AuditLog
-from app.schemas import DryCleaningOrderCreate, DryCleaningOrderOut, DryCleaningOrderUpdate, ServiceOut
+from app.models import DryCleaningOrder, Service, ServiceCategory, User, AuditLog, JobAssignment, Employee
+from app.schemas import DryCleaningOrderCreate, DryCleaningOrderOut, DryCleaningOrderUpdate, ServiceOut, EmployeeAssignmentSet
 from app.dependencies import require_staff, require_admin
 from app.excel_utils import export_drycleaning_xlsx, parse_drycleaning_xlsx
 
@@ -108,6 +108,27 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
     order = db.query(DryCleaningOrder).get(order_id)
     if not order:
         raise HTTPException(404, "Заказ не найден")
+    return order
+
+
+@router.put("/orders/{order_id}/employees", response_model=DryCleaningOrderOut, summary="Назначить сотрудников на заказ химчистки")
+def assign_employees(order_id: int, data: EmployeeAssignmentSet, actor: User = Depends(require_staff), db: Session = Depends(get_db)):
+    order = db.query(DryCleaningOrder).get(order_id)
+    if not order:
+        raise HTTPException(404, "Заказ не найден")
+
+    db.query(JobAssignment).filter(JobAssignment.order_type == "dry_cleaning", JobAssignment.order_id == order_id).delete()
+    for emp_id in data.employee_ids:
+        if not db.query(Employee).get(emp_id):
+            raise HTTPException(400, f"Сотрудник id={emp_id} не найден")
+        db.add(JobAssignment(order_type="dry_cleaning", order_id=order_id, employee_id=emp_id))
+
+    order.employee_id = data.employee_ids[0] if data.employee_ids else None
+
+    db.add(AuditLog(actor_user_id=actor.id, action="update", entity="dry_cleaning_order", entity_id=order.id,
+                     note=f"Назначены сотрудники: {data.employee_ids}"))
+    db.commit()
+    db.refresh(order)
     return order
 
 

@@ -131,9 +131,41 @@
           <div class="progress-track" style="height:8px;"><div class="progress-fill" id="revDryBar" style="background:var(--gold);width:0%;"></div></div>
         </div>
         <hr class="divider">
-        <div style="font-size:13px;color:var(--ink-soft);">Выплаты мастерам (35% от услуги): <b id="payoutsLabel" class="mono">0 ₽</b></div>
+        <div style="font-size:13px;color:var(--ink-soft);">Выплаты мастерам: <b id="payoutsLabel" class="mono">0 ₽</b></div>
       </div>
     </div>
+  </div>
+
+  <div class="card card-section reveal">
+    <h3>Индивидуальная зарплата за день (тестовый режим)</h3>
+    <div style="display:flex;gap:12px;align-items:end;margin-bottom:16px;">
+      <div class="field" style="margin-bottom:0;"><label>Дата</label><input type="date" id="payDay"></div>
+      <button class="btn btn-outline" id="payDayBtn" style="padding:9px 16px;font-size:13px;">Показать</button>
+    </div>
+    <div id="payDayList"><p class="text-muted" style="font-size:13.5px;">Выбери дату.</p></div>
+  </div>
+
+  <div class="card card-section reveal">
+    <h3>Сотрудники и график</h3>
+    <p class="text-muted" style="font-size:13px;margin-bottom:16px;">Руководитель может менять смены и данные сотрудников (но не трогает записи/заказы).</p>
+    <div id="employeesManageList" style="margin-bottom:20px;"></div>
+    <hr class="divider">
+    <h4 style="font-size:14px;margin-bottom:12px;">Проставить смену</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+      <div class="field" style="margin-bottom:0;"><label>Сотрудник</label><select id="shiftEmployee"></select></div>
+      <div class="field" style="margin-bottom:0;"><label>Дата</label><input type="date" id="shiftDate"></div>
+      <div class="field" style="margin-bottom:0;"><label>Тип смены</label>
+        <select id="shiftType">
+          <option value="full_day">Полный день</option>
+          <option value="day_9_18">09:00–18:00</option>
+          <option value="evening_17_22">17:00–22:00</option>
+          <option value="day_off">Выходной</option>
+          <option value="no_show">Невыход</option>
+        </select>
+      </div>
+      <button class="btn btn-dark" id="shiftSaveBtn">Сохранить</button>
+    </div>
+    <div class="auth-status" id="shiftStatus"></div>
   </div>
 </div>
 
@@ -207,9 +239,70 @@
     const monthAgo = new Date(today.getTime() - 30 * 24 * 3600 * 1000);
     document.getElementById('dateTo').value = today.toISOString().slice(0, 10);
     document.getElementById('dateFrom').value = monthAgo.toISOString().slice(0, 10);
+    document.getElementById('payDay').value = today.toISOString().slice(0, 10);
+    document.getElementById('shiftDate').value = today.toISOString().slice(0, 10);
     loadDashboard();
+    loadEmployeesManage();
     initRevealObserver();
   }
+
+  let employeesCache = [];
+  const shiftTypeLabels = {full_day:'Полный день', day_9_18:'09:00–18:00', evening_17_22:'17:00–22:00', day_off:'Выходной', no_show:'Невыход'};
+
+  async function loadEmployeesManage() {
+    try {
+      employeesCache = await api('/schedule/employees');
+      document.getElementById('shiftEmployee').innerHTML = employeesCache.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
+      document.getElementById('employeesManageList').innerHTML = employeesCache.map(e => `
+        <div class="ranking-row" style="grid-template-columns:1fr auto auto;">
+          <div>
+            <div class="ranking-name">${e.full_name}${e.is_admin_role ? ' <span class="badge">админ смены</span>' : ''}</div>
+            <div class="ranking-count">${e.position}</div>
+          </div>
+          <input type="text" data-color="${e.id}" value="${e.color_tag}" style="width:70px;padding:6px;border-radius:6px;border:1px solid var(--line);font-size:12px;">
+          <button class="btn btn-outline" style="padding:6px 12px;font-size:12px;" data-save-emp="${e.id}">Сохранить</button>
+        </div>`).join('');
+      document.querySelectorAll('[data-save-emp]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const colorInput = document.querySelector(`[data-color="${btn.dataset.saveEmp}"]`);
+          try {
+            await api('/schedule/employees/' + btn.dataset.saveEmp, { method: 'PATCH', body: JSON.stringify({ color_tag: colorInput.value }) });
+            btn.textContent = 'Сохранено ✓';
+            setTimeout(() => { btn.textContent = 'Сохранить'; }, 1500);
+          } catch (e) { alert('Не удалось сохранить: ' + e.message); }
+        });
+      });
+    } catch (e) {}
+  }
+
+  document.getElementById('shiftSaveBtn').addEventListener('click', async () => {
+    const el = document.getElementById('shiftStatus');
+    const body = {
+      employee_id: parseInt(document.getElementById('shiftEmployee').value, 10),
+      work_date: document.getElementById('shiftDate').value,
+      shift_type: document.getElementById('shiftType').value,
+    };
+    try {
+      await api('/schedule', { method: 'PUT', body: JSON.stringify(body) });
+      el.textContent = 'Смена сохранена'; el.className = 'auth-status ok';
+    } catch (e) { el.textContent = e.message; el.className = 'auth-status err'; }
+  });
+
+  document.getElementById('payDayBtn').addEventListener('click', async () => {
+    const day = document.getElementById('payDay').value;
+    const listEl = document.getElementById('payDayList');
+    if (!day) return;
+    try {
+      const d = await api('/admin/payroll/daily?day=' + day);
+      listEl.innerHTML = d.employees.length ? d.employees.map(e => `
+        <div class="ranking-row">
+          <span></span>
+          <div><div class="ranking-name">${e.full_name}</div><div class="ranking-count">${e.jobs_count} заказов${e.guarantee_applied ? ' · доплата до минимума' : ''}</div></div>
+          <span></span>
+          <span class="ranking-revenue">${Math.round(e.final_payout).toLocaleString('ru-RU')} ₽</span>
+        </div>`).join('') : '<p class="text-muted" style="font-size:13.5px;">В этот день никто не работал.</p>';
+    } catch (e) { listEl.innerHTML = '<p class="text-muted" style="font-size:13.5px;">Не удалось загрузить.</p>'; }
+  });
 
   if (getAuthToken() && (getAuthRole() === 'manager' || getAuthRole() === 'admin')) { showDashboard(); }
 </script>

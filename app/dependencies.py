@@ -46,3 +46,7 @@ def require_roles(*roles: UserRole):
 require_admin = require_roles(UserRole.ADMIN)
 require_staff = require_roles(UserRole.ADMIN, UserRole.MASTER)
 require_manager_or_admin = require_roles(UserRole.ADMIN, UserRole.MANAGER)
+# просмотр графика/сотрудников — шире, включая руководителя (он должен видеть, чтобы редактировать)
+require_staff_read = require_roles(UserRole.ADMIN, UserRole.MASTER, UserRole.MANAGER)
+# изменение графика и списка сотрудников — админ и руководитель (не рядовой мойщик)
+require_schedule_write = require_roles(UserRole.ADMIN, UserRole.MANAGER)

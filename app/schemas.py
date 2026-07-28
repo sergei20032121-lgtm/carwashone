@@ -227,6 +227,8 @@ class EmployeeOut(BaseModel):
     full_name: str
     position: str
     color_tag: str
+    is_admin_role: bool = False
+    is_active: bool = True
 
     class Config:
         from_attributes = True
@@ -236,6 +238,7 @@ class EmployeeCreate(BaseModel):
     full_name: str
     position: str = "Мойщик"
     color_tag: str = "#00C2CB"
+    is_admin_role: bool = False
 
 
 class ShiftSet(BaseModel):
@@ -430,3 +433,49 @@ class ClientSearchResult(BaseModel):
     bookings: List[BookingOut] = []
     walk_in_orders: List[WalkInOrderOut] = []
     dry_cleaning_orders: List[DryCleaningOrderOut] = []
+
+
+# ---------- Назначение сотрудников на заказ (много людей на одну машину) ----------
+
+class EmployeeAssignmentSet(BaseModel):
+    employee_ids: List[int] = Field(default_factory=list)
+
+
+class EmployeeUpdate(BaseModel):
+    full_name: Optional[str] = None
+    position: Optional[str] = None
+    color_tag: Optional[str] = None
+    is_admin_role: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+
+# ---------- Зарплата: дневной и недельный отчёт (тестовый режим) ----------
+
+class EmployeeDayPayout(BaseModel):
+    employee_id: int
+    full_name: str
+    jobs_count: int
+    earned_raw: float          # сколько реально насчиталось до гарантии
+    guarantee_applied: bool    # сработала ли доплата-неустойка до минимума
+    final_payout: float
+
+
+class DailyPayrollOut(BaseModel):
+    date: date
+    total_revenue: float
+    employees: List[EmployeeDayPayout] = []
+
+
+class WeeklyEmployeePayout(BaseModel):
+    employee_id: int
+    full_name: str
+    days_worked: int
+    jobs_count: int
+    total_payout: float
+
+
+class WeeklyPayrollOut(BaseModel):
+    date_from: date
+    date_to: date
+    total_revenue: float
+    employees: List[WeeklyEmployeePayout] = []
