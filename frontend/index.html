@@ -5,38 +5,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Автомойка №1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="static/css/theme.css">
 <style>
-  .nav{position:sticky;top:0;z-index:50;background:rgba(20,23,28,0.94);backdrop-filter:blur(10px);}
-  .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:72px;gap:20px;}
+  .nav{position:sticky;top:0;z-index:50;background:rgba(8,12,16,0.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.08);}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:20px;}
   .brand{display:flex;align-items:center;gap:12px;}
-  .brand img{width:36px;height:36px;border-radius:9px;object-fit:cover;}
-  .brand b{color:#fff;font-family:'Spectral',serif;font-size:18px;letter-spacing:0.2px;}
+  .brand img{width:44px;height:44px;border-radius:12px;object-fit:cover;box-shadow:0 0 24px rgba(32,195,199,.22);}
+  .brand b{color:#fff;font-size:17px;letter-spacing:-0.2px;}
+  .brand small{display:block;color:#8D99A6;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;margin-top:1px;}
   .navlinks{display:flex;gap:26px;align-items:center;}
   .navlinks a{color:#CBC3B2;font-size:14.5px;font-weight:600;transition:color .2s;}
   .navlinks a:hover{color:#fff;}
 
-  .hero{position:relative;background:linear-gradient(175deg, var(--indigo) 0%, var(--sumi) 65%);color:#fff;padding:76px 0 60px;overflow:hidden;}
-  .hero-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:48px;align-items:start;position:relative;z-index:2;}
-  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#E3B98A;margin-bottom:16px;}
+  .hero{position:relative;background:#080C10;color:#fff;padding:82px 0 72px;overflow:hidden;min-height:720px;}
+  .hero::before{content:"";position:absolute;inset:0;background:
+    linear-gradient(90deg,rgba(8,12,16,.98) 0%,rgba(8,12,16,.88) 32%,rgba(8,12,16,.28) 68%,rgba(8,12,16,.12) 100%),
+    linear-gradient(0deg,rgba(8,12,16,.98) 0%,transparent 45%),
+    url("static/img/hero-markii-premium.png") center/cover no-repeat;opacity:.98;}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(360px,.56fr);gap:56px;align-items:start;position:relative;z-index:2;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase;color:#56D7D8;margin-bottom:18px;}
   .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--vermillion);}
-  .hero h1{font-family:'Spectral',serif;font-size:clamp(32px,4.2vw,50px);font-weight:600;line-height:1.12;letter-spacing:-0.01em;margin-bottom:20px;}
-  .hero h1 em{font-style:italic;color:#E3B98A;}
-  .hero p.lead{font-size:16.5px;color:#C9C2AF;max-width:440px;margin-bottom:26px;}
+  .hero h1{font-family:'Oswald',sans-serif;font-size:clamp(48px,5.7vw,78px);font-weight:600;line-height:.98;letter-spacing:-.035em;text-transform:uppercase;margin-bottom:24px;max-width:660px;}
+  .hero h1 em{font-style:normal;color:var(--vermillion);}
+  .hero p.lead{font-size:16px;color:#B8C0C8;max-width:520px;margin-bottom:28px;}
   .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:26px;}
+  .hero-promise{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:580px;margin-top:26px;}
+  .hero-promise div{border-top:1px solid rgba(255,255,255,.16);padding-top:13px;color:#D7DDE2;font-size:12.5px;}
+  .hero-promise b{display:block;color:#56D7D8;font-size:12px;margin-bottom:2px;}
 
-  .gis-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:14px;padding:16px 18px;display:flex;gap:14px;align-items:center;max-width:440px;}
-  .gis-badge{width:40px;height:40px;border-radius:10px;background:var(--vermillion);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-family:'Spectral',serif;color:#fff;font-size:15px;}
+  .gis-card{background:rgba(10,15,20,.7);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.14);border-radius:14px;padding:16px 18px;display:flex;gap:14px;align-items:center;max-width:480px;}
+  .gis-badge{width:40px;height:40px;border-radius:10px;background:var(--vermillion);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;color:#fff;font-size:15px;}
   .gis-info b{display:block;font-size:13.5px;}
   .gis-info span{font-size:12px;color:#C9C2AF;}
-  .gis-rating{margin-left:auto;text-align:right;font-family:'Spectral',serif;}
+  .gis-rating{margin-left:auto;text-align:right;}
   .gis-rating b{font-size:19px;color:#fff;}
   .gis-rating span{font-size:10.5px;color:#C9C2AF;}
 
-  .book-widget{background:var(--washi-card);border-radius:18px;padding:26px;box-shadow:0 30px 70px -25px rgba(0,0,0,.55);}
-  .book-widget h3{font-size:18px;margin-bottom:4px;color:var(--sumi);font-family:'Spectral',serif;}
+  .book-widget{background:rgba(13,18,24,.94);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:28px;box-shadow:0 34px 80px -24px rgba(0,0,0,.75);backdrop-filter:blur(16px);margin-top:120px;}
+  .book-widget h3{font-size:21px;margin-bottom:4px;color:#fff;font-family:'Manrope',sans-serif;}
   .book-widget p.hint{font-size:13px;color:var(--ink-soft);margin-bottom:18px;}
+  .book-widget .field label{color:#AEB8C2;}
+  .book-widget .field input,.book-widget .field select{background:#151B22;color:#fff;border-color:rgba(255,255,255,.14);}
+  .book-widget .stepper .label{color:#7F8A95;}
+  .book-widget .stepper .step.active .label{color:#fff;}
+  .book-widget .stepper .dot{background:#151B22;border-color:rgba(255,255,255,.14);}
+  .book-widget .stepper .line{background:rgba(255,255,255,.14);}
   .otp-row{display:flex;gap:8px;}
   .otp-row input{text-align:center;letter-spacing:4px;font-family:'Space Mono';}
   .book-status{font-size:13px;margin-top:10px;min-height:18px;}
@@ -69,7 +83,7 @@
   .service-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-soft);}
   .service-icon{width:46px;height:46px;border-radius:11px;background:var(--washi-2);display:flex;align-items:center;justify-content:center;}
   .service-icon svg{width:23px;height:23px;color:var(--jade-dark);}
-  .service-card h3{font-size:18px;font-family:'Spectral',serif;font-weight:600;}
+  .service-card h3{font-size:18px;font-weight:700;}
   .service-card .desc{font-size:13.5px;color:var(--ink-soft);flex:1;}
   .service-meta{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed var(--line);padding-top:12px;}
   .service-meta .price{font-family:'Space Mono';font-weight:700;font-size:17px;color:var(--sumi);}
@@ -109,20 +123,54 @@
   .map-pin{position:absolute;left:50%;top:44%;transform:translate(-50%,-100%);width:32px;height:32px;}
   footer.bottom{border-top:1px solid rgba(255,255,255,0.1);padding:22px 0;display:flex;justify-content:space-between;font-size:12.5px;color:#8A8371;flex-wrap:wrap;gap:8px;}
 
+  .mobile-actions{display:none;}
   @media (max-width:980px){
-    .hero-grid{grid-template-columns:1fr;}
+    .hero{min-height:auto;padding:56px 0 48px;}
+    .hero::before{background:
+      linear-gradient(180deg,rgba(8,12,16,.08) 0%,rgba(8,12,16,.58) 38%,rgba(8,12,16,.99) 68%),
+      url("static/img/hero-markii-premium.png") 62% top/auto 54% no-repeat;background-color:#080C10;}
+    .hero-grid{grid-template-columns:1fr;padding-top:270px;}
+    .book-widget{margin-top:0;}
     .services-grid{grid-template-columns:repeat(2,1fr);}
     .contacts-grid{grid-template-columns:1fr;}
     .navlinks{display:none;}
   }
-  @media (max-width:560px){.services-grid{grid-template-columns:1fr;}}
+  @media (max-width:560px){
+    body{padding-bottom:72px;}
+    .wrap{padding-left:18px;padding-right:18px;}
+    .nav .wrap{height:64px;}
+    .brand img{width:38px;height:38px;}
+    .brand b{font-size:14px}.brand small{font-size:8px}
+    .nav>.wrap>.btn{display:none;}
+    .hero{padding-top:30px;}
+    .hero-grid{padding-top:245px;gap:28px;}
+    .hero h1{font-size:43px;max-width:350px;}
+    .hero p.lead{font-size:14px;line-height:1.55;}
+    .hero-cta .btn{width:100%;}
+    .hero-promise{grid-template-columns:1fr;gap:8px;}
+    .hero-promise div{display:flex;justify-content:space-between;gap:10px;}
+    .gis-card{padding:13px;}
+    .gis-rating{display:none;}
+    .book-widget{padding:20px;margin-left:-4px;margin-right:-4px;}
+    .stepper .label{display:none;}
+    .services-grid{grid-template-columns:1fr;}
+    section{padding:62px 0;}
+    .mobile-actions{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;left:0;right:0;bottom:0;z-index:90;background:rgba(8,12,16,.96);border-top:1px solid rgba(255,255,255,.12);padding:8px max(10px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));backdrop-filter:blur(16px);}
+    .mobile-actions a{display:flex;flex-direction:column;align-items:center;gap:2px;color:#AEB8C2;font-size:10px;font-weight:700;}
+    .mobile-actions a.primary{color:#fff;}
+    .mobile-actions svg{width:21px;height:21px;color:#56D7D8;}
+    .mobile-actions a.primary svg{color:#F04432;}
+  }
 </style>
 </head>
 <body>
 
 <nav class="nav">
   <div class="wrap">
-    <div class="brand"><img src="static/img/logo.png" alt="Автомойка №1"><b>Автомойка №1</b></div>
+    <a class="brand" href="#top" aria-label="Автомойка №1 — на главную">
+      <img src="static/img/logo.png" alt="Ананас — логотип Автомойки №1">
+      <span><b>Автомойка №1</b><small>Пермь · Закамск</small></span>
+    </a>
     <div class="navlinks">
       <a href="#gallery">Фото</a>
       <a href="#video-showcase">Видео</a>
@@ -137,21 +185,33 @@
   </div>
 </nav>
 
+<div class="mobile-actions" aria-label="Быстрые действия">
+  <a href="#services" aria-label="Посмотреть услуги и цены">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg><span>Цены</span>
+  </a>
+  <a href="https://go.2gis.com/Q4DrY" target="_blank" rel="noopener" aria-label="Построить маршрут">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6 7-13a7 7 0 1 0-14 0c0 7 7 13 7 13Z"/><circle cx="12" cy="9" r="2"/></svg><span>Маршрут</span>
+  </a>
+  <a href="#booking" class="primary" aria-label="Записаться на мойку">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg><span>Записаться</span>
+  </a>
+</div>
+
 <div class="miss-you-banner" id="missYouBanner" style="display:none;">
   <span id="missYouText"></span>
   <span class="close-x" id="missYouClose">✕</span>
 </div>
 
-<header class="hero dirt-wash-section">
+<header class="hero dirt-wash-section" id="top">
   <div class="dirt-wash-layer" id="dirtWashLayer"></div>
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">Автомойка №1</div>
-      <h1>Мойка и уход за автомобилем — <em>без спешки, по порядку</em></h1>
-      <p class="lead">Запись по телефону — без паролей и лишних форм. Подтверждаете смс-кодом и выбираете время. Химчистка и детейлинг — отдельным прайсом.</p>
+      <div class="eyebrow">Больше, чем просто автомойка</div>
+      <h1>Моем. Бережём. <em>Блестит.</em></h1>
+      <p class="lead">Каждый автомобиль моем как своего любимого Марка. Профессиональная химия, внимательная работа и понятная запись без очередей.</p>
       <div class="hero-cta">
         <a href="#booking" class="btn btn-primary btn-magnetic">Записаться на мойку</a>
-        <a href="#dry-cleaning" class="btn btn-ghost btn-magnetic">Химчистка →</a>
+        <a href="#services" class="btn btn-ghost btn-magnetic">Услуги и цены</a>
       </div>
       <div class="load-pulse" id="loadPulse" style="color:#C9C2AF;margin-bottom:16px;">
         <span class="load-dot low" id="loadDot"></span>
@@ -160,8 +220,8 @@
       <div class="gis-card" id="gisCard">
         <div class="gis-badge">2Г</div>
         <div class="gis-info">
-          <b>Адрес и отзывы</b>
-          <span id="gisAddressLine"><a href="https://go.2gis.com/TnzMN" target="_blank" style="color:#E3B98A;">Открыть на 2ГИС →</a></span>
+          <b>Магистральная, 90/1</b>
+          <span id="gisAddressLine"><a href="https://go.2gis.com/Q4DrY" target="_blank" rel="noopener" style="color:#56D7D8;">Маршрут и отзывы в 2ГИС →</a></span>
         </div>
         <div class="gis-rating">
           <b id="gisRating">—</b>
@@ -171,6 +231,11 @@
       <div style="margin-top:18px;">
         <p style="font-size:11.5px;color:#8A8371;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Обычная загрузка по часам</p>
         <div class="busy-hours-bar" id="busyHoursBar"></div>
+      </div>
+      <div class="hero-promise" aria-label="Наши преимущества">
+        <div><b>01</b>Бережный уход</div>
+        <div><b>02</b>Профессиональная химия</div>
+        <div><b>03</b>Запись без очередей</div>
       </div>
     </div>
 
@@ -247,7 +312,7 @@
       <div class="gallery-item"><img src="static/img/gallery/09-detail-chemistry.jpg" alt="Химия Detail для салона" loading="lazy" class="photo-grade"><span class="gallery-cap">Профессиональная химия Detail</span></div>
       <div class="gallery-item span-2 hanko-anchor" style="position:relative;">
         <img src="static/img/gallery/11-markii-sign.jpg" alt="Вывеска Автомойка №1 и Mark II" loading="lazy" class="photo-grade">
-        <span class="gallery-cap">Наш бокс — ул. Магистральная, 90</span>
+        <span class="gallery-cap">Наш бокс — ул. Магистральная, 90/1</span>
       </div>
       <div class="gallery-item"><img src="static/img/gallery/12-black-sedan-hre.jpg" alt="Тюнинг-седан на дисках HRE" loading="lazy" class="photo-grade"><span class="gallery-cap">Диски HRE — моем аккуратно</span></div>
       <div class="gallery-item"><img src="static/img/gallery/10-iron-remover.jpg" alt="Очиститель Iron Remover на кузове" loading="lazy" class="photo-grade"><span class="gallery-cap">Реагент против металлических вкраплений</span></div>
@@ -260,7 +325,7 @@
     <div class="video-showcase-grid reveal">
       <div class="video-showcase-copy">
         <div class="kicker">Смотри вживую</div>
-        <h2 style="font-family:'Spectral',serif;font-size:clamp(24px,3vw,32px);">Как это выглядит на самом деле</h2>
+        <h2 style="font-size:clamp(24px,3vw,32px);">Как это выглядит на самом деле</h2>
         <p class="text-muted" style="margin-top:12px;font-size:15.5px;max-width:420px;">
           Короткое видео прямо из бокса — без монтажа и постановки. Нажми на превью, чтобы посмотреть со звуком.
         </p>
@@ -309,7 +374,7 @@
       <div class="skeleton skeleton-card" style="background:rgba(255,255,255,0.06);"></div>
     </div>
     <div class="section-head" style="margin-top:44px;margin-bottom:26px;">
-      <h3 style="font-family:'Spectral',serif;font-size:19px;color:#fff;">До / после</h3>
+      <h3 style="font-size:19px;color:#fff;">До / после</h3>
       <p style="color:#C9C2AF;font-size:14px;margin-top:6px;">Реальные заказы наших мастеров — без фильтров и постановки.</p>
     </div>
     <div class="gallery-grid reveal">
@@ -380,7 +445,7 @@
       <div class="contact-list">
         <div class="contact-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.4-7-11a7 7 0 0 1 14 0c0 4.6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-          <div><b>ул. Магистральная, 90</b><span><a href="https://go.2gis.com/TnzMN" target="_blank" style="color:#E3B98A;">Открыть на 2ГИС →</a></span></div>
+          <div><b>ул. Магистральная, 90/1</b><span><a href="https://go.2gis.com/Q4DrY" target="_blank" rel="noopener" style="color:#56D7D8;">Открыть на 2ГИС →</a></span></div>
         </div>
         <div class="contact-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L7.9 9.7a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2Z"/></svg>
@@ -410,6 +475,18 @@
   let authToken = null;
   let pendingPhone = null;
 
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+    })[ch]);
+  }
+  function safeMediaUrl(value) {
+    try {
+      const url = new URL(value, window.location.origin);
+      return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+    } catch (_) { return ''; }
+  }
+
   const pineappleIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3c1 1.5 1 3 .5 4.5M9 4c.5 1.5 1 2.5 2 3.5M15 4c-.5 1.5-1 2.5-2 3.5"/><path d="M7 10c0-1.8 2.2-3.2 5-3.2s5 1.4 5 3.2c0 5-2.2 9-5 9s-5-4-5-9Z"/><path d="M8.5 12.5c1-.6 2-.9 3.5-.9s2.5.3 3.5.9M8 15.3c1.1-.5 2.4-.8 4-.8s2.9.3 4 .8"/></svg>';
 
   function renderPunchCard(containerId, punchCount) {
@@ -435,8 +512,8 @@
     const priceId = 'price-' + priceCounter;
     return `<div class="service-card">
       <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${iconPath}</svg></div>
-      <h3>${s.name}</h3>
-      <p class="desc">${s.description || ''}</p>
+      <h3>${escapeHtml(s.name)}</h3>
+      <p class="desc">${escapeHtml(s.description || '')}</p>
       <div class="service-meta"><span class="price count-up" id="${priceId}" data-target="${Math.round(s.price_from)}">0 ₽</span><span class="time">${s.duration_min ? '≈ ' + s.duration_min + ' мин' : ''}</span></div>
     </div>`;
   }
@@ -459,7 +536,7 @@
       document.getElementById('washGrid').innerHTML = wash.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
       animatePricesIn('washGrid');
       const serviceSelect = document.getElementById('serviceSelect');
-      serviceSelect.innerHTML = wash.map(s => `<option value="${s.id}">${s.name} — от ${Math.round(s.price_from)} ₽</option>`).join('');
+      serviceSelect.innerHTML = wash.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — от ${Math.round(s.price_from)} ₽</option>`).join('');
     } catch (e) {
       document.getElementById('washGrid').innerHTML = '<p style="color:var(--ink-soft);">Не удалось загрузить услуги — проверь, что backend запущен (' + API_BASE + ').</p>';
     }
@@ -490,9 +567,9 @@
       }
       grid.innerHTML = posts.slice(0, 6).map(p => `
         <div class="gallery-item span-2" style="height:auto;position:relative;">
-          ${p.photo_urls[0] ? `<img src="${p.photo_urls[0]}" class="photo-grade" style="aspect-ratio:16/10;object-fit:cover;">` : ''}
+          ${safeMediaUrl(p.photo_urls[0]) ? `<img src="${safeMediaUrl(p.photo_urls[0])}" alt="" class="photo-grade" style="aspect-ratio:16/10;object-fit:cover;">` : ''}
           <div style="padding:14px 16px;background:var(--washi-card);border:1px solid var(--line);border-top:none;border-radius:0 0 14px 14px;">
-            <p style="font-size:13.5px;color:var(--sumi);margin-bottom:8px;">${(p.text || '').slice(0, 220)}${(p.text||'').length > 220 ? '…' : ''}</p>
+            <p style="font-size:13.5px;color:var(--sumi);margin-bottom:8px;">${escapeHtml((p.text || '').slice(0, 220))}${(p.text||'').length > 220 ? '…' : ''}</p>
             <span style="font-size:12px;color:var(--ink-soft-2);">${p.published_at ? new Date(p.published_at).toLocaleDateString('ru-RU') : ''} · ♥ ${p.likes}</span>
           </div>
         </div>`).join('');
@@ -506,6 +583,19 @@
   const stepBooking = document.getElementById('stepBooking');
   const statusEl = document.getElementById('bookStatus');
   function setStatus(msg, type) { statusEl.textContent = msg; statusEl.className = 'book-status ' + (type || ''); }
+  const dateTimeInput = document.getElementById('dateTimeInput');
+  const localDateTime = date => {
+    const pad = n => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+  const bookingMin = new Date();
+  bookingMin.setMinutes(Math.ceil(bookingMin.getMinutes() / 30) * 30, 0, 0);
+  const bookingMax = new Date(bookingMin);
+  bookingMax.setDate(bookingMax.getDate() + 3);
+  bookingMax.setHours(21, 0, 0, 0);
+  dateTimeInput.min = localDateTime(bookingMin);
+  dateTimeInput.max = localDateTime(bookingMax);
+  dateTimeInput.step = '1800';
 
   function setStep(n) {
     document.querySelectorAll('#bookStepper .step').forEach(s => {
@@ -527,7 +617,7 @@
       stepPhone.style.display = 'none';
       stepCode.style.display = 'block';
       setStep(2);
-    } catch (e) { setStatus('Не удалось отправить код. Backend запущен?', 'err'); }
+    } catch (e) { setStatus(e.message || 'Не удалось отправить код', 'err'); }
   });
   document.getElementById('resendBtn').addEventListener('click', () => document.getElementById('sendCodeBtn').click());
   document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
@@ -543,7 +633,7 @@
       setStep(3);
       tactileFeedback(15);
       updatePublicLoyaltyDisplay();
-    } catch (e) { setStatus('Неверный код, попробуйте снова', 'err'); }
+    } catch (e) { setStatus(e.message || 'Неверный код, попробуйте снова', 'err'); }
   });
 
   async function updatePublicLoyaltyDisplay() {
@@ -563,10 +653,17 @@
     const dt = document.getElementById('dateTimeInput').value;
     if (!dt) { setStatus('Укажите дату и время', 'err'); return; }
     try {
-      await api('/bookings', { method: 'POST', body: JSON.stringify({ service_id, scheduled_at: new Date(dt).toISOString() }) });
+      const [day, clock] = dt.split('T');
+      const availability = await api(`/bookings/slots?day=${encodeURIComponent(day)}`);
+      const selectedSlot = availability.slots.find(slot => slot.time === clock);
+      if (!selectedSlot || !selectedSlot.available) {
+        setStatus('Это время уже занято. Выберите другой свободный слот.', 'err');
+        return;
+      }
+      await api('/bookings', { method: 'POST', body: JSON.stringify({ service_id, scheduled_at: dt }) });
       setStatus('Готово! Вы записаны, ждём вас 🚗', 'ok');
       tactileFeedback([10, 40, 10]);
-    } catch (e) { setStatus('Не удалось создать запись', 'err'); }
+    } catch (e) { setStatus(e.message || 'Не удалось создать запись', 'err'); }
   });
 
   initRevealObserver();

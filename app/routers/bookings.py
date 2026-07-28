@@ -1,15 +1,17 @@
 from datetime import date, datetime, time, timedelta
 from typing import List, Optional
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Booking, Service, User, UserRole, BookingStatus, AuditLog, JobAssignment, Employee
+from app.models import Booking, Service, User, UserRole, BookingStatus, AuditLog, JobAssignment, Employee, CarProfile
 from app.schemas import BookingCreate, BookingOut, BookingUpdate, RatingSubmit, EmployeeAssignmentSet
 from app.dependencies import get_current_user, require_staff
 from app.loyalty import register_wash, price_with_discount, calc_employee_payout
 from app.payroll import get_business_settings
+from app.config import settings as app_settings
 
 router = APIRouter(prefix="/bookings", tags=["Запись на мойку"])
 
@@ -24,17 +26,48 @@ def create_booking(
     if not service or not service.is_active:
         raise HTTPException(404, "Услуга не найдена")
 
+    scheduled_at = data.scheduled_at
+    if scheduled_at.tzinfo is not None:
+        scheduled_at = scheduled_at.astimezone(ZoneInfo(app_settings.business_timezone)).replace(tzinfo=None)
+
+    business_now = datetime.now(ZoneInfo(app_settings.business_timezone)).replace(tzinfo=None)
+    business_today = business_now.date()
+    if scheduled_at <= business_now:
+        raise HTTPException(400, "Нельзя записаться на прошедшее время")
+    if scheduled_at.time() < time(9, 0) or scheduled_at.time() >= time(21, 0):
+        raise HTTPException(400, "Онлайн-запись доступна с 09:00 до 21:00")
+
+    if data.car_profile_id:
+        car = (
+            db.query(CarProfile)
+            .filter(CarProfile.id == data.car_profile_id, CarProfile.user_id == user.id)
+            .first()
+        )
+        if not car:
+            raise HTTPException(400, "Выбранный автомобиль не найден в вашем кабинете")
+
     # Клиент видит и может записаться онлайн только на ближайшие N дней (по умолчанию 3) —
     # дальше по ТЗ "обговаривается по телефону". Персонал (админ/мойщик) это ограничение не касается.
     if user.role == UserRole.CLIENT:
         settings = get_business_settings(db)
-        max_date = date.today() + timedelta(days=settings.client_booking_window_days)
-        if data.scheduled_at.date() > max_date:
+        max_date = business_today + timedelta(days=settings.client_booking_window_days)
+        if scheduled_at.date() > max_date:
             raise HTTPException(
                 400,
                 f"Онлайн запись доступна максимум на {settings.client_booking_window_days} дн. вперёд — "
                 f"на более поздние даты, пожалуйста, звоните нам по телефону.",
             )
+
+    slot_is_taken = (
+        db.query(Booking)
+        .filter(
+            Booking.scheduled_at == scheduled_at,
+            Booking.status != BookingStatus.CANCELLED,
+        )
+        .first()
+    )
+    if slot_is_taken:
+        raise HTTPException(409, "Это время уже занято. Выберите другой свободный слот.")
 
     # Превью скидки по карте — покажем клиенту сразу, чек начислится по факту при завершении мойки
     preview_discount = 0
@@ -49,7 +82,7 @@ def create_booking(
         client_id=user.id,
         service_id=service.id,
         car_profile_id=data.car_profile_id,
-        scheduled_at=data.scheduled_at,
+        scheduled_at=scheduled_at,
         comment=data.comment,
         price=price_with_discount(service.price_from, preview_discount),
         discount_pct=preview_discount,
@@ -122,7 +155,8 @@ def free_slots(day: date, db: Session = Depends(get_db)):
         minutes = t.hour * 60 + t.minute + step
         t = time(minutes // 60, minutes % 60)
 
-    max_online_date = date.today() + timedelta(days=settings.client_booking_window_days)
+    business_today = datetime.now(ZoneInfo(app_settings.business_timezone)).date()
+    max_online_date = business_today + timedelta(days=settings.client_booking_window_days)
     return {
         "date": str(day),
         "slots": slots,

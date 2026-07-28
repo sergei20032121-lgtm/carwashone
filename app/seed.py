@@ -9,6 +9,7 @@
 автоматически при завершении записи/заказа, см. app/loyalty.py).
 """
 from datetime import date
+import secrets
 from app.database import SessionLocal, Base, engine
 from app.models import (
     Service, ServiceCategory, Employee, User, UserRole,
@@ -31,10 +32,11 @@ def seed():
             wash_services = [
                 ("Облив авто водой", "Быстрое ополаскивание кузова водой без химии.", 250, None, 10, False),
                 ("Бесконтактная мойка", "Мойка кузова активной пеной без соприкосновения щёток с ЛКП.", 350, 500, 20, False),
-                ("Экспресс мойка авто", "Кузов, диски, окна и сушка вручную - когда важны минуты.", 900, 1400, 25, False),
+                ("Экспресс мойка авто", "Двухфазная мойка кузова и протирка — когда важны минуты.", 800, None, 25, False),
                 ("Сухой туман", "Устранение запахов в салоне парогенератором.", 400, None, 15, False),
                 ("Покрытие кузова жидким воском", "Быстрая защита ЛКП с гидрофобным эффектом после мойки.", 300, None, 10, False),
-                ("Комплексная (полная) мойка", "Кузов и диски, химчистка ковриков, полировка стёкол, пылесос салона.", 1300, 2100, 45, True),
+                ("Комплексная (полная) мойка", "Кузов, диски, коврики, проёмы, пороги, пылесос и влажная уборка салона.", 1200, None, 45, True),
+                ("Детейлинг экспресс мойка", "Двухфазная мойка, проёмы, диски, турбосушка, стёкла, коврики и чернение резины.", 1400, None, 40, True),
                 ("Премиум мойка авто", "Комплекс плюс расширенная обработка резины, пластика и стёкол.", 1900, 2500, 60, True),
             ]
             for i, (name, desc, price_from, price_to, dur, counts) in enumerate(wash_services):
@@ -45,7 +47,7 @@ def seed():
                 ))
 
             dry_services = [
-                ("Комплексная детейлинг", "Глубокая мойка и обработка кузова и салона выше уровня комплекса.", 2300, 3000, 90, True),
+                ("Комплексная детейлинг мойка", "Двухфазная мойка, гидрофобный состав, диски, педали, проёмы, турбосушка и уборка салона.", 2100, None, 90, True),
                 ("Химчистка кузова авто", "Химчистка внешних пластиковых и резиновых элементов кузова.", 3000, 5000, 90, True),
                 ("Полировка кузова", "Полировка кузова с удалением мелких царапин и потёртостей.", 6000, 14000, 180, True),
                 ("Химчистка салона авто", "Полная химчистка сидений, ковриков, потолка и дверных карт.", 9000, None, 240, True),
@@ -61,16 +63,21 @@ def seed():
 
         admin_user = db.query(User).filter(User.username == "admin").first()
         if not admin_user:
+            admin_password = (
+                settings.admin_password
+                if settings.admin_password != "change-me"
+                else secrets.token_urlsafe(12)
+            )
             admin_user = User(
                 username="admin",
                 full_name="Администратор",
                 role=UserRole.ADMIN,
-                password_hash=hash_password("admin"),
+                password_hash=hash_password(admin_password),
             )
             db.add(admin_user)
             db.commit()
             db.refresh(admin_user)
-            print("Создан админ: логин 'admin', пароль 'admin' - ОБЯЗАТЕЛЬНО смени после первого входа.")
+            print(f"Создан админ: логин 'admin', временный пароль: {admin_password}")
 
         if not db.query(Employee).first():
             employees = [
@@ -100,17 +107,29 @@ def seed():
             db.commit()
 
         if not db.query(User).filter(User.username == "manager").first():
+            manager_password = (
+                settings.manager_password
+                if settings.manager_password != "change-me"
+                else secrets.token_urlsafe(12)
+            )
             db.add(User(
                 username="manager",
                 full_name="Руководитель",
                 role=UserRole.MANAGER,
-                password_hash=hash_password("manager"),
+                password_hash=hash_password(manager_password),
             ))
             db.commit()
-            print("Создан руководитель: логин 'manager', пароль 'manager' - тоже смени после первого входа.")
+            print(f"Создан руководитель: логин 'manager', временный пароль: {manager_password}")
 
         if not db.query(GisSettings).first():
-            db.add(GisSettings(org_url="https://go.2gis.com/TnzMN"))
+            # Рейтинг и количество оценок проверены по публичной карточке 2ГИС 28.07.2026.
+            # До подключения API их можно обновлять вручную в админке.
+            db.add(GisSettings(
+                org_id="70000001054541469",
+                org_url="https://go.2gis.com/Q4DrY",
+                rating=4.9,
+                reviews_count=153,
+            ))
             db.commit()
 
         if not db.query(VkSettings).first():

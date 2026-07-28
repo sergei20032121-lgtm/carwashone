@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from app.config import settings
 from app.database import Base, engine
 from app.routers import auth, services, bookings, dry_cleaning, schedule, reviews, admin, walk_in, vk, client, public_stats
 
 Base.metadata.create_all(bind=engine)
+PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 app = FastAPI(
     title=settings.app_name,
@@ -17,7 +19,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # сузить до реального домена сайта перед продакшеном
+    allow_origins=[origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,8 +37,8 @@ app.include_router(vk.router)
 app.include_router(client.router)
 app.include_router(public_stats.router)
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-app.mount("/site", StaticFiles(directory="frontend", html=True), name="site")
+app.mount("/static", StaticFiles(directory=PROJECT_DIR / "app" / "static"), name="static")
+app.mount("/site", StaticFiles(directory=PROJECT_DIR / "frontend", html=True), name="site")
 
 
 @app.get("/", tags=["Health"])

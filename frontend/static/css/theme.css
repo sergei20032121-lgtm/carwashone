@@ -1,24 +1,24 @@
 /* =========================================================================
    Автомойка №1 — общая дизайн-система
-   Направление: спокойная японская эстетика (васи-бумага, суми, вермильон-
-   печать/ханко, волна сейгайха) — без неона и "геймерских" градиентов.
+   Направление: современная автомобильная эстетика. Графит, фирменный
+   бирюзовый Mark II, красный цвет действий и ананас как знак бренда.
    ========================================================================= */
 
 :root{
-  --sumi:#14171C;         /* тушь — тёмный, почти чёрный */
-  --indigo:#1E2A44;       /* глубокий индиго — вторичный тёмный */
-  --washi:#F7F2E7;        /* бумага васи — основной светлый фон */
-  --washi-card:#FFFDF8;   /* поверхность карточек на васи */
-  --washi-2:#EFE6D3;      /* чуть темнее васи, для полос/подложек */
-  --line:rgba(20,23,28,0.13);
-  --line-soft:rgba(20,23,28,0.07);
-  --vermillion:#BE3B3B;   /* ханко — красная печать */
-  --vermillion-dark:#9C2E2E;
-  --jade:#1E8A72;         /* приглушённый нефрит вместо неоновой бирюзы */
-  --jade-dark:#166A58;
-  --gold:#AD8A52;         /* латунь — премиальный акцент, точечно */
-  --ink-soft:#5B5646;     /* тёплый серо-коричневый для вторичного текста */
-  --ink-soft-2:#8A8371;
+  --sumi:#0B1015;
+  --indigo:#15202A;
+  --washi:#F1F3F4;
+  --washi-card:#FFFFFF;
+  --washi-2:#E7EBED;
+  --line:rgba(11,16,21,0.14);
+  --line-soft:rgba(11,16,21,0.07);
+  --vermillion:#E73D2B;
+  --vermillion-dark:#C92F20;
+  --jade:#21BFC4;
+  --jade-dark:#087C82;
+  --gold:#B89052;
+  --ink-soft:#53606B;
+  --ink-soft-2:#7E8993;
   --radius:16px;
   --shadow:0 24px 60px -28px rgba(20,15,5,0.35);
   --shadow-soft:0 10px 30px -14px rgba(20,15,5,0.22);
@@ -39,10 +39,10 @@ body{
 /* тонкое зерно бумаги поверх всего сайта — едва заметное, но считывается как "печать", а не CSS-градиент */
 body::before{
   content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
-  opacity:0.035;mix-blend-mode:multiply;
+  opacity:0;mix-blend-mode:multiply;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-h1,h2,h3,.display{font-family:'Spectral',serif;font-weight:600;letter-spacing:-0.01em;line-height:1.22;}
+h1,h2,h3,.display{font-family:'Manrope',sans-serif;font-weight:700;letter-spacing:-0.025em;line-height:1.18;}
 .mono{font-family:'Space Mono',monospace;font-variant-numeric:tabular-nums;}
 a{color:inherit;text-decoration:none;}
 img,svg{display:block;max-width:100%;}
@@ -66,7 +66,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
   border:2px solid var(--vermillion);color:var(--vermillion);
   display:flex;align-items:center;justify-content:center;
   font-family:'Spectral',serif;font-weight:600;font-size:22px;
-  transform:rotate(-6deg);opacity:0.9;background:rgba(255,253,248,0.85);
+  transform:rotate(-6deg);opacity:0;background:rgba(255,253,248,0.85);
   box-shadow:0 6px 16px -8px rgba(190,59,59,0.45);
 }
 
@@ -212,7 +212,7 @@ section{padding:86px 0;}
 
 /* ---------- единый цветокор фотографий ---------- */
 /* приводит разнобойные по свету/балансу фото к одному строю — тёплые тени, приглушённые света */
-.photo-grade{filter:sepia(0.14) saturate(1.12) contrast(1.06) brightness(0.97);}
+.photo-grade{filter:saturate(1.06) contrast(1.04) brightness(0.98);}
 
 /* ---------- "+" при наведении на фото — сигнал "можно посмотреть крупнее" ---------- */
 .gallery-item{cursor:zoom-in;}

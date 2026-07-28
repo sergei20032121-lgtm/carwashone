@@ -68,7 +68,24 @@
     .content{padding:0;}
     #employeesCard{border:none;box-shadow:none;}
   }
-  @media (max-width:900px){.layout{grid-template-columns:1fr;}.sidebar{display:flex;overflow-x:auto;gap:4px;padding:12px;}.sidebar .tab-btn{white-space:nowrap;}.stat-grid{grid-template-columns:repeat(2,1fr);}.form-grid{grid-template-columns:1fr;}}
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    .sidebar{display:flex;overflow-x:auto;gap:4px;padding:10px;position:sticky;top:64px;z-index:40;box-shadow:0 8px 18px rgba(0,0,0,.08);}
+    .sidebar .tab-btn{white-space:nowrap;width:auto;margin:0;}
+    .content{padding:24px 16px;max-width:100%;overflow:hidden;}
+    .content .card{overflow-x:auto;}
+    .content table{min-width:720px;}
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .form-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .topbar .wrap{padding:0 14px;}
+    .brand b{font-family:'Manrope',sans-serif;font-size:12px;}
+    .topbar .back{display:none;}
+    .stat-grid{grid-template-columns:1fr;}
+    .auth-wrap{margin:36px 16px;}
+    .auth-card{padding:20px;}
+  }
 </style>
 </head>
 <body>
@@ -87,7 +104,7 @@
 <div id="authScreen" class="auth-wrap">
   <div class="card auth-card">
     <h2 style="font-size:20px;margin-bottom:6px;">Вход в админ-панель</h2>
-    <p class="text-muted" style="font-size:13px;margin-bottom:20px;">Для сотрудников и администратора. Стартовый доступ: admin / admin.</p>
+    <p class="text-muted" style="font-size:13px;margin-bottom:20px;">Для сотрудников и администратора. Временный пароль задаётся при первом запуске.</p>
     <div class="field"><label>Логин</label><input type="text" id="loginInput" placeholder="admin"></div>
     <div class="field"><label>Пароль</label><input type="password" id="passwordInput" placeholder="••••••••"></div>
     <button class="btn btn-primary" style="width:100%;" id="loginBtn">Войти</button>

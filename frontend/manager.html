@@ -45,6 +45,17 @@
 
   .two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
   @media (max-width:900px){.two-col{grid-template-columns:1fr;}.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:560px){
+    .topbar .wrap{padding:0 16px;}
+    .brand b{font-family:'Manrope',sans-serif;font-size:13px;}
+    .page{padding:24px 16px 80px;}
+    .auth-wrap{margin:36px 16px;}
+    .auth-card,.card-section,.progress-section{padding:20px;}
+    .kpi-grid{grid-template-columns:1fr;gap:10px;}
+    .period-picker{width:100%;overflow-x:auto;}
+    .ranking-row{grid-template-columns:24px 1fr auto;}
+    .ranking-count{display:none;}
+  }
 
   .ranking-row{display:grid;grid-template-columns:28px 1fr auto auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line-soft);}
   .ranking-row:last-child{border-bottom:none;}
@@ -70,7 +81,7 @@
 <div id="authScreen" class="auth-wrap">
   <div class="card auth-card">
     <h2 style="font-size:20px;margin-bottom:6px;">Вход для руководителя</h2>
-    <p class="text-muted" style="font-size:13px;margin-bottom:20px;">Доступ только на чтение — аналитика без права менять записи. Стартовый доступ: manager / manager.</p>
+    <p class="text-muted" style="font-size:13px;margin-bottom:20px;">Аналитика, график и зарплата. Временный пароль задаётся при первом запуске.</p>
     <div class="field"><label>Логин</label><input type="text" id="loginInput" placeholder="manager"></div>
     <div class="field"><label>Пароль</label><input type="password" id="passwordInput" placeholder="••••••••"></div>
     <button class="btn btn-primary" style="width:100%;" id="loginBtn">Войти</button>

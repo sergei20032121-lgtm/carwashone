@@ -1,4 +1,4 @@
-import random
+import secrets
 import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
@@ -19,7 +19,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def generate_otp_code() -> str:
-    return f"{random.randint(0, 9999):04d}"
+    return f"{secrets.randbelow(10_000):04d}"
 
 
 def create_access_token(subject: str, role: str, expires_minutes: Optional[int] = None) -> str:

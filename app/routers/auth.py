@@ -13,15 +13,39 @@ from app.dependencies import get_current_user
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
 
 OTP_TTL_MINUTES = 5
+OTP_RESEND_SECONDS = 60
+OTP_MAX_REQUESTS_PER_15_MIN = 5
 
 
 @router.post("/otp/request", summary="Запросить смс-код для входа/записи по телефону")
 def request_otp(data: OTPRequest, db: Session = Depends(get_db)):
+    now = datetime.utcnow()
+    recent = (
+        db.query(OTPCode)
+        .filter(
+            OTPCode.phone == data.phone,
+            OTPCode.created_at >= now - timedelta(minutes=15),
+        )
+        .order_by(OTPCode.created_at.desc())
+        .all()
+    )
+    if recent and (now - recent[0].created_at).total_seconds() < OTP_RESEND_SECONDS:
+        wait_for = OTP_RESEND_SECONDS - int((now - recent[0].created_at).total_seconds())
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            f"Новый код можно запросить через {wait_for} сек.",
+        )
+    if len(recent) >= OTP_MAX_REQUESTS_PER_15_MIN:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Слишком много запросов кода. Попробуйте через 15 минут.",
+        )
+
     code = generate_otp_code()
     otp = OTPCode(
         phone=data.phone,
         code=code,
-        expires_at=datetime.utcnow() + timedelta(minutes=OTP_TTL_MINUTES),
+        expires_at=now + timedelta(minutes=OTP_TTL_MINUTES),
     )
     db.add(otp)
     db.commit()

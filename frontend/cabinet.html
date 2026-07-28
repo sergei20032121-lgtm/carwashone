@@ -51,7 +51,18 @@
   .history-price{font-family:'Space Mono';font-weight:700;font-size:14px;text-align:right;}
 
   .set-pass-row{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;}
-  @media (max-width:640px){.set-pass-row{grid-template-columns:1fr;}.stat-row{grid-template-columns:1fr;}}
+  @media (max-width:640px){
+    .topbar .wrap{padding:0 16px;}
+    .brand b{font-family:'Manrope',sans-serif;font-size:14px;}
+    .page{padding:32px 16px 88px;}
+    .auth-wrap{margin:32px 16px;}
+    .auth-card,.card-section{padding:20px;}
+    .set-pass-row{grid-template-columns:1fr;}
+    .stat-row{grid-template-columns:1fr 1fr;gap:10px;}
+    .stat-box{padding:15px 10px;}
+    .history-row{grid-template-columns:1fr auto;}
+    .history-row .badge{grid-column:1/-1;justify-self:start;}
+  }
 </style>
 </head>
 <body>
