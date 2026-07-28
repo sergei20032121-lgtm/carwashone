@@ -147,8 +147,21 @@
 
   <div class="card card-section reveal">
     <h3>Сотрудники и график</h3>
-    <p class="text-muted" style="font-size:13px;margin-bottom:16px;">Руководитель может менять смены и данные сотрудников (но не трогает записи/заказы).</p>
+    <p class="text-muted" style="font-size:13px;margin-bottom:16px;">Руководитель может добавлять, редактировать роль и удалять сотрудников, менять смены (но не трогает записи/заказы).</p>
     <div id="employeesManageList" style="margin-bottom:20px;"></div>
+    <hr class="divider">
+    <h4 style="font-size:14px;margin-bottom:12px;">Добавить сотрудника</h4>
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px;align-items:end;margin-bottom:20px;">
+      <div class="field" style="margin-bottom:0;"><label>Имя</label><input type="text" id="newEmpName" placeholder="Например, Пётр"></div>
+      <div class="field" style="margin-bottom:0;"><label>Должность</label>
+        <select id="newEmpPosition"><option>Мойщик</option><option>Химчист</option><option>Администратор</option></select>
+      </div>
+      <div class="field" style="margin-bottom:0;"><label>Может быть админом смены</label>
+        <select id="newEmpIsAdmin"><option value="false">Нет</option><option value="true">Да</option></select>
+      </div>
+      <button class="btn btn-dark" id="newEmpBtn">Добавить</button>
+    </div>
+    <div class="auth-status" id="newEmpStatus" style="margin-bottom:10px;"></div>
     <hr class="divider">
     <h4 style="font-size:14px;margin-bottom:12px;">Проставить смену</h4>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
@@ -254,26 +267,67 @@
       employeesCache = await api('/schedule/employees');
       document.getElementById('shiftEmployee').innerHTML = employeesCache.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
       document.getElementById('employeesManageList').innerHTML = employeesCache.map(e => `
-        <div class="ranking-row" style="grid-template-columns:1fr auto auto;">
-          <div>
-            <div class="ranking-name">${e.full_name}${e.is_admin_role ? ' <span class="badge">админ смены</span>' : ''}</div>
-            <div class="ranking-count">${e.position}</div>
+        <div class="card" style="padding:16px;margin-bottom:10px;">
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr auto auto;gap:10px;align-items:end;">
+            <div class="field" style="margin-bottom:0;"><label>Имя</label><input type="text" data-name="${e.id}" value="${e.full_name}"></div>
+            <div class="field" style="margin-bottom:0;"><label>Должность</label>
+              <select data-position="${e.id}">
+                ${['Мойщик','Химчист','Администратор'].map(p => `<option ${p===e.position?'selected':''}>${p}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0;"><label>Админ смены</label>
+              <select data-admin="${e.id}">
+                <option value="false" ${!e.is_admin_role?'selected':''}>Нет</option>
+                <option value="true" ${e.is_admin_role?'selected':''}>Да</option>
+              </select>
+            </div>
+            <button class="btn btn-outline" style="padding:9px 14px;font-size:12.5px;" data-save-emp="${e.id}">Сохранить</button>
+            <button class="btn btn-outline" style="padding:9px 14px;font-size:12.5px;color:var(--vermillion);border-color:var(--vermillion);" data-delete-emp="${e.id}">Удалить</button>
           </div>
-          <input type="text" data-color="${e.id}" value="${e.color_tag}" style="width:70px;padding:6px;border-radius:6px;border:1px solid var(--line);font-size:12px;">
-          <button class="btn btn-outline" style="padding:6px 12px;font-size:12px;" data-save-emp="${e.id}">Сохранить</button>
         </div>`).join('');
+
       document.querySelectorAll('[data-save-emp]').forEach(btn => {
         btn.addEventListener('click', async () => {
-          const colorInput = document.querySelector(`[data-color="${btn.dataset.saveEmp}"]`);
+          const id = btn.dataset.saveEmp;
+          const body = {
+            full_name: document.querySelector(`[data-name="${id}"]`).value.trim(),
+            position: document.querySelector(`[data-position="${id}"]`).value,
+            is_admin_role: document.querySelector(`[data-admin="${id}"]`).value === 'true',
+          };
           try {
-            await api('/schedule/employees/' + btn.dataset.saveEmp, { method: 'PATCH', body: JSON.stringify({ color_tag: colorInput.value }) });
+            await api('/schedule/employees/' + id, { method: 'PATCH', body: JSON.stringify(body) });
             btn.textContent = 'Сохранено ✓';
-            setTimeout(() => { btn.textContent = 'Сохранить'; }, 1500);
+            setTimeout(() => loadEmployeesManage(), 900);
           } catch (e) { alert('Не удалось сохранить: ' + e.message); }
+        });
+      });
+      document.querySelectorAll('[data-delete-emp]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Скрыть этого сотрудника (деактивировать)?')) return;
+          try {
+            await api('/schedule/employees/' + btn.dataset.deleteEmp, { method: 'DELETE' });
+            loadEmployeesManage();
+          } catch (e) { alert('Не удалось удалить: ' + e.message); }
         });
       });
     } catch (e) {}
   }
+
+  document.getElementById('newEmpBtn').addEventListener('click', async () => {
+    const el = document.getElementById('newEmpStatus');
+    const name = document.getElementById('newEmpName').value.trim();
+    if (!name) { el.textContent = 'Введите имя'; el.className = 'auth-status err'; return; }
+    try {
+      await api('/schedule/employees', { method: 'POST', body: JSON.stringify({
+        full_name: name,
+        position: document.getElementById('newEmpPosition').value,
+        is_admin_role: document.getElementById('newEmpIsAdmin').value === 'true',
+      }) });
+      el.textContent = 'Сотрудник добавлен'; el.className = 'auth-status ok';
+      document.getElementById('newEmpName').value = '';
+      loadEmployeesManage();
+    } catch (e) { el.textContent = e.message; el.className = 'auth-status err'; }
+  });
 
   document.getElementById('shiftSaveBtn').addEventListener('click', async () => {
     const el = document.getElementById('shiftStatus');

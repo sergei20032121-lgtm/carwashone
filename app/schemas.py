@@ -165,6 +165,7 @@ class WalkInOrderOut(BaseModel):
     amount: float
     contact_name: Optional[str]
     employee_id: Optional[int]
+    assigned_employee_names: List[str] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -205,6 +206,7 @@ class DryCleaningOrderOut(BaseModel):
     status: BookingStatus
     photos_before: List[str] = []
     photos_after: List[str] = []
+    assigned_employee_names: List[str] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -463,6 +465,7 @@ class EmployeeDayPayout(BaseModel):
 class DailyPayrollOut(BaseModel):
     date: date
     total_revenue: float
+    admin_on_duty: List[str] = Field(default_factory=list)
     employees: List[EmployeeDayPayout] = []
 
 

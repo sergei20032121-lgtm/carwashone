@@ -15,6 +15,23 @@ from app.excel_utils import export_walkin_xlsx, parse_walkin_any
 router = APIRouter(prefix="/walk-in", tags=["Журнал заказов (без записи)"])
 
 
+def _attach_employee_names(db: Session, orders: List[WalkInOrder]) -> List[WalkInOrder]:
+    if not orders:
+        return orders
+    ids = [o.id for o in orders]
+    assignments = db.query(JobAssignment).filter(
+        JobAssignment.order_type == "walk_in", JobAssignment.order_id.in_(ids)
+    ).all()
+    emp_ids = {a.employee_id for a in assignments}
+    employees = {e.id: e.full_name for e in db.query(Employee).filter(Employee.id.in_(emp_ids)).all()} if emp_ids else {}
+    by_order: dict = {}
+    for a in assignments:
+        by_order.setdefault(a.order_id, []).append(employees.get(a.employee_id, "?"))
+    for o in orders:
+        o.assigned_employee_names = by_order.get(o.id, [])
+    return orders
+
+
 @router.get("", response_model=List[WalkInOrderOut], dependencies=[Depends(require_staff)], summary="Список заказов за период")
 def list_orders(
     date_from: Optional[date] = None,
@@ -26,7 +43,8 @@ def list_orders(
         q = q.filter(WalkInOrder.order_date >= date_from)
     if date_to:
         q = q.filter(WalkInOrder.order_date <= date_to)
-    return q.order_by(WalkInOrder.order_date.desc(), WalkInOrder.id.desc()).all()
+    orders = q.order_by(WalkInOrder.order_date.desc(), WalkInOrder.id.desc()).all()
+    return _attach_employee_names(db, orders)
 
 
 @router.post("", response_model=WalkInOrderOut, summary="Добавить заказ (клиент без записи)")

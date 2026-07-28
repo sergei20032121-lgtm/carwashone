@@ -129,7 +129,12 @@ def compute_daily_payroll(db: Session, day: date) -> dict:
 
     db.commit()  # сохраняем закэшированные share_amount на JobAssignment
     results.sort(key=lambda r: -r["final_payout"])
-    return {"date": day, "total_revenue": round(total_revenue_day, 2), "employees": results}
+    return {
+        "date": day,
+        "total_revenue": round(total_revenue_day, 2),
+        "admin_on_duty": [e.full_name for e in admin_on_duty],
+        "employees": results,
+    }
 
 
 def compute_weekly_payroll(db: Session, date_from: date, date_to: date) -> dict:

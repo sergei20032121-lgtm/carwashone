@@ -14,6 +14,23 @@ from app.excel_utils import export_drycleaning_xlsx, parse_drycleaning_xlsx
 router = APIRouter(prefix="/dry-cleaning", tags=["Химчистка"])
 
 
+def _attach_employee_names(db: Session, orders: List[DryCleaningOrder]) -> List[DryCleaningOrder]:
+    if not orders:
+        return orders
+    ids = [o.id for o in orders]
+    assignments = db.query(JobAssignment).filter(
+        JobAssignment.order_type == "dry_cleaning", JobAssignment.order_id.in_(ids)
+    ).all()
+    emp_ids = {a.employee_id for a in assignments}
+    employees = {e.id: e.full_name for e in db.query(Employee).filter(Employee.id.in_(emp_ids)).all()} if emp_ids else {}
+    by_order: dict = {}
+    for a in assignments:
+        by_order.setdefault(a.order_id, []).append(employees.get(a.employee_id, "?"))
+    for o in orders:
+        o.assigned_employee_names = by_order.get(o.id, [])
+    return orders
+
+
 @router.get("/services", response_model=List[ServiceOut], summary="Прайс химчистки (публично)")
 def dry_cleaning_services(db: Session = Depends(get_db)):
     return (
@@ -40,7 +57,8 @@ def list_orders(
         q = q.filter(DryCleaningOrder.order_date >= date_from)
     if date_to:
         q = q.filter(DryCleaningOrder.order_date <= date_to)
-    return q.order_by(DryCleaningOrder.order_date.desc()).all()
+    orders = q.order_by(DryCleaningOrder.order_date.desc()).all()
+    return _attach_employee_names(db, orders)
 
 
 @router.post(

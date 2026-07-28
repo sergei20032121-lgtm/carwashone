@@ -40,6 +40,20 @@
   select.status-select{padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--washi-2);font-size:12.5px;}
 
   .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+
+  /* ---- журнал по дням (Учёт) ---- */
+  .ledger-day{margin-bottom:22px;border-radius:14px;overflow:hidden;border:1px solid var(--line);}
+  .ledger-day-head{background:var(--sumi);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .ledger-day-head .day-title{font-family:'Spectral',serif;font-size:16px;}
+  .ledger-day-head .admin-tag{font-size:12px;color:#E3B98A;font-weight:700;}
+  .ledger-table{width:100%;border-collapse:collapse;background:var(--washi-card);}
+  .ledger-table th{background:var(--washi-2);font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft-2);text-align:left;padding:9px 12px;}
+  .ledger-table td{padding:10px 12px;font-size:13.5px;border-top:1px solid var(--line-soft);}
+  .ledger-table tr:hover td{background:var(--washi-2);}
+  .ledger-total-row td{background:var(--washi-2);font-weight:700;border-top:2px solid var(--line);}
+  .emp-chip{display:inline-block;padding:3px 9px;border-radius:100px;background:rgba(30,138,114,0.12);color:var(--jade-dark);font-size:11.5px;font-weight:700;margin:1px 3px 1px 0;}
+  .emp-chip.admin-chip{background:rgba(173,138,82,0.18);color:var(--gold);}
+  .ledger-actions button{padding:4px 9px;font-size:11.5px;}
   .stat-box{padding:20px;}
   .stat-box b{display:block;font-family:'Spectral',serif;font-size:26px;}
   .stat-box span{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px;}
@@ -125,10 +139,11 @@
     <div class="tab-page" id="tab-walkin" style="display:none;">
       <h2 id="walkinFormTitle">Добавить заказ (без записи)</h2>
       <div class="card" style="padding:20px;margin-bottom:22px;">
-        <div class="form-grid">
+        <div class="form-grid" style="grid-template-columns:repeat(3,1fr);">
           <div class="field"><label>Дата</label><input type="date" id="wDate"></div>
-          <div class="field"><label>Услуга (текст)</label><input type="text" id="wService" placeholder="Комплекс"></div>
+          <div class="field"><label>Время</label><input type="time" id="wTime"></div>
           <div class="field"><label>Марка авто</label><input type="text" id="wCar" placeholder="Kia Rio"></div>
+          <div class="field"><label>Услуга (текст)</label><input type="text" id="wService" placeholder="Комплекс"></div>
           <div class="field"><label>Доп. услуга</label><input type="text" id="wExtra" placeholder="коврики"></div>
           <div class="field"><label>Сумма ₽</label><input type="number" id="wAmount" placeholder="900"></div>
           <div class="field"><label>Телефон клиента (необязательно)</label><input type="tel" id="wPhone" placeholder="+7900..."></div>
@@ -138,20 +153,17 @@
         <div class="auth-status" id="wStatus"></div>
       </div>
       <div class="toolbar">
-        <h3 style="margin:0;font-size:16px;">Журнал заказов — Учёт (автомойка)</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-outline" id="refreshWalkin">Обновить</button>
+        <h3 style="margin:0;font-size:16px;">Журнал по дням — Учёт (автомойка)</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+          <div class="field" style="margin-bottom:0;"><label style="font-size:10.5px;">С</label><input type="date" id="walkinFilterFrom" style="padding:8px 10px;"></div>
+          <div class="field" style="margin-bottom:0;"><label style="font-size:10.5px;">По</label><input type="date" id="walkinFilterTo" style="padding:8px 10px;"></div>
+          <button class="btn btn-outline" id="refreshWalkin">Показать</button>
           <button class="btn btn-outline" id="exportWalkin">⬇ Экспорт .xlsx</button>
           <label class="btn btn-outline" style="cursor:pointer;">⬆ Импорт .xlsx<input type="file" id="importWalkinFile" accept=".xlsx" style="display:none;"></label>
         </div>
       </div>
       <div class="auth-status" id="walkinImportStatus"></div>
-      <div class="card" style="padding:6px 16px;overflow-x:auto;">
-        <table id="walkinTable">
-          <thead><tr><th>Дата</th><th>Услуга</th><th>Авто</th><th>Доп.</th><th>Сумма</th><th>Контакт</th><th>Действия</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <div id="walkinLedger"></div>
     </div>
 
     <!-- ХИМЧИСТКА -->
@@ -163,9 +175,9 @@
           <div class="field"><label>Марка авто</label><input type="text" id="dCar" placeholder="Toyota Mark II"></div>
           <div class="field"><label>Работы</label><input type="text" id="dWorks" placeholder="Химчистка сидений"></div>
           <div class="field"><label>Сумма ₽</label><input type="number" id="dAmount" placeholder="2000"></div>
-          <div class="field"><label>З/п мастера ₽</label><input type="number" id="dPayout" placeholder="600"></div>
           <div class="field"><label>Телефон (необязательно)</label><input type="tel" id="dPhone" placeholder="+7900..."></div>
         </div>
+        <p class="text-muted" style="font-size:12.5px;margin:-4px 0 14px;">З/п мастера считается автоматически (35% от суммы, делится между назначенными исполнителями) — назначь их кнопкой «👥 Сотрудники» в таблице ниже.</p>
         <button class="btn btn-primary" id="dSubmit">Добавить заказ</button>
         <button class="btn btn-outline" id="dCancelEdit" style="display:none;">Отменить редактирование</button>
         <div class="auth-status" id="dStatus"></div>
@@ -181,7 +193,7 @@
       <div class="auth-status" id="dryImportStatus"></div>
       <div class="card" style="padding:6px 16px;overflow-x:auto;">
         <table id="dryTable">
-          <thead><tr><th>Дата</th><th>Авто</th><th>Работы</th><th>Сумма</th><th>З/п мастера</th><th>Действия</th></tr></thead>
+          <thead><tr><th>Дата</th><th>Авто</th><th>Работы</th><th>Сумма</th><th>Кто мыл</th><th>Действия</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -221,14 +233,43 @@
 
     <!-- ГРАФИК -->
     <div class="tab-page" id="tab-schedule" style="display:none;">
-      <div class="toolbar"><h2 style="margin:0;">Сотрудники</h2><button class="btn btn-outline" id="printScheduleBtn">🖨 Печать списка на смену</button></div>
-      <div class="card" style="padding:6px 16px;overflow-x:auto;" id="employeesCard">
-        <table id="employeesTable">
-          <thead><tr><th>Имя</th><th>Должность</th></tr></thead>
-          <tbody></tbody>
-        </table>
+      <div class="toolbar"><h2 style="margin:0;">Сотрудники и график</h2><button class="btn btn-outline" id="printScheduleBtn">🖨 Печать списка на смену</button></div>
+
+      <div class="card" style="padding:20px;margin-bottom:16px;">
+        <h3 style="font-size:14px;margin-bottom:12px;">Добавить сотрудника</h3>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px;align-items:end;">
+          <div class="field" style="margin-bottom:0;"><label>Имя</label><input type="text" id="newEmpName" placeholder="Например, Пётр"></div>
+          <div class="field" style="margin-bottom:0;"><label>Должность</label>
+            <select id="newEmpPosition"><option>Мойщик</option><option>Химчист</option><option>Администратор</option></select>
+          </div>
+          <div class="field" style="margin-bottom:0;"><label>Админ смены</label>
+            <select id="newEmpIsAdmin"><option value="false">Нет</option><option value="true">Да</option></select>
+          </div>
+          <button class="btn btn-dark" id="newEmpBtn">Добавить</button>
+        </div>
+        <div class="auth-status" id="newEmpStatus"></div>
       </div>
-      <p class="text-muted" style="font-size:13px;margin-top:14px;">Простановка смен по дням — через API (`PUT /schedule`), визуальный календарь — следующим шагом.</p>
+
+      <div id="employeesManageList" style="margin-bottom:22px;"></div>
+
+      <div class="card" style="padding:20px;" id="employeesCard">
+        <h3 style="font-size:14px;margin-bottom:12px;">Проставить смену</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+          <div class="field" style="margin-bottom:0;"><label>Сотрудник</label><select id="shiftEmployee"></select></div>
+          <div class="field" style="margin-bottom:0;"><label>Дата</label><input type="date" id="shiftDate"></div>
+          <div class="field" style="margin-bottom:0;"><label>Тип смены</label>
+            <select id="shiftType">
+              <option value="full_day">Полный день</option>
+              <option value="day_9_18">09:00–18:00</option>
+              <option value="evening_17_22">17:00–22:00</option>
+              <option value="day_off">Выходной</option>
+              <option value="no_show">Невыход</option>
+            </select>
+          </div>
+          <button class="btn btn-dark" id="shiftSaveBtn">Сохранить</button>
+        </div>
+        <div class="auth-status" id="shiftStatus"></div>
+      </div>
     </div>
 
     <!-- ЗАРПЛАТА -->
@@ -330,8 +371,14 @@
   function showPanel() {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('panel').style.display = 'grid';
-    loadEmployees(); loadOverview(); loadBookings(); loadWalkin(); loadDry(); loadServices(); loadVk(); loadAuditLog();
+    loadEmployees(); loadOverview(); loadBookings(); loadDry(); loadServices(); loadVk(); loadAuditLog();
     document.getElementById('payrollDay').value = new Date().toISOString().slice(0, 10);
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const weekAgoIso = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    document.getElementById('walkinFilterFrom').value = weekAgoIso;
+    document.getElementById('walkinFilterTo').value = todayIso;
+    document.getElementById('shiftDate').value = todayIso;
+    loadWalkin();
   }
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -396,67 +443,120 @@
   document.getElementById('refreshBookings').addEventListener('click', loadBookings);
 
   let walkinEditingId = null;
+  let walkinRowsCache = [];
 
   async function loadWalkin() {
+    const from = document.getElementById('walkinFilterFrom').value;
+    const to = document.getElementById('walkinFilterTo').value;
     try {
-      const rows = await api('/walk-in');
-      document.querySelector('#walkinTable tbody').innerHTML = rows.slice(0, 100).map(o => `
-        <tr>
-          <td>${o.order_date}</td><td>${o.service_name_raw}</td><td>${o.car_model || '—'}</td>
-          <td>${o.extra_service || '—'}</td><td>${Math.round(o.amount)} ₽</td><td>${o.contact_name || '—'}</td>
-          <td style="white-space:nowrap;">
-            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-edit-walkin="${o.id}">Изменить</button>
-            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-assign-walkin="${o.id}">👥 Сотрудники</button>
-            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;color:var(--vermillion);border-color:var(--vermillion);" data-delete-walkin="${o.id}">Удалить</button>
-          </td>
-        </tr>`).join('');
-
-      document.querySelectorAll('[data-assign-walkin]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const o = rows.find(r => r.id == btn.dataset.assignWalkin);
-          const currentIds = o && o.employee_id ? [o.employee_id] : [];
-          openEmployeePicker(currentIds, async (ids) => {
-            try {
-              await api('/walk-in/' + btn.dataset.assignWalkin + '/employees', { method: 'PUT', body: JSON.stringify({ employee_ids: ids }) });
-              loadWalkin();
-            } catch (e) { alert('Не удалось назначить сотрудников: ' + e.message); }
-          });
-        });
-      });
-
-      document.querySelectorAll('[data-edit-walkin]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const o = rows.find(r => r.id == btn.dataset.editWalkin);
-          if (!o) return;
-          walkinEditingId = o.id;
-          document.getElementById('wDate').value = o.order_date;
-          document.getElementById('wService').value = o.service_name_raw;
-          document.getElementById('wCar').value = o.car_model || '';
-          document.getElementById('wExtra').value = o.extra_service || '';
-          document.getElementById('wAmount').value = o.amount;
-          document.getElementById('wPhone').value = '';
-          document.getElementById('walkinFormTitle').textContent = `Редактирование заказа #${o.id}`;
-          document.getElementById('wSubmit').textContent = 'Сохранить изменения';
-          document.getElementById('wCancelEdit').style.display = 'inline-flex';
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-      });
-      document.querySelectorAll('[data-delete-walkin]').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          if (!confirm('Удалить эту запись из журнала?')) return;
-          try {
-            await api('/walk-in/' + btn.dataset.deleteWalkin, { method: 'DELETE' });
-            loadWalkin();
-          } catch (e) { alert('Не удалось удалить: ' + e.message); }
-        });
-      });
+      const rows = await api(`/walk-in?date_from=${from}&date_to=${to}`);
+      walkinRowsCache = rows;
+      await renderWalkinLedger(rows);
     } catch (e) {}
+  }
+
+  async function renderWalkinLedger(rows) {
+    const container = document.getElementById('walkinLedger');
+    if (!rows.length) {
+      container.innerHTML = '<p class="text-muted" style="font-size:13.5px;">За этот период заказов нет.</p>';
+      return;
+    }
+    // группируем по дате
+    const byDate = {};
+    rows.forEach(o => { (byDate[o.order_date] = byDate[o.order_date] || []).push(o); });
+    const dates = Object.keys(byDate).sort().reverse();
+
+    // дневную зарплату (админ дня + итог по зп) подтягиваем для каждого дня из выборки
+    const payrollByDate = {};
+    await Promise.all(dates.map(async d => {
+      try { payrollByDate[d] = await api('/admin/payroll/daily?day=' + d); } catch (e) { payrollByDate[d] = null; }
+    }));
+
+    container.innerHTML = dates.map(d => {
+      const dayOrders = byDate[d].slice().sort((a, b) => (a.time_note || '').localeCompare(b.time_note || ''));
+      const dayTotal = dayOrders.reduce((s, o) => s + (o.amount || 0), 0);
+      const payroll = payrollByDate[d];
+      const adminNames = payroll && payroll.admin_on_duty.length ? payroll.admin_on_duty.join(', ') : '—';
+      const payrollTotal = payroll ? payroll.employees.reduce((s, e) => s + e.final_payout, 0) : null;
+      const dateLabel = new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      return `
+      <div class="ledger-day">
+        <div class="ledger-day-head">
+          <span class="day-title">${dateLabel}</span>
+          <span class="admin-tag">Администратор дня: ${adminNames}</span>
+        </div>
+        <table class="ledger-table">
+          <thead><tr><th>Время</th><th>Авто</th><th>Услуга</th><th>Кто мыл</th><th>Сумма</th><th>Действия</th></tr></thead>
+          <tbody>
+            ${dayOrders.map(o => `
+              <tr>
+                <td class="mono">${o.time_note || '—'}</td>
+                <td>${o.car_model || '—'}</td>
+                <td>${o.service_name_raw}${o.extra_service ? ' · ' + o.extra_service : ''}</td>
+                <td>${o.assigned_employee_names.length ? o.assigned_employee_names.map(n => `<span class="emp-chip">${n}</span>`).join('') : '<span class="text-muted">не назначено</span>'}</td>
+                <td class="mono">${Math.round(o.amount)} ₽</td>
+                <td class="ledger-actions" style="white-space:nowrap;">
+                  <button class="btn btn-outline" data-edit-walkin="${o.id}">✎</button>
+                  <button class="btn btn-outline" data-assign-walkin="${o.id}">👥</button>
+                  <button class="btn btn-outline" style="color:var(--vermillion);border-color:var(--vermillion);" data-delete-walkin="${o.id}">✕</button>
+                </td>
+              </tr>`).join('')}
+            <tr class="ledger-total-row">
+              <td colspan="4">Итого за день</td>
+              <td class="mono">${Math.round(dayTotal)} ₽</td>
+              <td class="mono">З/п: ${payrollTotal != null ? Math.round(payrollTotal) + ' ₽' : '—'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+    }).join('');
+
+    document.querySelectorAll('[data-assign-walkin]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const o = walkinRowsCache.find(r => r.id == btn.dataset.assignWalkin);
+        const currentIds = o && o.employee_id ? [o.employee_id] : [];
+        openEmployeePicker(currentIds, async (ids) => {
+          try {
+            await api('/walk-in/' + btn.dataset.assignWalkin + '/employees', { method: 'PUT', body: JSON.stringify({ employee_ids: ids }) });
+            loadWalkin();
+          } catch (e) { alert('Не удалось назначить сотрудников: ' + e.message); }
+        });
+      });
+    });
+    document.querySelectorAll('[data-edit-walkin]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const o = walkinRowsCache.find(r => r.id == btn.dataset.editWalkin);
+        if (!o) return;
+        walkinEditingId = o.id;
+        document.getElementById('wDate').value = o.order_date;
+        document.getElementById('wTime').value = o.time_note || '';
+        document.getElementById('wService').value = o.service_name_raw;
+        document.getElementById('wCar').value = o.car_model || '';
+        document.getElementById('wExtra').value = o.extra_service || '';
+        document.getElementById('wAmount').value = o.amount;
+        document.getElementById('wPhone').value = '';
+        document.getElementById('walkinFormTitle').textContent = `Редактирование заказа #${o.id}`;
+        document.getElementById('wSubmit').textContent = 'Сохранить изменения';
+        document.getElementById('wCancelEdit').style.display = 'inline-flex';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+    document.querySelectorAll('[data-delete-walkin]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Удалить эту запись из журнала?')) return;
+        try {
+          await api('/walk-in/' + btn.dataset.deleteWalkin, { method: 'DELETE' });
+          loadWalkin();
+        } catch (e) { alert('Не удалось удалить: ' + e.message); }
+      });
+    });
   }
   document.getElementById('refreshWalkin').addEventListener('click', loadWalkin);
 
   function resetWalkinForm() {
     walkinEditingId = null;
-    ['wDate','wService','wCar','wExtra','wAmount','wPhone'].forEach(id => document.getElementById(id).value = '');
+    ['wDate','wTime','wService','wCar','wExtra','wAmount','wPhone'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('walkinFormTitle').textContent = 'Добавить заказ (без записи)';
     document.getElementById('wSubmit').textContent = 'Добавить в журнал';
     document.getElementById('wCancelEdit').style.display = 'none';
@@ -467,6 +567,7 @@
   document.getElementById('wSubmit').addEventListener('click', async () => {
     const body = {
       order_date: document.getElementById('wDate').value,
+      time_note: document.getElementById('wTime').value || null,
       service_name_raw: document.getElementById('wService').value,
       car_model: document.getElementById('wCar').value,
       extra_service: document.getElementById('wExtra').value,
@@ -527,7 +628,8 @@
       document.querySelector('#dryTable tbody').innerHTML = rows.slice(0, 100).map(o => `
         <tr>
           <td>${o.order_date}</td><td>${o.car_model}</td><td>${o.works_description}</td>
-          <td>${Math.round(o.amount)} ₽</td><td>${o.employee_payout != null ? Math.round(o.employee_payout) + ' ₽' : '—'}</td>
+          <td>${Math.round(o.amount)} ₽</td>
+          <td>${o.assigned_employee_names.length ? o.assigned_employee_names.map(n => `<span class="emp-chip">${n}</span>`).join('') : '<span class="text-muted">не назначено</span>'}</td>
           <td style="white-space:nowrap;">
             <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-edit-dry="${o.id}">Изменить</button>
             <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-assign-dry="${o.id}">👥 Сотрудники</button>
@@ -557,7 +659,6 @@
           document.getElementById('dCar').value = o.car_model;
           document.getElementById('dWorks').value = o.works_description;
           document.getElementById('dAmount').value = o.amount;
-          document.getElementById('dPayout').value = o.employee_payout || '';
           document.getElementById('dPhone').value = o.phone || '';
           document.getElementById('dryFormTitle').textContent = `Редактирование заказа #${o.id}`;
           document.getElementById('dSubmit').textContent = 'Сохранить изменения';
@@ -580,7 +681,7 @@
 
   function resetDryForm() {
     dryEditingId = null;
-    ['dDate','dCar','dWorks','dAmount','dPayout','dPhone'].forEach(id => document.getElementById(id).value = '');
+    ['dDate','dCar','dWorks','dAmount','dPhone'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('dryFormTitle').textContent = 'Добавить заказ химчистки';
     document.getElementById('dSubmit').textContent = 'Добавить заказ';
     document.getElementById('dCancelEdit').style.display = 'none';
@@ -594,7 +695,6 @@
       car_model: document.getElementById('dCar').value,
       works_description: document.getElementById('dWorks').value,
       amount: parseFloat(document.getElementById('dAmount').value),
-      employee_payout: parseFloat(document.getElementById('dPayout').value) || null,
       phone: document.getElementById('dPhone').value || null,
     };
     if (!body.order_date || !body.car_model || !body.works_description || !body.amount) {
@@ -701,11 +801,85 @@
 
   async function loadEmployees() {
     try {
-      const rows = await api('/schedule/employees');
-      employeesCache = rows;
-      document.querySelector('#employeesTable tbody').innerHTML = rows.map(e => `<tr><td>${e.full_name}${e.is_admin_role ? ' <span class="badge">админ смены</span>' : ''}</td><td>${e.position}</td></tr>`).join('');
+      employeesCache = await api('/schedule/employees');
+      const shiftSelect = document.getElementById('shiftEmployee');
+      if (shiftSelect) shiftSelect.innerHTML = employeesCache.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
+
+      document.getElementById('employeesManageList').innerHTML = employeesCache.map(e => `
+        <div class="card" style="padding:16px;margin-bottom:10px;">
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr auto auto;gap:10px;align-items:end;">
+            <div class="field" style="margin-bottom:0;"><label>Имя</label><input type="text" data-name="${e.id}" value="${e.full_name}"></div>
+            <div class="field" style="margin-bottom:0;"><label>Должность</label>
+              <select data-position="${e.id}">
+                ${['Мойщик','Химчист','Администратор'].map(p => `<option ${p===e.position?'selected':''}>${p}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0;"><label>Админ смены</label>
+              <select data-admin="${e.id}">
+                <option value="false" ${!e.is_admin_role?'selected':''}>Нет</option>
+                <option value="true" ${e.is_admin_role?'selected':''}>Да</option>
+              </select>
+            </div>
+            <button class="btn btn-outline" style="padding:9px 14px;font-size:12.5px;" data-save-emp="${e.id}">Сохранить</button>
+            <button class="btn btn-outline" style="padding:9px 14px;font-size:12.5px;color:var(--vermillion);border-color:var(--vermillion);" data-delete-emp="${e.id}">Удалить</button>
+          </div>
+        </div>`).join('');
+
+      document.querySelectorAll('[data-save-emp]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.saveEmp;
+          const body = {
+            full_name: document.querySelector(`[data-name="${id}"]`).value.trim(),
+            position: document.querySelector(`[data-position="${id}"]`).value,
+            is_admin_role: document.querySelector(`[data-admin="${id}"]`).value === 'true',
+          };
+          try {
+            await api('/schedule/employees/' + id, { method: 'PATCH', body: JSON.stringify(body) });
+            btn.textContent = 'Сохранено ✓';
+            setTimeout(() => loadEmployees(), 900);
+          } catch (e) { alert('Не удалось сохранить: ' + e.message); }
+        });
+      });
+      document.querySelectorAll('[data-delete-emp]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Скрыть этого сотрудника (деактивировать)?')) return;
+          try {
+            await api('/schedule/employees/' + btn.dataset.deleteEmp, { method: 'DELETE' });
+            loadEmployees();
+          } catch (e) { alert('Не удалось удалить: ' + e.message); }
+        });
+      });
     } catch (e) {}
   }
+
+  document.getElementById('newEmpBtn').addEventListener('click', async () => {
+    const el = document.getElementById('newEmpStatus');
+    const name = document.getElementById('newEmpName').value.trim();
+    if (!name) { el.textContent = 'Введите имя'; el.className = 'auth-status err'; return; }
+    try {
+      await api('/schedule/employees', { method: 'POST', body: JSON.stringify({
+        full_name: name,
+        position: document.getElementById('newEmpPosition').value,
+        is_admin_role: document.getElementById('newEmpIsAdmin').value === 'true',
+      }) });
+      el.textContent = 'Сотрудник добавлен'; el.className = 'auth-status ok';
+      document.getElementById('newEmpName').value = '';
+      loadEmployees();
+    } catch (e) { el.textContent = e.message; el.className = 'auth-status err'; }
+  });
+
+  document.getElementById('shiftSaveBtn').addEventListener('click', async () => {
+    const el = document.getElementById('shiftStatus');
+    const body = {
+      employee_id: parseInt(document.getElementById('shiftEmployee').value, 10),
+      work_date: document.getElementById('shiftDate').value,
+      shift_type: document.getElementById('shiftType').value,
+    };
+    try {
+      await api('/schedule', { method: 'PUT', body: JSON.stringify(body) });
+      el.textContent = 'Смена сохранена'; el.className = 'auth-status ok';
+    } catch (e) { el.textContent = e.message; el.className = 'auth-status err'; }
+  });
 
   // ---- Общий пикер сотрудников (мультивыбор) для назначения на заказ ----
   function openEmployeePicker(currentIds, onSave) {
@@ -715,9 +889,10 @@
       overlay.id = 'empPickerOverlay';
       overlay.style.cssText = 'position:fixed;inset:0;background:rgba(20,23,28,0.55);z-index:1000;display:flex;align-items:center;justify-content:center;';
       overlay.innerHTML = `
-        <div class="card" style="width:340px;padding:24px;">
-          <h3 style="font-size:16px;margin-bottom:14px;">Кто мыл эту машину?</h3>
-          <div id="empPickerList" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;margin-bottom:16px;"></div>
+        <div class="card" style="width:360px;padding:24px;">
+          <h3 style="font-size:16px;margin-bottom:4px;">Кто мыл эту машину?</h3>
+          <p class="text-muted" style="font-size:12.5px;margin-bottom:14px;">Можно выбрать нескольких — 35% поделится между ними поровну.</p>
+          <div id="empPickerList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;"></div>
           <div style="display:flex;gap:10px;">
             <button class="btn btn-primary" id="empPickerSave" style="flex:1;">Сохранить</button>
             <button class="btn btn-outline" id="empPickerCancel">Отмена</button>
@@ -726,18 +901,35 @@
       document.body.appendChild(overlay);
     }
     const listEl = overlay.querySelector('#empPickerList');
-    listEl.innerHTML = employeesCache.map(e => `
-      <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;">
-        <input type="checkbox" value="${e.id}" ${currentIds.includes(e.id) ? 'checked' : ''}>
-        ${e.full_name}${e.is_admin_role ? ' 👑' : ''}
-      </label>`).join('');
+    let selected = new Set(currentIds);
+
+    function renderChips() {
+      listEl.innerHTML = employeesCache.map(e => {
+        const isOn = selected.has(e.id);
+        return `<button type="button" class="emp-toggle-chip" data-id="${e.id}" style="
+          padding:8px 14px;border-radius:100px;font-size:13px;font-weight:700;cursor:pointer;
+          border:1.5px solid ${isOn ? 'var(--jade)' : 'var(--line)'};
+          background:${isOn ? 'rgba(30,138,114,0.14)' : 'var(--washi-2)'};
+          color:${isOn ? 'var(--jade-dark)' : 'var(--ink-soft)'};
+          transition:all .15s ease;">
+          ${isOn ? '✓ ' : ''}${e.full_name}${e.is_admin_role ? ' 👑' : ''}
+        </button>`;
+      }).join('');
+      listEl.querySelectorAll('.emp-toggle-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const id = parseInt(chip.dataset.id, 10);
+          if (selected.has(id)) selected.delete(id); else selected.add(id);
+          renderChips();
+        });
+      });
+    }
+    renderChips();
     overlay.style.display = 'flex';
 
     const close = () => { overlay.style.display = 'none'; };
     overlay.querySelector('#empPickerCancel').onclick = close;
     overlay.querySelector('#empPickerSave').onclick = async () => {
-      const ids = Array.from(listEl.querySelectorAll('input:checked')).map(i => parseInt(i.value, 10));
-      await onSave(ids);
+      await onSave(Array.from(selected));
       close();
     };
   }
