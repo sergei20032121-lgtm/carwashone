@@ -137,15 +137,25 @@
   </div>
 </nav>
 
-<header class="hero">
+<div class="miss-you-banner" id="missYouBanner" style="display:none;">
+  <span id="missYouText"></span>
+  <span class="close-x" id="missYouClose">✕</span>
+</div>
+
+<header class="hero dirt-wash-section">
+  <div class="dirt-wash-layer" id="dirtWashLayer"></div>
   <div class="wrap hero-grid">
     <div>
       <div class="eyebrow">Автомойка №1</div>
       <h1>Мойка и уход за автомобилем — <em>без спешки, по порядку</em></h1>
       <p class="lead">Запись по телефону — без паролей и лишних форм. Подтверждаете смс-кодом и выбираете время. Химчистка и детейлинг — отдельным прайсом.</p>
       <div class="hero-cta">
-        <a href="#booking" class="btn btn-primary">Записаться на мойку</a>
-        <a href="#dry-cleaning" class="btn btn-ghost">Химчистка →</a>
+        <a href="#booking" class="btn btn-primary btn-magnetic">Записаться на мойку</a>
+        <a href="#dry-cleaning" class="btn btn-ghost btn-magnetic">Химчистка →</a>
+      </div>
+      <div class="load-pulse" id="loadPulse" style="color:#C9C2AF;margin-bottom:16px;">
+        <span class="load-dot low" id="loadDot"></span>
+        <span id="loadText">Проверяем загруженность…</span>
       </div>
       <div class="gis-card" id="gisCard">
         <div class="gis-badge">2Г</div>
@@ -157,6 +167,10 @@
           <b id="gisRating">—</b>
           <span id="gisReviewsCount">рейтинг скоро</span>
         </div>
+      </div>
+      <div style="margin-top:18px;">
+        <p style="font-size:11.5px;color:#8A8371;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Обычная загрузка по часам</p>
+        <div class="busy-hours-bar" id="busyHoursBar"></div>
       </div>
     </div>
 
@@ -277,6 +291,7 @@
       <div class="skeleton skeleton-card"></div>
       <div class="skeleton skeleton-card"></div>
     </div>
+    <div id="seasonalTip"></div>
   </div>
 </section>
 
@@ -314,6 +329,10 @@
         <div class="kicker" style="color:#E3B98A;">Бонусная карта</div>
         <h2 style="color:#fff;">Ставим ананас за каждую полную мойку</h2>
         <p>6-й ананас на карте — скидка 50% на эту мойку. 12-й — мойка бесплатно, и карта начинается заново.</p>
+      </div>
+      <div class="xp-bar-track" id="publicXpTrack" style="display:none;">
+        <div class="xp-bar-fill" id="publicXpFill" style="width:0%;"></div>
+        <div class="xp-bar-label" id="publicXpLabel"></div>
       </div>
       <div class="punch-card on-dark" id="punchCard"></div>
       <p style="color:#8A8371;font-size:13px;margin-top:16px;">Свою карту с прогрессом смотрите в <a href="cabinet.html" style="color:#E3B98A;font-weight:700;">личном кабинете →</a></p>
@@ -522,8 +541,23 @@
       stepCode.style.display = 'none';
       stepBooking.style.display = 'block';
       setStep(3);
+      tactileFeedback(15);
+      updatePublicLoyaltyDisplay();
     } catch (e) { setStatus('Неверный код, попробуйте снова', 'err'); }
   });
+
+  async function updatePublicLoyaltyDisplay() {
+    try {
+      const me = await api('/auth/me');
+      renderPunchCard('punchCard', me.punch_count);
+      const track = document.getElementById('publicXpTrack');
+      const target = me.punch_count < 6 ? 6 : 12;
+      const pct = Math.round((me.punch_count / target) * 100);
+      document.getElementById('publicXpFill').style.width = pct + '%';
+      document.getElementById('publicXpLabel').textContent = `${me.punch_count} / ${target} — до ${target === 6 ? 'скидки 50%' : 'бесплатной мойки'}`;
+      track.style.display = 'block';
+    } catch (e) {}
+  }
   document.getElementById('confirmBookingBtn').addEventListener('click', async () => {
     const service_id = parseInt(document.getElementById('serviceSelect').value, 10);
     const dt = document.getElementById('dateTimeInput').value;
@@ -531,6 +565,7 @@
     try {
       await api('/bookings', { method: 'POST', body: JSON.stringify({ service_id, scheduled_at: new Date(dt).toISOString() }) });
       setStatus('Готово! Вы записаны, ждём вас 🚗', 'ok');
+      tactileFeedback([10, 40, 10]);
     } catch (e) { setStatus('Не удалось создать запись', 'err'); }
   });
 
@@ -538,6 +573,27 @@
   initLightbox();
   initScrollSpy();
   initCursorGlow('.hero');
+  initCustomCursor();
+  initSoapTrail();
+  initMagneticButtons();
+  initPrefetchOnHover('a[href="cabinet.html"]');
+
+  // ---- скролл-эффект "смыв грязи" через hero ----
+  (function initDirtWash() {
+    const layer = document.getElementById('dirtWashLayer');
+    const hero = document.querySelector('.hero');
+    if (!layer || !hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { if (layer) layer.remove(); return; }
+    function update() {
+      const rect = hero.getBoundingClientRect();
+      const total = rect.height + window.innerHeight * 0.6;
+      const scrolled = Math.min(Math.max(-rect.top + window.innerHeight * 0.1, 0), total);
+      const pct = Math.min(100, (scrolled / total) * 100);
+      layer.style.clipPath = `inset(${pct}% 0 0 0)`;
+    }
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+  })();
+
 
   const showcaseVideo = document.getElementById('showcaseVideo');
   const showcaseCard = document.getElementById('showcaseVideoCard');
@@ -549,6 +605,111 @@
   showcaseVideo.addEventListener('pause', () => showcaseCard.classList.remove('playing'));
   showcaseVideo.addEventListener('ended', () => showcaseCard.classList.remove('playing'));
   showcaseVideo.addEventListener('play', () => showcaseCard.classList.add('playing'));
+
+  // ---- Текущая загрузка (дышащая точка) ----
+  async function loadCurrentLoad() {
+    try {
+      const d = await api('/public/current-load');
+      const labels = { low: 'Сейчас свободно', medium: 'Небольшая загрузка', high: 'Сейчас загружены' };
+      document.getElementById('loadDot').className = 'load-dot ' + d.level;
+      document.getElementById('loadText').textContent = labels[d.level] || '';
+    } catch (e) { document.getElementById('loadPulse').style.display = 'none'; }
+  }
+
+  // ---- Тепловая полоска загруженности по часам ----
+  async function loadBusyHours() {
+    const el = document.getElementById('busyHoursBar');
+    try {
+      const d = await api('/public/busy-hours');
+      if (!d.has_data) { el.parentElement.style.display = 'none'; return; }
+      const maxLoad = Math.max(...d.hours.map(h => h.load_pct), 1);
+      el.innerHTML = d.hours.map(h => `
+        <div class="busy-hour-col ${h.load_pct === maxLoad && maxLoad > 0 ? 'peak' : ''}">
+          <div class="busy-hour-fill" style="height:${Math.max(h.load_pct, 4)}%;"></div>
+          <span class="busy-hour-label">${h.hour}</span>
+        </div>`).join('');
+    } catch (e) { el.parentElement.style.display = 'none'; }
+  }
+
+  // ---- Реальная недавняя активность — тост в углу (без выдумки, только факты) ----
+  let activityQueue = [];
+  let activityIdx = 0;
+  async function loadActivityTicker() {
+    try {
+      activityQueue = await api('/public/recent-activity');
+    } catch (e) { return; }
+    if (!activityQueue.length) return;
+    showNextActivityToast();
+  }
+  function showNextActivityToast() {
+    if (!activityQueue.length) return;
+    const item = activityQueue[activityIdx % activityQueue.length];
+    activityIdx++;
+    let toast = document.getElementById('activityToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'activity-toast';
+      toast.id = 'activityToast';
+      toast.innerHTML = '<span class="dot"></span><div class="txt"><b></b><span></span></div>';
+      document.body.appendChild(toast);
+    }
+    const minsAgo = Math.max(1, Math.round((Date.now() - new Date(item.when + 'Z').getTime()) / 60000));
+    toast.querySelector('b').textContent = `${item.name} записался(-лась) на «${item.service_label}»`;
+    toast.querySelector('.txt span').textContent = minsAgo < 60 ? `${minsAgo} мин назад` : 'сегодня';
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => toast.classList.remove('show'), 5000);
+    setTimeout(showNextActivityToast, 14000);
+  }
+
+  // ---- Сезонный совет (без скидок — просто полезная информация по сезону) ----
+  function renderSeasonalTip() {
+    const month = new Date().getMonth(); // 0=янв
+    let icon = '<path d="M12 2v20M2 12h20"/>';
+    let text = '';
+    if ([11, 0, 1].includes(month)) {
+      text = 'Зимой реагенты и соль разъедают ЛКП и разъемы — рекомендуем «Защиту» или керамику раз в сезон, чтобы кузов не страдал.';
+    } else if ([2, 3, 4].includes(month)) {
+      text = 'После зимы кузов особенно грязный — самое время для «Полировки кузова», убрать мелкие царапины и разводы за сезон.';
+    } else if ([5, 6, 7].includes(month)) {
+      text = 'Летом солнце выжигает лак — керамическое покрытие защищает и держит блеск всё лето.';
+    } else {
+      text = 'Осенью больше грязи и луж — «Химчистка ковролина/салона» самое то перед зимой.';
+    }
+    document.getElementById('seasonalTip').innerHTML = `
+      <div class="seasonal-tip reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${icon}</svg>
+        <span style="font-size:13.5px;color:var(--ink-soft);">${text}</span>
+      </div>`;
+    initRevealObserver();
+  }
+
+  // ---- "Твоя машина скучает" — только для залогиненного клиента с историей ----
+  async function checkMissYou() {
+    if (!getAuthToken()) return;
+    try {
+      const me = await api('/auth/me');
+      if (me.role !== 'client') return;
+      const last = await api('/bookings/last');
+      if (!last) return;
+      const daysAgo = Math.floor((Date.now() - new Date(last.scheduled_at)) / 86400000);
+      if (daysAgo < 10) return; // недавно мылись — не беспокоим
+      if (sessionStorage.getItem('missYouDismissed')) return;
+      document.getElementById('missYouText').innerHTML =
+        `Давно не виделись — последняя мойка была ${daysAgo} дн. назад. <a href="cabinet.html">Записаться снова →</a>`;
+      document.getElementById('missYouBanner').style.display = 'block';
+    } catch (e) { /* нет истории — молчим, это нормально */ }
+  }
+  document.getElementById('missYouClose').addEventListener('click', () => {
+    document.getElementById('missYouBanner').style.display = 'none';
+    sessionStorage.setItem('missYouDismissed', '1');
+  });
+
+  loadCurrentLoad();
+  loadBusyHours();
+  loadActivityTicker();
+  renderSeasonalTip();
+  checkMissYou();
+  if (getAuthToken()) updatePublicLoyaltyDisplay();
 
   loadServices();
   loadGis();

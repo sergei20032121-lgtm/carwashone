@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import auth, services, bookings, dry_cleaning, schedule, reviews, admin, walk_in, vk, client
+from app.routers import auth, services, bookings, dry_cleaning, schedule, reviews, admin, walk_in, vk, client, public_stats
 
 Base.metadata.create_all(bind=engine)
 
@@ -33,6 +33,7 @@ app.include_router(admin.router)
 app.include_router(walk_in.router)
 app.include_router(vk.router)
 app.include_router(client.router)
+app.include_router(public_stats.router)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/site", StaticFiles(directory="frontend", html=True), name="site")

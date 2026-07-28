@@ -302,6 +302,30 @@ class StatsSummary(BaseModel):
     dry_cleaning_payouts: float
 
 
+# ---------- Публичная витрина (реальная активность, загруженность) ----------
+
+class RecentActivityItem(BaseModel):
+    name: str
+    service_label: str
+    when: datetime
+
+
+class BusyHourItem(BaseModel):
+    hour: int
+    load_pct: int
+
+
+class BusyHoursOut(BaseModel):
+    hours: List[BusyHourItem]
+    has_data: bool
+
+
+class CurrentLoadOut(BaseModel):
+    active_count: int
+    capacity: int
+    level: str  # low | medium | high
+
+
 # ---------- VK ----------
 
 class VkSettingsOut(BaseModel):

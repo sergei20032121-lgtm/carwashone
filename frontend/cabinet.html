@@ -121,7 +121,13 @@
 
   <div class="card card-section">
     <h3>Бонусная карта</h3>
+    <div class="xp-bar-track"><div class="xp-bar-fill" id="cabXpFill" style="width:0%;"></div><div class="xp-bar-label" id="cabXpLabel"></div></div>
     <div class="punch-card" id="cabPunchCard"></div>
+  </div>
+
+  <div class="card card-section">
+    <h3>Достижения</h3>
+    <div class="achievement-grid" id="achievementGrid"></div>
   </div>
 
   <div class="card card-section">
@@ -296,8 +302,12 @@
       const nextReward = me.punch_count < 6 ? '50%' : '100%';
       document.getElementById('statNext').textContent = `${toNext} моек (${nextReward})`;
       renderPunchCard('cabPunchCard', me.punch_count);
+      const xpTarget = me.punch_count < 6 ? 6 : 12;
+      document.getElementById('cabXpFill').style.width = Math.round((me.punch_count / xpTarget) * 100) + '%';
+      document.getElementById('cabXpLabel').textContent = `${me.punch_count} / ${xpTarget}`;
 
       const bookings = await api('/bookings/me');
+      renderAchievements(me, bookings);
       const listEl = document.getElementById('historyList');
       if (bookings.length) {
         listEl.innerHTML = bookings.map(b => `
@@ -319,6 +329,7 @@
             const bookingId = star.dataset.booking;
             try {
               await api(`/bookings/${bookingId}/rate`, { method: 'POST', body: JSON.stringify({ rating: n }) });
+              tactileFeedback(15);
               showCabinet();
             } catch (e) { alert('Не удалось сохранить оценку'); }
           });
@@ -335,6 +346,38 @@
       setAuthStatus('Сессия истекла, войдите заново', 'err');
     }
   }
+
+  function renderAchievements(me, bookings) {
+    const nightOwl = bookings.some(b => new Date(b.scheduled_at).getHours() >= 21);
+    const earlyBird = bookings.some(b => new Date(b.scheduled_at).getHours() < 9);
+    const list = [
+      { icon: '🍍', label: 'Первая мойка', unlocked: me.total_full_washes >= 1 },
+      { icon: '🔥', label: '5 полных моек', unlocked: me.total_full_washes >= 5 },
+      { icon: '👑', label: '12+ моек подряд', unlocked: me.total_full_washes >= 12 },
+      { icon: '🦉', label: 'Ночная сова', unlocked: nightOwl },
+      { icon: '🌅', label: 'Ранняя пташка', unlocked: earlyBird },
+      { icon: '🤝', label: 'Пригласил друга', unlocked: false }, // обновится ниже
+      { icon: '🎂', label: 'Указан день рождения', unlocked: !!me.birthday },
+    ];
+    api('/referral').then(r => {
+      if (r.referred_count > 0) {
+        list[5].unlocked = true;
+        renderAchList(list);
+      }
+    }).catch(() => {});
+    renderAchList(list);
+  }
+  function renderAchList(list) {
+    document.getElementById('achievementGrid').innerHTML = list.map(a => `
+      <div class="achievement ${a.unlocked ? 'unlocked' : ''}">
+        <div class="ach-icon">${a.icon}</div>
+        <div class="ach-label">${a.label}</div>
+      </div>`).join('');
+  }
+
+  initCustomCursor();
+  initSoapTrail();
+  initMagneticButtons();
 
   if (getAuthToken()) { showCabinet(); }
 
@@ -387,6 +430,7 @@
     const input = document.getElementById('referralLink');
     input.select();
     navigator.clipboard?.writeText(input.value);
+    tactileFeedback(10);
   });
 
   // ---- День рождения ----

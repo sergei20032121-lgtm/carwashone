@@ -32,7 +32,83 @@ async function api(path, options = {}) {
   return res.status === 204 ? null : res.json();
 }
 
-// Плавный счётчик чисел — используется для цен и статистики при появлении в вьюпорте.
+// ==== Премиальные UI-фичи ====
+
+// Тактильный отклик на мобильных (успешная запись, начисление ананаса и т.п.)
+function tactileFeedback(pattern = 10) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+// Кастомный курсор-капля (десктоп only)
+function initCustomCursor() {
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.body.classList.add('custom-cursor-on');
+  const cursor = document.createElement('div');
+  cursor.className = 'custom-cursor';
+  cursor.innerHTML = '<svg viewBox="0 0 24 24" fill="#BE3B3B"><path d="M12 2c4 5.5 7 9.3 7 13a7 7 0 1 1-14 0c0-3.7 3-7.5 7-13Z"/></svg>';
+  document.body.appendChild(cursor);
+  let raf = null, x = 0, y = 0;
+  document.addEventListener('mousemove', (e) => {
+    x = e.clientX; y = e.clientY;
+    cursor.classList.add('visible');
+    if (!raf) raf = requestAnimationFrame(() => {
+      cursor.style.left = x + 'px'; cursor.style.top = y + 'px'; raf = null;
+    });
+    const target = e.target.closest('a, button, .gallery-item, input, select, .service-card');
+    cursor.classList.toggle('hover-target', !!target);
+  });
+  document.addEventListener('mouseleave', () => cursor.classList.remove('visible'));
+}
+
+// Мыльный след из пузырьков за курсором (лёгкий, редкий — не спамит)
+function initSoapTrail() {
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let lastSpawn = 0;
+  document.addEventListener('mousemove', (e) => {
+    const now = performance.now();
+    if (now - lastSpawn < 90) return;
+    lastSpawn = now;
+    const size = 5 + Math.random() * 7;
+    const b = document.createElement('div');
+    b.className = 'soap-bubble';
+    b.style.width = size + 'px';
+    b.style.height = size + 'px';
+    b.style.left = (e.clientX + (Math.random() * 10 - 5)) + 'px';
+    b.style.top = (e.clientY + (Math.random() * 10 - 5)) + 'px';
+    document.body.appendChild(b);
+    setTimeout(() => b.remove(), 1200);
+  });
+}
+
+// Магнитные кнопки — притягиваются к курсору в пределах своей области
+function initMagneticButtons(selector = '.btn-magnetic') {
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  document.querySelectorAll(selector).forEach(btn => {
+    btn.addEventListener('mousemove', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const relX = e.clientX - rect.left - rect.width / 2;
+      const relY = e.clientY - rect.top - rect.height / 2;
+      btn.style.transform = `translate(${relX * 0.25}px, ${relY * 0.35}px)`;
+    });
+    btn.addEventListener('mouseleave', () => { btn.style.transform = 'translate(0,0)'; });
+  });
+}
+
+// Prefetch страницы при наведении на ссылку (мгновенный переход)
+function initPrefetchOnHover(selector) {
+  document.querySelectorAll(selector).forEach(link => {
+    let done = false;
+    link.addEventListener('mouseenter', () => {
+      if (done) return;
+      done = true;
+      const l = document.createElement('link');
+      l.rel = 'prefetch'; l.href = link.href;
+      document.head.appendChild(l);
+    }, { once: true });
+  });
+}
 // suffix — например " ₽"; duration в мс.
 function animateCount(el, target, { duration = 900, suffix = '', prefix = '' } = {}) {
   if (!el) return;
