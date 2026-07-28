@@ -45,9 +45,22 @@ def verify_otp(data: OTPVerify, db: Session = Depends(get_db)):
     otp.is_used = True
 
     user = db.query(User).filter(User.phone == data.phone).first()
+    is_new_user = user is None
     if not user:
         user = User(phone=data.phone, full_name=data.full_name, role=UserRole.CLIENT)
         db.add(user)
+        db.flush()
+
+        if data.referral_code:
+            referrer = db.query(User).filter(User.referral_code == data.referral_code.upper()).first()
+            if referrer and referrer.id != user.id:
+                user.referred_by_user_id = referrer.id
+                # бонус за приглашение — по ананасу и приглашённому, и пригласившему
+                for beneficiary in (user, referrer):
+                    beneficiary.punch_count = (beneficiary.punch_count or 0) + 1
+                    if beneficiary.punch_count > 12:
+                        beneficiary.punch_count = 1
+                    beneficiary.total_full_washes = (beneficiary.total_full_washes or 0) + 1
     db.commit()
     db.refresh(user)
 

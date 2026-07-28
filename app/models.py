@@ -18,6 +18,7 @@ class UserRole(str, enum.Enum):
     CLIENT = "client"       # обычный клиент, вход только по телефону + смс-код
     MASTER = "master"       # сотрудник (мойщик / химчист)
     ADMIN = "admin"         # администратор — полный доступ
+    MANAGER = "manager"     # руководитель — доступ только на чтение, KPI/аналитика
 
 
 class ServiceCategory(str, enum.Enum):
@@ -64,12 +65,44 @@ class User(Base):
     total_full_washes = Column(Integer, default=0)
 
     car_plate = Column(String(20), nullable=True)
+    birthday = Column(Date, nullable=True)  # для поздравления/бонуса в день рождения
+
+    # --- реферальная программа ---
+    referral_code = Column(String(12), unique=True, index=True, nullable=True)
+    referred_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     bookings = relationship("Booking", back_populates="client")
     employee_profile = relationship("Employee", back_populates="user", uselist=False)
+    cars = relationship("CarProfile", back_populates="owner")
+
+    @property
+    def tenure_label(self) -> str:
+        """Бейдж 'с нами N месяцев/лет' по дате регистрации."""
+        days = (datetime.utcnow() - self.created_at).days if self.created_at else 0
+        if days < 30:
+            return "Новый клиент"
+        months = days // 30
+        if months < 12:
+            return f"С нами {months} мес."
+        years = months // 12
+        return f"С нами {years} г."
+
+
+class CarProfile(Base):
+    """Сохранённые машины клиента — чтобы при записи не вбивать заново."""
+    __tablename__ = "car_profiles"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    brand = Column(String(80), nullable=False)   # "Toyota Mark II"
+    plate = Column(String(20), nullable=True)
+    nickname = Column(String(60), nullable=True)  # "моя основная", "жены" и т.п.
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    owner = relationship("User", back_populates="cars")
 
 
 class OTPCode(Base):
@@ -124,12 +157,16 @@ class Service(Base):
     name = Column(String(120), nullable=False)
     description = Column(Text, nullable=True)
     price_from = Column(Float, nullable=False)
+    price_to = Column(Float, nullable=True)   # если есть вилка цены (напр. 1300–2100 ₽); иначе просто "от"
     duration_min = Column(Integer, nullable=True)
     is_active = Column(Boolean, default=True)
     sort_order = Column(Integer, default=0)
 
+    # % от суммы услуги, который уходит мастеру как з/п (напр. 35 для обычной мойки)
+    payout_pct = Column(Float, default=0)
+
     # считается ли эта услуга "полной мойкой" для бонусной карты (ставим ананас)
-    # Экспресс/облив — не считаются, Комплекс/Детейлинг/Защита — считаются
+    # Экспресс/облив — не считаются, Комплекс и всё дороже — считаются
     counts_towards_loyalty = Column(Boolean, default=False)
 
     bookings = relationship("Booking", back_populates="service")
@@ -146,14 +183,19 @@ class Booking(Base):
     client_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     service_id = Column(Integer, ForeignKey("services.id"), nullable=False)
     employee_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
+    car_profile_id = Column(Integer, ForeignKey("car_profiles.id"), nullable=True)
 
     scheduled_at = Column(DateTime, nullable=False)
     box_number = Column(Integer, nullable=True)
     status = Column(SAEnum(BookingStatus), default=BookingStatus.PENDING)
     price = Column(Float, nullable=True)
     discount_pct = Column(Integer, default=0)  # применённая скидка по карте (0/50/100)
+    employee_payout = Column(Float, nullable=True)  # з/п мастера (% от цены услуги, считается автоматически)
     comment = Column(String(255), nullable=True)
     loyalty_applied = Column(Boolean, default=False)  # чтобы не насчитать ананас дважды
+
+    rating = Column(Integer, nullable=True)          # оценка мастера клиентом, 1-5
+    rating_comment = Column(String(255), nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -210,6 +252,7 @@ class WalkInOrder(Base):
     car_model = Column(String(120), nullable=True)
 
     amount = Column(Float, nullable=False)
+    employee_payout = Column(Float, nullable=True)  # з/п мастера (% от суммы, считается автоматически)
     contact_name = Column(String(120), nullable=True)  # "Контакт" из журнала — имя/номер клиента
     client_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # если удалось привязать к клиенту
 
@@ -293,3 +336,49 @@ class VkPost(Base):
     published_at = Column(DateTime, nullable=True)
     is_pinned = Column(Boolean, default=False)
     fetched_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ---------------------------------------------------------------------------
+# Аудит — кто и что поменял в админке (важно, когда работает несколько человек)
+# ---------------------------------------------------------------------------
+
+class AuditLog(Base):
+    __tablename__ = "audit_log"
+
+    id = Column(Integer, primary_key=True)
+    actor_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    action = Column(String(30), nullable=False)     # create / update / delete
+    entity = Column(String(60), nullable=False)      # "booking", "walk_in_order", "service" и т.п.
+    entity_id = Column(Integer, nullable=True)
+    note = Column(Text, nullable=True)               # краткое описание изменения
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    actor = relationship("User")
+
+
+# ---------------------------------------------------------------------------
+# Подарочные сертификаты
+# ---------------------------------------------------------------------------
+
+class GiftCertificate(Base):
+    __tablename__ = "gift_certificates"
+
+    id = Column(Integer, primary_key=True)
+    code = Column(String(20), unique=True, nullable=False)
+    amount = Column(Float, nullable=False)
+    issued_to_phone = Column(String(20), nullable=True)
+    is_used = Column(Boolean, default=False)
+    used_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    used_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ---------------------------------------------------------------------------
+# Настройки бизнеса — цель по выручке для дашборда руководителя
+# ---------------------------------------------------------------------------
+
+class BusinessSettings(Base):
+    __tablename__ = "business_settings"
+
+    id = Column(Integer, primary_key=True)
+    monthly_revenue_target = Column(Float, default=0)

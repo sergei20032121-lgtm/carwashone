@@ -11,6 +11,7 @@ Excel → поправил/добавил строки → импортиров�
 через админку.
 """
 import io
+import re
 from datetime import date, datetime
 from typing import List
 
@@ -100,20 +101,27 @@ _WALKIN_ALIASES = {
     "время (текст)": "time_note", "время": "time_note",
     "услуга": "service_name_raw", "наименование услуги": "service_name_raw",
     "доп. услуга": "extra_service", "доп услуга": "extra_service", "доп. услуги": "extra_service",
-    "марка авто": "car_model", "авто": "car_model", "марка": "car_model", "марка автомобиля": "car_model",
+    "марка авто": "car_model", "авто": "car_model", "марка": "car_model", "марка автомобиля": "car_model", "автомобиль": "car_model",
     "сумма": "amount", "стоимость": "amount",
     "контакт": "contact_name",
     "id сотрудника": "employee_id",
 }
 _WALKIN_REQUIRED = ["service_name_raw", "amount"]
 
+class HeaderMismatch(ValueError):
+    """Заголовки файла не похожи на наш экспортный формат — сигнал пробовать
+    родной многолистовой формат (Учёт.xlsx/Химчистка.xlsx)."""
+    pass
+
+
 _DRYCLEANING_ALIASES = {
     "дата": "order_date",
-    "марка авто": "car_model", "авто": "car_model", "марка": "car_model",
+    "марка авто": "car_model", "авто": "car_model", "марка": "car_model", "автомобиль": "car_model",
     "работы": "works_description", "услуга": "works_description",
     "телефон": "phone", "контакт": "phone",
     "сумма": "amount", "стоимость": "amount",
     "з/п мастера": "employee_payout", "зп мастера": "employee_payout", "зарплата": "employee_payout",
+    "з/п": "employee_payout", "зп": "employee_payout",
     "id сотрудника": "employee_id",
 }
 _DRYCLEANING_REQUIRED = ["car_model", "works_description", "amount"]
@@ -137,7 +145,7 @@ def _build_column_map(header_row, aliases: dict, required: list, required_labels
     if missing:
         missing_labels = ", ".join(required_labels[f] for f in missing)
         seen_headers = ", ".join(str(c) for c in header_row if c) or "(пусто)"
-        raise ValueError(
+        raise HeaderMismatch(
             f"в файле не найдены обязательные колонки: {missing_labels}. "
             f"Колонки, которые увидел в первой строке: {seen_headers}"
         )
@@ -206,22 +214,96 @@ def parse_drycleaning_xlsx(file_bytes: bytes) -> List[dict]:
         amount = values.get("amount")
         if not car and not works and amount in (None, ""):
             continue
-        if not car or not works or amount in (None, ""):
-            raise ValueError(f"строка {line_num}: не заполнены обязательные поля (Марка авто/Работы/Сумма)")
+        if not car or amount in (None, ""):
+            continue  # неполная историческая строка (нет марки или суммы вообще) — молча пропускаем
         try:
             amount_val = float(amount)
         except (TypeError, ValueError):
-            raise ValueError(f"строка {line_num}: в колонке 'Сумма' не число ({amount!r})")
+            raise ValueError(f"строка {line_num}: в колонке 'Сумма' указано не число ({amount!r})")
 
         payout = values.get("employee_payout")
         employee_id = values.get("employee_id")
         rows.append({
             "order_date": _parse_date(values.get("order_date")) if values.get("order_date") else date.today(),
             "car_model": str(car),
-            "works_description": str(works),
+            "works_description": str(works) if works else "Без описания",
             "phone": str(values["phone"]) if values.get("phone") else None,
             "amount": amount_val,
             "employee_payout": float(payout) if payout not in (None, "") else None,
             "employee_id": int(employee_id) if employee_id not in (None, "") else None,
         })
     return rows
+
+
+# ---------------------------------------------------------------------------
+# "Родной" формат — исходный многолистовой "Учёт.xlsx" (день-блоками, без
+# единого заголовка). Распознаём по провалу поиска заголовков в чистом формате.
+# ---------------------------------------------------------------------------
+
+_SERVICE_NORMALIZE = [
+    (re.compile(r"компл", re.I), "Комплекс"),
+    (re.compile(r"эксп?р[еэ]с+", re.I), "Экспресс"),
+    (re.compile(r"облив", re.I), "Облив"),
+    (re.compile(r"салон", re.I), "Химчистка салона"),
+]
+
+
+def _normalize_service_name(raw: str) -> str:
+    if not raw:
+        return "Без названия"
+    for pattern, canonical in _SERVICE_NORMALIZE:
+        if pattern.search(raw):
+            return canonical
+    return raw.strip()
+
+
+def parse_walkin_raw_multisheet(file_bytes: bytes) -> List[dict]:
+    """Разбирает исходный 'Учёт.xlsx': один лист на месяц, внутри — блоки по
+    дням (строка-дата, затем несколько строк-заказов, иногда 'Итого:')."""
+    wb = openpyxl.load_workbook(io.BytesIO(file_bytes), read_only=True, data_only=True)
+    rows_out = []
+    current_date = None
+
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        for row in ws.iter_rows(values_only=True):
+            time_note, num, marka, service_raw, extra, amount, contact = (list(row) + [None] * 7)[:7]
+
+            if isinstance(num, datetime):
+                current_date = num.date()
+                continue
+            if isinstance(service_raw, datetime):
+                current_date = service_raw.date()
+                continue
+
+            if not service_raw or not isinstance(amount, (int, float)):
+                continue  # заголовки/итоги/пустые строки — пропускаем молча
+            if current_date is None:
+                continue
+
+            rows_out.append({
+                "order_date": current_date,
+                "time_note": str(time_note) if time_note else None,
+                "service_name_raw": _normalize_service_name(str(service_raw)),
+                "extra_service": str(extra) if extra else None,
+                "car_model": str(marka) if marka else None,
+                "amount": float(amount),
+                "contact_name": str(contact) if contact else None,
+                "employee_id": None,
+            })
+    return rows_out
+
+
+def parse_walkin_any(file_bytes: bytes) -> List[dict]:
+    """Сначала пробуем наш чистый экспортный формат (по заголовкам). Если
+    заголовки не похожи — пробуем родной многолистовой 'Учёт.xlsx'."""
+    try:
+        return parse_walkin_xlsx(file_bytes)
+    except HeaderMismatch:
+        rows = parse_walkin_raw_multisheet(file_bytes)
+        if not rows:
+            raise ValueError(
+                "не удалось распознать файл ни в одном из известных форматов "
+                "(ни как экспорт из админки, ни как исходный 'Учёт.xlsx')"
+            )
+        return rows

@@ -60,3 +60,11 @@ def register_wash(
 
 def price_with_discount(price: float, discount_pct: int) -> float:
     return round(price * (1 - discount_pct / 100), 2)
+
+
+def calc_employee_payout(price: float, payout_pct: float) -> float:
+    """З/П мастера — процент от итоговой цены услуги (по умолчанию 35% для мойки,
+    настраивается per-service через Service.payout_pct)."""
+    if not price or not payout_pct:
+        return 0.0
+    return round(price * (payout_pct / 100), 2)

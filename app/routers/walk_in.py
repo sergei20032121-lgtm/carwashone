@@ -6,11 +6,11 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import WalkInOrder, Service, User, UserRole
+from app.models import WalkInOrder, Service, User, UserRole, AuditLog
 from app.schemas import WalkInOrderCreate, WalkInOrderOut, WalkInOrderUpdate
 from app.dependencies import require_staff, require_admin
-from app.loyalty import register_wash, price_with_discount
-from app.excel_utils import export_walkin_xlsx, parse_walkin_xlsx
+from app.loyalty import register_wash, price_with_discount, calc_employee_payout
+from app.excel_utils import export_walkin_xlsx, parse_walkin_any
 
 router = APIRouter(prefix="/walk-in", tags=["Журнал заказов (без записи)"])
 
@@ -29,8 +29,8 @@ def list_orders(
     return q.order_by(WalkInOrder.order_date.desc(), WalkInOrder.id.desc()).all()
 
 
-@router.post("", response_model=WalkInOrderOut, dependencies=[Depends(require_staff)], summary="Добавить заказ (клиент без записи)")
-def create_order(data: WalkInOrderCreate, db: Session = Depends(get_db)):
+@router.post("", response_model=WalkInOrderOut, summary="Добавить заказ (клиент без записи)")
+def create_order(data: WalkInOrderCreate, actor: User = Depends(require_staff), db: Session = Depends(get_db)):
     client = None
     if data.client_phone:
         client = db.query(User).filter(User.phone == data.client_phone).first()
@@ -38,6 +38,8 @@ def create_order(data: WalkInOrderCreate, db: Session = Depends(get_db)):
             client = User(phone=data.client_phone, full_name=data.contact_name, role=UserRole.CLIENT)
             db.add(client)
             db.flush()
+
+    service = db.query(Service).get(data.service_id) if data.service_id else None
 
     order = WalkInOrder(
         order_date=data.order_date,
@@ -47,6 +49,7 @@ def create_order(data: WalkInOrderCreate, db: Session = Depends(get_db)):
         extra_service=data.extra_service,
         car_model=data.car_model,
         amount=data.amount,
+        employee_payout=calc_employee_payout(data.amount, service.payout_pct) if service else None,
         contact_name=data.contact_name,
         client_id=client.id if client else None,
         employee_id=data.employee_id,
@@ -55,35 +58,39 @@ def create_order(data: WalkInOrderCreate, db: Session = Depends(get_db)):
     db.flush()
 
     # если удалось привязать клиента и услуга помечена как "полная мойка" — ставим ананас
-    if client and data.service_id:
-        service = db.query(Service).get(data.service_id)
-        if service:
-            result = register_wash(db, client, service, walk_in_order_id=order.id)
-            if result.applied:
-                order.amount = price_with_discount(data.amount, result.discount_pct)
+    if client and service:
+        result = register_wash(db, client, service, walk_in_order_id=order.id)
+        if result.applied:
+            order.amount = price_with_discount(data.amount, result.discount_pct)
+            order.employee_payout = calc_employee_payout(order.amount, service.payout_pct)
 
+    db.add(AuditLog(actor_user_id=actor.id, action="create", entity="walk_in_order", entity_id=order.id))
     db.commit()
     db.refresh(order)
     return order
 
 
-@router.patch("/{order_id}", response_model=WalkInOrderOut, dependencies=[Depends(require_staff)], summary="Изменить заказ")
-def update_order(order_id: int, data: WalkInOrderUpdate, db: Session = Depends(get_db)):
+@router.patch("/{order_id}", response_model=WalkInOrderOut, summary="Изменить заказ")
+def update_order(order_id: int, data: WalkInOrderUpdate, actor: User = Depends(require_staff), db: Session = Depends(get_db)):
     order = db.query(WalkInOrder).get(order_id)
     if not order:
         raise HTTPException(404, "Заказ не найден")
-    for k, v in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    for k, v in changes.items():
         setattr(order, k, v)
+    db.add(AuditLog(actor_user_id=actor.id, action="update", entity="walk_in_order", entity_id=order.id,
+                     note=f"Изменено: {', '.join(changes.keys())}"))
     db.commit()
     db.refresh(order)
     return order
 
 
-@router.delete("/{order_id}", dependencies=[Depends(require_admin)], summary="Удалить заказ (только админ)")
-def delete_order(order_id: int, db: Session = Depends(get_db)):
+@router.delete("/{order_id}", summary="Удалить заказ (только админ)")
+def delete_order(order_id: int, actor: User = Depends(require_admin), db: Session = Depends(get_db)):
     order = db.query(WalkInOrder).get(order_id)
     if not order:
         raise HTTPException(404, "Заказ не найден")
+    db.add(AuditLog(actor_user_id=actor.id, action="delete", entity="walk_in_order", entity_id=order.id))
     db.delete(order)
     db.commit()
     return {"detail": "Заказ удалён"}
@@ -109,11 +116,11 @@ def export_orders(
     )
 
 
-@router.post("/import", dependencies=[Depends(require_admin)], summary="Загрузить строки из .xlsx (формат — как в экспорте)")
-async def import_orders(file: UploadFile = File(...), db: Session = Depends(get_db)):
+@router.post("/import", summary="Загрузить строки из .xlsx — понимает и наш экспортный формат, и родной 'Учёт.xlsx'")
+async def import_orders(file: UploadFile = File(...), actor: User = Depends(require_admin), db: Session = Depends(get_db)):
     content = await file.read()
     try:
-        rows = parse_walkin_xlsx(content)
+        rows = parse_walkin_any(content)
     except Exception as e:
         raise HTTPException(400, f"Не удалось прочитать файл: {e}")
 
@@ -121,5 +128,7 @@ async def import_orders(file: UploadFile = File(...), db: Session = Depends(get_
     for row in rows:
         db.add(WalkInOrder(**row))
         created += 1
+    db.add(AuditLog(actor_user_id=actor.id, action="create", entity="walk_in_order",
+                     note=f"Импорт из файла: {created} строк"))
     db.commit()
     return {"detail": f"Импортировано строк: {created}"}

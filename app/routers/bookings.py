@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Booking, Service, User, UserRole, BookingStatus
-from app.schemas import BookingCreate, BookingOut, BookingUpdate
+from app.models import Booking, Service, User, UserRole, BookingStatus, AuditLog
+from app.schemas import BookingCreate, BookingOut, BookingUpdate, RatingSubmit
 from app.dependencies import get_current_user, require_staff
-from app.loyalty import register_wash, price_with_discount
+from app.loyalty import register_wash, price_with_discount, calc_employee_payout
 
 router = APIRouter(prefix="/bookings", tags=["Запись на мойку"])
 
@@ -35,6 +35,7 @@ def create_booking(
     booking = Booking(
         client_id=user.id,
         service_id=service.id,
+        car_profile_id=data.car_profile_id,
         scheduled_at=data.scheduled_at,
         comment=data.comment,
         price=price_with_discount(service.price_from, preview_discount),
@@ -42,6 +43,30 @@ def create_booking(
         status=BookingStatus.PENDING,
     )
     db.add(booking)
+    db.commit()
+    db.refresh(booking)
+    return booking
+
+
+@router.get("/last", response_model=Optional[BookingOut], summary="Последняя запись клиента (для 'повторить мойку')")
+def last_booking(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return (
+        db.query(Booking)
+        .filter(Booking.client_id == user.id)
+        .order_by(Booking.scheduled_at.desc())
+        .first()
+    )
+
+
+@router.post("/{booking_id}/rate", response_model=BookingOut, summary="Оценить мастера после мойки (1-5)")
+def rate_booking(booking_id: int, data: RatingSubmit, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.id == booking_id, Booking.client_id == user.id).first()
+    if not booking:
+        raise HTTPException(404, "Запись не найдена")
+    if booking.status != BookingStatus.DONE:
+        raise HTTPException(400, "Оценить можно только выполненную запись")
+    booking.rating = data.rating
+    booking.rating_comment = data.comment
     db.commit()
     db.refresh(booking)
     return booking
@@ -111,19 +136,19 @@ def all_bookings(
 @router.patch(
     "/admin/{booking_id}",
     response_model=BookingOut,
-    dependencies=[Depends(require_staff)],
     summary="Изменить статус/мастера/бокс записи",
 )
-def update_booking(booking_id: int, data: BookingUpdate, db: Session = Depends(get_db)):
+def update_booking(booking_id: int, data: BookingUpdate, actor: User = Depends(require_staff), db: Session = Depends(get_db)):
     booking = db.query(Booking).get(booking_id)
     if not booking:
         raise HTTPException(404, "Запись не найдена")
 
-    for k, v in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    for k, v in changes.items():
         setattr(booking, k, v)
 
-    # Начисляем ананас окончательно только когда мойка реально завершена,
-    # и только один раз на запись (защита от повторного PATCH со статусом done)
+    # Начисляем ананас и з/п мастера окончательно только когда мойка реально
+    # завершена, и только один раз на запись (защита от повторного PATCH со статусом done)
     if booking.status == BookingStatus.DONE and not booking.loyalty_applied:
         client = db.query(User).get(booking.client_id)
         service = db.query(Service).get(booking.service_id)
@@ -131,8 +156,13 @@ def update_booking(booking_id: int, data: BookingUpdate, db: Session = Depends(g
         if result.applied:
             booking.discount_pct = result.discount_pct
             booking.price = price_with_discount(service.price_from, result.discount_pct)
+        booking.employee_payout = calc_employee_payout(booking.price, service.payout_pct)
         booking.loyalty_applied = True
 
+    db.add(AuditLog(
+        actor_user_id=actor.id, action="update", entity="booking", entity_id=booking.id,
+        note=f"Изменено: {', '.join(changes.keys())}",
+    ))
     db.commit()
     db.refresh(booking)
     return booking

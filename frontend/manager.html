@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Дашборд руководителя — Автомойка №1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/css/theme.css">
+<style>
+  body{background:var(--washi-2);}
+  .topbar{position:sticky;top:0;z-index:50;background:var(--sumi);}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;}
+  .brand{display:flex;align-items:center;gap:12px;color:#fff;}
+  .brand img{width:32px;height:32px;border-radius:8px;object-fit:cover;}
+  .brand b{font-family:'Spectral',serif;font-size:16.5px;}
+  .topbar a.back{color:#CBC3B2;font-size:13.5px;font-weight:600;}
+  .topbar a.back:hover{color:#fff;}
+
+  .auth-wrap{max-width:400px;margin:80px auto;}
+  .auth-card{padding:32px;}
+  .auth-status{font-size:13px;margin-top:10px;min-height:18px;}
+  .auth-status.ok{color:var(--jade-dark);}
+  .auth-status.err{color:var(--vermillion);}
+
+  .page{max-width:1100px;margin:0 auto;padding:36px 28px 80px;}
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+  .page-head h1{font-size:24px;}
+  .period-picker{display:flex;gap:8px;align-items:center;}
+  .period-picker input{padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--washi-card);font-size:13.5px;}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .kpi-box{padding:22px;position:relative;overflow:hidden;}
+  .kpi-box .label{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:8px;}
+  .kpi-box .value{font-family:'Spectral',serif;font-size:28px;font-weight:600;}
+  .kpi-box.accent{border-color:var(--jade);}
+  .kpi-box.accent .value{color:var(--jade-dark);}
+  .kpi-box.warn .value{color:var(--vermillion);}
+
+  .progress-section{padding:26px;margin-bottom:24px;}
+  .progress-section h3{font-size:16px;margin-bottom:14px;}
+  .progress-track{height:14px;border-radius:100px;background:var(--washi-2);overflow:hidden;}
+  .progress-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--jade),var(--gold));transition:width 1s var(--ease);}
+  .progress-caption{font-size:13px;color:var(--ink-soft);margin-top:10px;}
+
+  .two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+  @media (max-width:900px){.two-col{grid-template-columns:1fr;}.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+
+  .ranking-row{display:grid;grid-template-columns:28px 1fr auto auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line-soft);}
+  .ranking-row:last-child{border-bottom:none;}
+  .rank-num{font-family:'Spectral',serif;font-weight:700;color:var(--ink-soft-2);}
+  .rank-num.top{color:var(--gold);}
+  .ranking-name{font-weight:700;font-size:14px;}
+  .ranking-count{font-size:12px;color:var(--ink-soft-2);}
+  .ranking-revenue{font-family:'Space Mono';font-weight:700;font-size:14px;text-align:right;}
+
+  .card-section{padding:24px;margin-bottom:20px;}
+  .card-section h3{font-size:16px;margin-bottom:14px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand"><img src="static/img/logo.png" alt=""><b>Автомойка №1 · Руководитель</b></div>
+    <a class="back" href="index.html">← на сайт</a>
+  </div>
+</div>
+
+<div id="authScreen" class="auth-wrap">
+  <div class="card auth-card">
+    <h2 style="font-size:20px;margin-bottom:6px;">Вход для руководителя</h2>
+    <p class="text-muted" style="font-size:13px;margin-bottom:20px;">Доступ только на чтение — аналитика без права менять записи. Стартовый доступ: manager / manager.</p>
+    <div class="field"><label>Логин</label><input type="text" id="loginInput" placeholder="manager"></div>
+    <div class="field"><label>Пароль</label><input type="password" id="passwordInput" placeholder="••••••••"></div>
+    <button class="btn btn-primary" style="width:100%;" id="loginBtn">Войти</button>
+    <div class="auth-status" id="authStatus"></div>
+  </div>
+</div>
+
+<div id="dashboard" class="page" style="display:none;">
+  <div class="page-head reveal">
+    <h1>Дашборд за 30 дней</h1>
+    <div class="period-picker">
+      <input type="date" id="dateFrom">
+      <span class="text-muted">—</span>
+      <input type="date" id="dateTo">
+      <button class="btn btn-outline" id="applyPeriod" style="padding:9px 16px;font-size:13px;">Применить</button>
+    </div>
+  </div>
+
+  <div class="kpi-grid reveal">
+    <div class="card kpi-box">
+      <div class="label">Выручка за период</div>
+      <div class="value count-up" id="kpiRevenue">0 ₽</div>
+    </div>
+    <div class="card kpi-box accent">
+      <div class="label">Прибыль (оценка)</div>
+      <div class="value count-up" id="kpiProfit">0 ₽</div>
+    </div>
+    <div class="card kpi-box">
+      <div class="label">Средний чек</div>
+      <div class="value count-up" id="kpiAvgCheck">0 ₽</div>
+    </div>
+    <div class="card kpi-box warn">
+      <div class="label">Цена лояльности</div>
+      <div class="value count-up" id="kpiLoyaltyCost">0 ₽</div>
+    </div>
+  </div>
+
+  <div class="card progress-section reveal">
+    <h3>Прогресс к цели по выручке (текущий месяц)</h3>
+    <div class="progress-track"><div class="progress-fill" id="targetProgressFill" style="width:0%;"></div></div>
+    <div class="progress-caption" id="targetCaption">—</div>
+  </div>
+
+  <div class="two-col reveal">
+    <div class="card card-section">
+      <h3>Рейтинг сотрудников за период</h3>
+      <div id="rankingList"><p class="text-muted" style="font-size:13.5px;">Пока нет данных за этот период.</p></div>
+    </div>
+    <div class="card card-section">
+      <h3>Структура выручки</h3>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px;"><span>Мойка</span><b id="revWashLabel">0 ₽</b></div>
+          <div class="progress-track" style="height:8px;"><div class="progress-fill" id="revWashBar" style="background:var(--jade);width:0%;"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px;"><span>Химчистка/детейлинг</span><b id="revDryLabel">0 ₽</b></div>
+          <div class="progress-track" style="height:8px;"><div class="progress-fill" id="revDryBar" style="background:var(--gold);width:0%;"></div></div>
+        </div>
+        <hr class="divider">
+        <div style="font-size:13px;color:var(--ink-soft);">Выплаты мастерам (35% от услуги): <b id="payoutsLabel" class="mono">0 ₽</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="static/js/api.js"></script>
+<script>
+  const authStatusEl = document.getElementById('authStatus');
+  function setAuthStatus(msg, type) { authStatusEl.textContent = msg; authStatusEl.className = 'auth-status ' + (type || ''); }
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const login = document.getElementById('loginInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+    try {
+      const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ login, password }) });
+      if (data.role !== 'manager' && data.role !== 'admin') {
+        setAuthStatus('Этот вход только для руководителя или админа', 'err'); return;
+      }
+      setAuthToken(data.access_token, data.role);
+      showDashboard();
+    } catch (e) { setAuthStatus('Неверный логин или пароль', 'err'); }
+  });
+
+  function fmt(n) { return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+
+  async function loadDashboard() {
+    const from = document.getElementById('dateFrom').value;
+    const to = document.getElementById('dateTo').value;
+    let path = '/admin/manager/dashboard';
+    if (from && to) path += `?date_from=${from}&date_to=${to}`;
+    try {
+      const d = await api(path);
+      animateCount(document.getElementById('kpiRevenue'), Math.round(d.revenue_total), { suffix: ' ₽' });
+      animateCount(document.getElementById('kpiProfit'), Math.round(d.profit_estimate), { suffix: ' ₽' });
+      animateCount(document.getElementById('kpiAvgCheck'), Math.round(d.average_check), { suffix: ' ₽' });
+      animateCount(document.getElementById('kpiLoyaltyCost'), Math.round(d.loyalty_discount_cost), { suffix: ' ₽' });
+
+      document.getElementById('revWashLabel').textContent = fmt(d.revenue_wash);
+      document.getElementById('revDryLabel').textContent = fmt(d.revenue_dry_cleaning);
+      const total = d.revenue_wash + d.revenue_dry_cleaning || 1;
+      document.getElementById('revWashBar').style.width = (d.revenue_wash / total * 100) + '%';
+      document.getElementById('revDryBar').style.width = (d.revenue_dry_cleaning / total * 100) + '%';
+      document.getElementById('payoutsLabel').textContent = fmt(d.payouts_total);
+
+      const pct = Math.min(100, d.monthly_progress_pct);
+      document.getElementById('targetProgressFill').style.width = pct + '%';
+      document.getElementById('targetCaption').textContent =
+        `${d.monthly_progress_pct}% от цели ${fmt(d.monthly_revenue_target)} за текущий месяц`;
+
+      const rankEl = document.getElementById('rankingList');
+      if (d.employee_ranking.length) {
+        rankEl.innerHTML = d.employee_ranking.map((r, i) => `
+          <div class="ranking-row">
+            <span class="rank-num ${i === 0 ? 'top' : ''}">${i + 1}</span>
+            <div><div class="ranking-name">${r.full_name}</div><div class="ranking-count">${r.washes_count} заказов</div></div>
+            <span></span>
+            <span class="ranking-revenue">${fmt(r.revenue)}</span>
+          </div>`).join('');
+      } else {
+        rankEl.innerHTML = '<p class="text-muted" style="font-size:13.5px;">Пока нет данных за этот период.</p>';
+      }
+    } catch (e) {
+      alert('Не удалось загрузить дашборд: ' + e.message);
+    }
+  }
+
+  document.getElementById('applyPeriod').addEventListener('click', loadDashboard);
+
+  function showDashboard() {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    const today = new Date();
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 3600 * 1000);
+    document.getElementById('dateTo').value = today.toISOString().slice(0, 10);
+    document.getElementById('dateFrom').value = monthAgo.toISOString().slice(0, 10);
+    loadDashboard();
+    initRevealObserver();
+  }
+
+  if (getAuthToken() && (getAuthRole() === 'manager' || getAuthRole() === 'admin')) { showDashboard(); }
+</script>
+</body>
+</html>

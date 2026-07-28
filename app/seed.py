@@ -3,58 +3,62 @@
 
 Запуск:  python -m app.seed
 
-Услуги химчистки и их ориентировочные цены посчитаны по факту из твоего
-файла "Химчистка.xlsx" (среднее по 269 заказам за 2022–2023). Сотрудники —
-из листа "График.xlsx". Поправь цифры и имена под актуальные, когда будет
-время — это только стартовые данные, чтобы сайт и админка не были пустыми.
+Прайс — реальный, снятый с прайс-листа группы ВК (не расчётный, как раньше).
+Правило бонусной карты: комплексная (полная) мойка и всё, что дороже неё —
+ставит ананас на карту. З/П мастера — 35% от цены услуги (применяется
+автоматически при завершении записи/заказа, см. app/loyalty.py).
 """
 from app.database import SessionLocal, Base, engine
-from app.models import Service, ServiceCategory, Employee, User, UserRole, GisSettings, VkSettings
+from app.models import (
+    Service, ServiceCategory, Employee, User, UserRole,
+    GisSettings, VkSettings, BusinessSettings,
+)
 from app.security import hash_password
 from app.config import settings
 
 Base.metadata.create_all(bind=engine)
+
+PAYOUT_PCT = 35  # % от цены услуги — з/п мастера, по всем услугам одинаково
 
 
 def seed():
     db = SessionLocal()
     try:
         if not db.query(Service).first():
-            # (название, описание, цена, минуты, считается ли "полной мойкой" для карты)
+            # (название, описание, price_from, price_to, минуты, ставит ли ананас)
+            # price_to = None означает "от X", иначе показывается вилка "X-Y"
             wash_services = [
-                ("Экспресс", "Кузов, диски, окна и сушка вручную — когда важны минуты.", 350, 15, False),
-                ("Комплекс", "Кузов и диски, химчистка ковриков, полировка стёкол, пылесос салона.", 900, 40, True),
-                ("Детейлинг", "Глубокая чистка салона, полировка кузова, чернение резины и пластика.", 3500, 120, True),
-                ("Защита (керамика/воск)", "Защитное покрытие с гидрофобным эффектом.", 2500, 90, True),
+                ("Облив авто водой", "Быстрое ополаскивание кузова водой без химии.", 250, None, 10, False),
+                ("Бесконтактная мойка", "Мойка кузова активной пеной без соприкосновения щёток с ЛКП.", 350, 500, 20, False),
+                ("Экспресс мойка авто", "Кузов, диски, окна и сушка вручную - когда важны минуты.", 900, 1400, 25, False),
+                ("Сухой туман", "Устранение запахов в салоне парогенератором.", 400, None, 15, False),
+                ("Покрытие кузова жидким воском", "Быстрая защита ЛКП с гидрофобным эффектом после мойки.", 300, None, 10, False),
+                ("Комплексная (полная) мойка", "Кузов и диски, химчистка ковриков, полировка стёкол, пылесос салона.", 1300, 2100, 45, True),
+                ("Премиум мойка авто", "Комплекс плюс расширенная обработка резины, пластика и стёкол.", 1900, 2500, 60, True),
             ]
-            for i, (name, desc, price, dur, counts) in enumerate(wash_services):
+            for i, (name, desc, price_from, price_to, dur, counts) in enumerate(wash_services):
                 db.add(Service(
                     category=ServiceCategory.WASH, name=name, description=desc,
-                    price_from=price, duration_min=dur, sort_order=i,
-                    counts_towards_loyalty=counts,
+                    price_from=price_from, price_to=price_to, duration_min=dur, sort_order=i,
+                    counts_towards_loyalty=counts, payout_pct=PAYOUT_PCT,
                 ))
 
-            # Прайс химчистки — временная заглушка (среднее по историческим заказам),
-            # актуальный прайс пришлёшь отдельно и подставим вместо этого
             dry_services = [
-                ("Химчистка сидений", "Чистка одного или нескольких сидений.", 2000, 40),
-                ("Химчистка салона (полная)", "Полная химчистка сидений, ковриков, потолка и дверных карт.", 6500, 150),
-                ("Химчистка ковров/коврика", "Отдельная чистка ковролина или ковриков.", 2500, 30),
-                ("Химчистка чехлов", "Чистка чехлов сидений.", 5000, 60),
-                ("Полировка кузова", "Полировка кузова с удалением мелких царапин.", 7500, 120),
-                ("Полировка + керамика", "Полировка кузова с нанесением керамического покрытия.", 11500, 180),
-                ("Предпродажная подготовка", "Комплексная подготовка авто к продаже: мойка, химчистка, полировка.", 7000, 180),
+                ("Комплексная детейлинг", "Глубокая мойка и обработка кузова и салона выше уровня комплекса.", 2300, 3000, 90, True),
+                ("Химчистка кузова авто", "Химчистка внешних пластиковых и резиновых элементов кузова.", 3000, 5000, 90, True),
+                ("Полировка кузова", "Полировка кузова с удалением мелких царапин и потёртостей.", 6000, 14000, 180, True),
+                ("Химчистка салона авто", "Полная химчистка сидений, ковриков, потолка и дверных карт.", 9000, None, 240, True),
+                ("Керамическое покрытие", "Долговременное защитное керамическое покрытие кузова.", 20000, 40000, 360, True),
             ]
-            for i, (name, desc, price, dur) in enumerate(dry_services):
+            for i, (name, desc, price_from, price_to, dur, counts) in enumerate(dry_services):
                 db.add(Service(
                     category=ServiceCategory.DRY_CLEANING, name=name, description=desc,
-                    price_from=price, duration_min=dur, sort_order=i,
-                    counts_towards_loyalty=False,
+                    price_from=price_from, price_to=price_to, duration_min=dur, sort_order=i,
+                    counts_towards_loyalty=counts, payout_pct=PAYOUT_PCT,
                 ))
             db.commit()
 
         if not db.query(Employee).first():
-            # Имена — с листа "График.xlsx"; должность и цвет можно поправить в админке
             employees = [
                 ("Ваня", "Мойщик", "#1BE7A6"),
                 ("Лариса", "Мойщик", "#FF6B4A"),
@@ -75,7 +79,17 @@ def seed():
                 password_hash=hash_password("admin"),
             ))
             db.commit()
-            print("Создан админ: логин 'admin', пароль 'admin' — ОБЯЗАТЕЛЬНО смени после первого входа.")
+            print("Создан админ: логин 'admin', пароль 'admin' - ОБЯЗАТЕЛЬНО смени после первого входа.")
+
+        if not db.query(User).filter(User.username == "manager").first():
+            db.add(User(
+                username="manager",
+                full_name="Руководитель",
+                role=UserRole.MANAGER,
+                password_hash=hash_password("manager"),
+            ))
+            db.commit()
+            print("Создан руководитель: логин 'manager', пароль 'manager' - тоже смени после первого входа.")
 
         if not db.query(GisSettings).first():
             db.add(GisSettings(org_url="https://go.2gis.com/TnzMN"))
@@ -88,7 +102,11 @@ def seed():
             ))
             db.commit()
 
-        print("Готово: услуги, сотрудники, админ и настройки 2ГИС созданы (если их ещё не было).")
+        if not db.query(BusinessSettings).first():
+            db.add(BusinessSettings(monthly_revenue_target=500000))
+            db.commit()
+
+        print("Готово: услуги (12 позиций реального прайса), сотрудники, админ, руководитель и настройки созданы.")
     finally:
         db.close()
 

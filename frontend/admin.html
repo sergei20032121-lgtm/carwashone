@@ -48,6 +48,12 @@
   .form-grid .field{margin-bottom:0;}
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
 
+  @media print{
+    .topbar, .sidebar, .toolbar button, #printScheduleBtn{display:none !important;}
+    body{background:#fff;}
+    .content{padding:0;}
+    #employeesCard{border:none;box-shadow:none;}
+  }
   @media (max-width:900px){.layout{grid-template-columns:1fr;}.sidebar{display:flex;overflow-x:auto;gap:4px;padding:12px;}.sidebar .tab-btn{white-space:nowrap;}.stat-grid{grid-template-columns:repeat(2,1fr);}.form-grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -56,7 +62,10 @@
 <div class="topbar">
   <div class="wrap">
     <div class="brand"><img src="static/img/logo.png" alt=""><b>Автомойка №1 · Админ</b></div>
-    <a class="back" href="index.html">← на сайт</a>
+    <div style="display:flex;gap:18px;align-items:center;">
+      <a class="back" href="manager.html">Дашборд руководителя →</a>
+      <a class="back" href="index.html">← на сайт</a>
+    </div>
   </div>
 </div>
 
@@ -82,6 +91,8 @@
     <button class="tab-btn" data-tab="services">Услуги</button>
     <button class="tab-btn" data-tab="schedule">График</button>
     <button class="tab-btn" data-tab="vk">Новости ВК</button>
+    <button class="tab-btn" data-tab="clientsearch">Поиск клиента</button>
+    <button class="tab-btn" data-tab="auditlog">Журнал изменений</button>
     <button class="tab-btn" data-tab="logout" style="color:var(--vermillion);margin-top:16px;">Выйти</button>
   </div>
 
@@ -188,8 +199,8 @@
 
     <!-- ГРАФИК -->
     <div class="tab-page" id="tab-schedule" style="display:none;">
-      <h2>Сотрудники</h2>
-      <div class="card" style="padding:6px 16px;overflow-x:auto;">
+      <div class="toolbar"><h2 style="margin:0;">Сотрудники</h2><button class="btn btn-outline" id="printScheduleBtn">🖨 Печать списка на смену</button></div>
+      <div class="card" style="padding:6px 16px;overflow-x:auto;" id="employeesCard">
         <table id="employeesTable">
           <thead><tr><th>Имя</th><th>Должность</th></tr></thead>
           <tbody></tbody>
@@ -213,6 +224,30 @@
       </div>
       <h3 style="font-size:16px;margin-bottom:12px;">Последние синхронизированные посты</h3>
       <div class="gallery-grid" id="vkPostsPreview" style="grid-auto-rows:auto;"></div>
+    </div>
+
+    <!-- ПОИСК КЛИЕНТА -->
+    <div class="tab-page" id="tab-clientsearch" style="display:none;">
+      <h2>Поиск клиента по телефону</h2>
+      <div class="card" style="padding:20px;margin-bottom:22px;">
+        <div style="display:flex;gap:12px;align-items:end;">
+          <div class="field" style="margin-bottom:0;flex:1;"><label>Номер телефона</label><input type="tel" id="searchPhone" placeholder="+7900..."></div>
+          <button class="btn btn-primary" id="searchClientBtn">Найти</button>
+        </div>
+        <div class="auth-status" id="searchStatus"></div>
+      </div>
+      <div id="searchResult"></div>
+    </div>
+
+    <!-- ЖУРНАЛ ИЗМЕНЕНИЙ -->
+    <div class="tab-page" id="tab-auditlog" style="display:none;">
+      <div class="toolbar"><h2 style="margin:0;">Журнал изменений</h2><button class="btn btn-outline" id="refreshAudit">Обновить</button></div>
+      <div class="card" style="padding:6px 16px;overflow-x:auto;">
+        <table id="auditTable">
+          <thead><tr><th>Когда</th><th>Кто</th><th>Действие</th><th>Что</th><th>Комментарий</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -238,7 +273,7 @@
   function showPanel() {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('panel').style.display = 'grid';
-    loadOverview(); loadBookings(); loadWalkin(); loadDry(); loadServices(); loadEmployees(); loadVk();
+    loadOverview(); loadBookings(); loadWalkin(); loadDry(); loadServices(); loadEmployees(); loadVk(); loadAuditLog();
   }
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -558,6 +593,62 @@
       loadVk();
     } catch (e) { vkStatusEl.textContent = e.message; vkStatusEl.className = 'auth-status err'; }
   });
+
+  const statusLabels2 = {pending:'ожидает', confirmed:'подтверждена', in_progress:'в работе', done:'выполнена', cancelled:'отменена'};
+
+  document.getElementById('searchClientBtn').addEventListener('click', async () => {
+    const phone = document.getElementById('searchPhone').value.trim();
+    const statusEl = document.getElementById('searchStatus');
+    const resultEl = document.getElementById('searchResult');
+    if (!phone) return;
+    statusEl.textContent = ''; resultEl.innerHTML = '';
+    try {
+      const r = await api('/admin/search?phone=' + encodeURIComponent(phone));
+      resultEl.innerHTML = `
+        <div class="card" style="padding:20px;margin-bottom:16px;">
+          <h3 style="font-size:16px;">${r.user.full_name || 'Без имени'} · ${r.user.phone}</h3>
+          <p class="text-muted" style="font-size:13px;margin-top:6px;">
+            ${r.user.tenure_label} · ${r.user.punch_count} ананасов на карте · ${r.user.total_full_washes} полных моек всего
+          </p>
+        </div>
+        <div class="card" style="padding:6px 16px;margin-bottom:16px;overflow-x:auto;">
+          <h3 style="font-size:14px;padding-top:14px;">Записи (${r.bookings.length})</h3>
+          <table><thead><tr><th>Дата</th><th>Услуга</th><th>Статус</th><th>Цена</th></tr></thead>
+          <tbody>${r.bookings.map(b => `<tr><td>${new Date(b.scheduled_at).toLocaleString('ru-RU')}</td><td>#${b.service_id}</td><td>${statusLabels2[b.status]||b.status}</td><td>${b.price!=null?Math.round(b.price)+' ₽':'—'}</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет записей</td></tr>'}</tbody></table>
+        </div>
+        <div class="card" style="padding:6px 16px;margin-bottom:16px;overflow-x:auto;">
+          <h3 style="font-size:14px;padding-top:14px;">Мойки без записи (${r.walk_in_orders.length})</h3>
+          <table><thead><tr><th>Дата</th><th>Услуга</th><th>Авто</th><th>Сумма</th></tr></thead>
+          <tbody>${r.walk_in_orders.map(o => `<tr><td>${o.order_date}</td><td>${o.service_name_raw}</td><td>${o.car_model||'—'}</td><td>${Math.round(o.amount)} ₽</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет заказов</td></tr>'}</tbody></table>
+        </div>
+        <div class="card" style="padding:6px 16px;overflow-x:auto;">
+          <h3 style="font-size:14px;padding-top:14px;">Химчистка (${r.dry_cleaning_orders.length})</h3>
+          <table><thead><tr><th>Дата</th><th>Авто</th><th>Работы</th><th>Сумма</th></tr></thead>
+          <tbody>${r.dry_cleaning_orders.map(o => `<tr><td>${o.order_date}</td><td>${o.car_model}</td><td>${o.works_description}</td><td>${Math.round(o.amount)} ₽</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет заказов</td></tr>'}</tbody></table>
+        </div>`;
+    } catch (e) {
+      statusEl.textContent = e.message || 'Клиент не найден'; statusEl.className = 'auth-status err';
+    }
+  });
+
+  async function loadAuditLog() {
+    try {
+      const rows = await api('/admin/audit-log');
+      const actionLabels = {create:'создал(а)', update:'изменил(а)', delete:'удалил(а)'};
+      const entityLabels = {booking:'запись', walk_in_order:'заказ (учёт)', dry_cleaning_order:'заказ (химчистка)', service:'услугу'};
+      document.querySelector('#auditTable tbody').innerHTML = rows.map(r => `
+        <tr>
+          <td>${new Date(r.created_at).toLocaleString('ru-RU')}</td>
+          <td>${r.actor_name || '—'}</td>
+          <td>${actionLabels[r.action] || r.action}</td>
+          <td>${entityLabels[r.entity] || r.entity}${r.entity_id ? ' #' + r.entity_id : ''}</td>
+          <td class="text-muted" style="font-size:12.5px;">${r.note || ''}</td>
+        </tr>`).join('') || '<tr><td colspan="5" class="text-muted">Пока пусто</td></tr>';
+    } catch (e) {}
+  }
+  document.getElementById('refreshAudit').addEventListener('click', loadAuditLog);
+
+  document.getElementById('printScheduleBtn').addEventListener('click', () => window.print());
 
   if (getAuthToken() && getAuthRole() !== 'client') { showPanel(); }
 </script>

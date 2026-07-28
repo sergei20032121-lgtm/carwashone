@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import DryCleaningOrder, Service, ServiceCategory
+from app.models import DryCleaningOrder, Service, ServiceCategory, User, AuditLog
 from app.schemas import DryCleaningOrderCreate, DryCleaningOrderOut, DryCleaningOrderUpdate, ServiceOut
 from app.dependencies import require_staff, require_admin
 from app.excel_utils import export_drycleaning_xlsx, parse_drycleaning_xlsx
@@ -46,12 +46,13 @@ def list_orders(
 @router.post(
     "/orders",
     response_model=DryCleaningOrderOut,
-    dependencies=[Depends(require_staff)],
     summary="Добавить заказ химчистки (админ/сотрудник)",
 )
-def create_order(data: DryCleaningOrderCreate, db: Session = Depends(get_db)):
+def create_order(data: DryCleaningOrderCreate, actor: User = Depends(require_staff), db: Session = Depends(get_db)):
     order = DryCleaningOrder(**data.model_dump())
     db.add(order)
+    db.flush()
+    db.add(AuditLog(actor_user_id=actor.id, action="create", entity="dry_cleaning_order", entity_id=order.id))
     db.commit()
     db.refresh(order)
     return order
@@ -80,8 +81,8 @@ def export_orders(
     )
 
 
-@router.post("/orders/import", dependencies=[Depends(require_admin)], summary="Загрузить строки из .xlsx (формат — как в экспорте)")
-async def import_orders(file: UploadFile = File(...), db: Session = Depends(get_db)):
+@router.post("/orders/import", summary="Загрузить строки из .xlsx — понимает и наш формат, и родной Химчистка.xlsx")
+async def import_orders(file: UploadFile = File(...), actor: User = Depends(require_admin), db: Session = Depends(get_db)):
     content = await file.read()
     try:
         rows = parse_drycleaning_xlsx(content)
@@ -92,6 +93,8 @@ async def import_orders(file: UploadFile = File(...), db: Session = Depends(get_
     for row in rows:
         db.add(DryCleaningOrder(**row))
         created += 1
+    db.add(AuditLog(actor_user_id=actor.id, action="create", entity="dry_cleaning_order",
+                     note=f"Импорт из файла: {created} строк"))
     db.commit()
     return {"detail": f"Импортировано строк: {created}"}
 
@@ -108,23 +111,27 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
     return order
 
 
-@router.patch("/orders/{order_id}", response_model=DryCleaningOrderOut, dependencies=[Depends(require_staff)], summary="Изменить заказ химчистки")
-def update_order(order_id: int, data: DryCleaningOrderUpdate, db: Session = Depends(get_db)):
+@router.patch("/orders/{order_id}", response_model=DryCleaningOrderOut, summary="Изменить заказ химчистки")
+def update_order(order_id: int, data: DryCleaningOrderUpdate, actor: User = Depends(require_staff), db: Session = Depends(get_db)):
     order = db.query(DryCleaningOrder).get(order_id)
     if not order:
         raise HTTPException(404, "Заказ не найден")
-    for k, v in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    for k, v in changes.items():
         setattr(order, k, v)
+    db.add(AuditLog(actor_user_id=actor.id, action="update", entity="dry_cleaning_order", entity_id=order.id,
+                     note=f"Изменено: {', '.join(changes.keys())}"))
     db.commit()
     db.refresh(order)
     return order
 
 
-@router.delete("/orders/{order_id}", dependencies=[Depends(require_admin)], summary="Удалить заказ химчистки (только админ)")
-def delete_order(order_id: int, db: Session = Depends(get_db)):
+@router.delete("/orders/{order_id}", summary="Удалить заказ химчистки (только админ)")
+def delete_order(order_id: int, actor: User = Depends(require_admin), db: Session = Depends(get_db)):
     order = db.query(DryCleaningOrder).get(order_id)
     if not order:
         raise HTTPException(404, "Заказ не найден")
+    db.add(AuditLog(actor_user_id=actor.id, action="delete", entity="dry_cleaning_order", entity_id=order.id))
     db.delete(order)
     db.commit()
     return {"detail": "Заказ удалён"}

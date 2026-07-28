@@ -109,6 +109,7 @@
       <div class="name" id="cabName">Клиент</div>
       <div class="phone" id="cabPhone">—</div>
     </div>
+    <span class="badge" id="cabTenureBadge" style="margin-left:8px;"></span>
     <a href="#" class="logout-link" id="logoutBtn">Выйти</a>
   </div>
 
@@ -126,6 +127,52 @@
   <div class="card card-section">
     <h3>История записей</h3>
     <div id="historyList"><p class="text-muted" style="font-size:13.5px;">Пока нет записей.</p></div>
+  </div>
+
+  <div class="card card-section">
+    <h3>Мои машины</h3>
+    <div id="carsList" style="margin-bottom:16px;"><p class="text-muted" style="font-size:13.5px;">Машины ещё не добавлены.</p></div>
+    <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+      <div class="field" style="margin-bottom:0;"><label>Марка</label><input type="text" id="carBrand" placeholder="Toyota Mark II"></div>
+      <div class="field" style="margin-bottom:0;"><label>Номер</label><input type="text" id="carPlate" placeholder="А123ВС 197"></div>
+      <div class="field" style="margin-bottom:0;"><label>Метка</label><input type="text" id="carNickname" placeholder="основная"></div>
+      <button class="btn btn-dark" id="carAddBtn">Добавить</button>
+    </div>
+  </div>
+
+  <div class="card card-section">
+    <h3>Приведи друга</h3>
+    <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Отправьте другу свою ссылку — как только он запишется к нам впервые, вам обоим капнет ананас на карту.</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="referralLink" readonly style="flex:1;min-width:220px;padding:12px 14px;border-radius:9px;border:1.5px solid var(--line);background:var(--washi-2);font-family:'Space Mono';font-size:13px;">
+      <button class="btn btn-outline" id="copyReferralBtn">Скопировать</button>
+    </div>
+    <p class="text-muted" style="font-size:12.5px;margin-top:10px;">Приглашено друзей: <b id="referralCount">0</b></p>
+  </div>
+
+  <div class="card card-section">
+    <h3>День рождения</h3>
+    <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Укажите дату — сделаем подарок в этот день.</p>
+    <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
+      <div class="field" style="margin-bottom:0;"><label>Дата рождения</label><input type="date" id="birthdayInput"></div>
+      <button class="btn btn-dark" id="birthdaySaveBtn">Сохранить</button>
+    </div>
+    <div class="auth-status" id="birthdayStatus"></div>
+  </div>
+
+  <div class="card card-section">
+    <h3>Подарочный сертификат</h3>
+    <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Купите сертификат в подарок или погасите свой код в счёт оплаты.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:16px;">
+      <div class="field" style="margin-bottom:0;"><label>Сумма ₽</label><input type="number" id="certAmount" placeholder="2000"></div>
+      <div class="field" style="margin-bottom:0;"><label>Телефон получателя (необязательно)</label><input type="tel" id="certPhone" placeholder="+7900..."></div>
+      <button class="btn btn-dark" id="certBuyBtn">Купить</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
+      <div class="field" style="margin-bottom:0;"><label>Код сертификата (погасить)</label><input type="text" id="certRedeemCode" placeholder="GIFT-XXXXXXXX"></div>
+      <button class="btn btn-outline" id="certRedeemBtn">Погасить</button>
+    </div>
+    <div class="auth-status" id="certStatus"></div>
   </div>
 
   <div class="card card-section">
@@ -241,6 +288,8 @@
       document.getElementById('cabAvatar').textContent = (me.full_name || me.phone || '??').slice(0,2).toUpperCase();
       document.getElementById('cabName').textContent = me.full_name || 'Клиент';
       document.getElementById('cabPhone').textContent = me.phone || '—';
+      document.getElementById('cabTenureBadge').textContent = me.tenure_label || '';
+      if (me.birthday) document.getElementById('birthdayInput').value = me.birthday;
       animateCount(document.getElementById('statPunch'), me.punch_count);
       animateCount(document.getElementById('statTotal'), me.total_full_washes);
       const toNext = me.punch_count < 6 ? (6 - me.punch_count) : (12 - me.punch_count);
@@ -256,8 +305,28 @@
             <div class="history-main"><div class="service-name">Запись #${b.id}${b.discount_pct ? ' · скидка ' + b.discount_pct + '%' : ''}</div><div class="date">${new Date(b.scheduled_at).toLocaleString('ru-RU')}</div></div>
             <span class="badge status-${b.status}">${statusLabels[b.status] || b.status}</span>
             <div class="history-price">${b.price != null ? Math.round(b.price)+' ₽' : ''}</div>
-          </div>`).join('');
+          </div>
+          ${b.status === 'done' && !b.rating ? `
+          <div class="rate-row" data-booking="${b.id}" style="padding:4px 10px 14px;display:flex;gap:6px;align-items:center;">
+            <span class="text-muted" style="font-size:12.5px;">Оцените мастера:</span>
+            ${[1,2,3,4,5].map(n => `<button class="rate-star" data-n="${n}" data-booking="${b.id}" style="font-size:18px;color:var(--gold);opacity:.4;">★</button>`).join('')}
+          </div>` : ''}
+        `).join('');
+
+        listEl.querySelectorAll('.rate-star').forEach(star => {
+          star.addEventListener('click', async () => {
+            const n = parseInt(star.dataset.n, 10);
+            const bookingId = star.dataset.booking;
+            try {
+              await api(`/bookings/${bookingId}/rate`, { method: 'POST', body: JSON.stringify({ rating: n }) });
+              showCabinet();
+            } catch (e) { alert('Не удалось сохранить оценку'); }
+          });
+        });
       }
+
+      await loadCars();
+      await loadReferral();
     } catch (e) {
       // токен истёк или недействителен
       clearAuth();
@@ -268,6 +337,90 @@
   }
 
   if (getAuthToken()) { showCabinet(); }
+
+  // ---- Мои машины ----
+  async function loadCars() {
+    try {
+      const cars = await api('/cars');
+      const el = document.getElementById('carsList');
+      if (cars.length) {
+        el.innerHTML = cars.map(c => `
+          <div class="history-row">
+            <div class="history-main"><div class="service-name">${c.brand}${c.nickname ? ' · ' + c.nickname : ''}</div><div class="date">${c.plate || 'без номера'}</div></div>
+            <button class="btn btn-outline" style="padding:6px 12px;font-size:12px;" data-del-car="${c.id}">Удалить</button>
+          </div>`).join('');
+        el.querySelectorAll('[data-del-car]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            await api('/cars/' + btn.dataset.delCar, { method: 'DELETE' });
+            loadCars();
+          });
+        });
+      } else {
+        el.innerHTML = '<p class="text-muted" style="font-size:13.5px;">Машины ещё не добавлены.</p>';
+      }
+    } catch (e) {}
+  }
+  document.getElementById('carAddBtn').addEventListener('click', async () => {
+    const brand = document.getElementById('carBrand').value.trim();
+    if (!brand) return;
+    try {
+      await api('/cars', { method: 'POST', body: JSON.stringify({
+        brand, plate: document.getElementById('carPlate').value.trim() || null,
+        nickname: document.getElementById('carNickname').value.trim() || null,
+      }) });
+      document.getElementById('carBrand').value = '';
+      document.getElementById('carPlate').value = '';
+      document.getElementById('carNickname').value = '';
+      loadCars();
+    } catch (e) { alert('Не удалось добавить машину'); }
+  });
+
+  // ---- Рефералка ----
+  async function loadReferral() {
+    try {
+      const r = await api('/referral');
+      document.getElementById('referralLink').value = window.location.origin + r.referral_link;
+      document.getElementById('referralCount').textContent = r.referred_count;
+    } catch (e) {}
+  }
+  document.getElementById('copyReferralBtn').addEventListener('click', () => {
+    const input = document.getElementById('referralLink');
+    input.select();
+    navigator.clipboard?.writeText(input.value);
+  });
+
+  // ---- День рождения ----
+  document.getElementById('birthdaySaveBtn').addEventListener('click', async () => {
+    const val = document.getElementById('birthdayInput').value;
+    const el = document.getElementById('birthdayStatus');
+    if (!val) { el.textContent = 'Укажите дату'; el.className = 'auth-status err'; return; }
+    try {
+      await api('/me/birthday', { method: 'PUT', body: JSON.stringify({ birthday: val }) });
+      el.textContent = 'Сохранено'; el.className = 'auth-status ok';
+    } catch (e) { el.textContent = 'Не удалось сохранить'; el.className = 'auth-status err'; }
+  });
+
+  // ---- Сертификаты ----
+  document.getElementById('certBuyBtn').addEventListener('click', async () => {
+    const amount = parseFloat(document.getElementById('certAmount').value);
+    const el = document.getElementById('certStatus');
+    if (!amount) { el.textContent = 'Укажите сумму'; el.className = 'auth-status err'; return; }
+    try {
+      const cert = await api('/gift-certificates', { method: 'POST', body: JSON.stringify({
+        amount, issued_to_phone: document.getElementById('certPhone').value.trim() || null,
+      }) });
+      el.textContent = `Готово! Код сертификата: ${cert.code}`; el.className = 'auth-status ok';
+    } catch (e) { el.textContent = 'Не удалось создать сертификат'; el.className = 'auth-status err'; }
+  });
+  document.getElementById('certRedeemBtn').addEventListener('click', async () => {
+    const code = document.getElementById('certRedeemCode').value.trim();
+    const el = document.getElementById('certStatus');
+    if (!code) return;
+    try {
+      const cert = await api('/gift-certificates/redeem', { method: 'POST', body: JSON.stringify({ code }) });
+      el.textContent = `Сертификат на ${cert.amount} ₽ погашен`; el.className = 'auth-status ok';
+    } catch (e) { el.textContent = e.message || 'Не удалось погасить сертификат'; el.className = 'auth-status err'; }
+  });
 </script>
 </body>
 </html>

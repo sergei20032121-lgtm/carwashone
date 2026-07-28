@@ -45,3 +45,4 @@ def require_roles(*roles: UserRole):
 
 require_admin = require_roles(UserRole.ADMIN)
 require_staff = require_roles(UserRole.ADMIN, UserRole.MASTER)
+require_manager_or_admin = require_roles(UserRole.ADMIN, UserRole.MANAGER)

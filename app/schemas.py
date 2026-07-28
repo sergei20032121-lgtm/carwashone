@@ -28,6 +28,7 @@ class OTPVerify(BaseModel):
     phone: str
     code: str
     full_name: Optional[str] = None
+    referral_code: Optional[str] = None
 
     @field_validator("phone")
     @classmethod
@@ -58,9 +59,16 @@ class UserOut(BaseModel):
     role: UserRole
     punch_count: int          # сколько ананасов на текущей карте (0-11)
     total_full_washes: int    # всего полных моек за всё время
+    birthday: Optional[date] = None
+    referral_code: Optional[str] = None
+    tenure_label: str = ""
 
     class Config:
         from_attributes = True
+
+
+class BirthdayUpdate(BaseModel):
+    birthday: date
 
 
 # ---------- Services ----------
@@ -71,8 +79,10 @@ class ServiceOut(BaseModel):
     name: str
     description: Optional[str]
     price_from: float
+    price_to: Optional[float] = None
     duration_min: Optional[int]
     counts_towards_loyalty: bool
+    payout_pct: float = 0
 
     class Config:
         from_attributes = True
@@ -83,9 +93,11 @@ class ServiceCreate(BaseModel):
     name: str
     description: Optional[str] = None
     price_from: float
+    price_to: Optional[float] = None
     duration_min: Optional[int] = None
     sort_order: int = 0
     counts_towards_loyalty: bool = False
+    payout_pct: float = 35
 
 
 # ---------- Bookings ----------
@@ -94,6 +106,7 @@ class BookingCreate(BaseModel):
     service_id: int
     scheduled_at: datetime
     comment: Optional[str] = None
+    car_profile_id: Optional[int] = None
 
 
 class BookingOut(BaseModel):
@@ -105,7 +118,10 @@ class BookingOut(BaseModel):
     box_number: Optional[int]
     price: Optional[float]
     discount_pct: int
+    employee_payout: Optional[float] = None
     comment: Optional[str]
+    rating: Optional[int] = None
+    rating_comment: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -116,6 +132,11 @@ class BookingUpdate(BaseModel):
     employee_id: Optional[int] = None
     box_number: Optional[int] = None
     price: Optional[float] = None
+
+
+class RatingSubmit(BaseModel):
+    rating: int = Field(..., ge=1, le=5)
+    comment: Optional[str] = None
 
 
 # ---------- Walk-in заказы (журнал без предварительной записи) ----------
@@ -301,3 +322,111 @@ class VkPostOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ---------- Профили машин клиента ----------
+
+class CarProfileCreate(BaseModel):
+    brand: str
+    plate: Optional[str] = None
+    nickname: Optional[str] = None
+
+
+class CarProfileOut(BaseModel):
+    id: int
+    brand: str
+    plate: Optional[str]
+    nickname: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- Реферальная программа ----------
+
+class ReferralInfo(BaseModel):
+    referral_code: str
+    referred_count: int
+    referral_link: str
+
+
+# ---------- Подарочные сертификаты ----------
+
+class GiftCertificateCreate(BaseModel):
+    amount: float = Field(..., gt=0)
+    issued_to_phone: Optional[str] = None
+
+
+class GiftCertificateOut(BaseModel):
+    code: str
+    amount: float
+    issued_to_phone: Optional[str]
+    is_used: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class GiftCertificateRedeem(BaseModel):
+    code: str
+
+
+# ---------- Аудит-лог ----------
+
+class AuditLogOut(BaseModel):
+    id: int
+    action: str
+    entity: str
+    entity_id: Optional[int]
+    note: Optional[str]
+    created_at: datetime
+    actor_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- Дашборд руководителя ----------
+
+class BusinessSettingsOut(BaseModel):
+    monthly_revenue_target: float
+
+    class Config:
+        from_attributes = True
+
+
+class BusinessSettingsUpdate(BaseModel):
+    monthly_revenue_target: float
+
+
+class EmployeeRankingItem(BaseModel):
+    employee_id: int
+    full_name: str
+    washes_count: int
+    revenue: float
+    payout: float
+
+
+class ManagerDashboard(BaseModel):
+    period_from: date
+    period_to: date
+    revenue_total: float
+    revenue_wash: float
+    revenue_dry_cleaning: float
+    payouts_total: float
+    profit_estimate: float          # выручка минус выплаты мастерам
+    average_check: float
+    loyalty_discount_cost: float    # сколько "подарили" скидками 50%/100% за период
+    monthly_revenue_target: float
+    monthly_progress_pct: float
+    employee_ranking: List[EmployeeRankingItem] = []
+
+
+# ---------- Поиск клиента (админ) ----------
+
+class ClientSearchResult(BaseModel):
+    user: UserOut
+    bookings: List[BookingOut] = []
+    walk_in_orders: List[WalkInOrderOut] = []
+    dry_cleaning_orders: List[DryCleaningOrderOut] = []
