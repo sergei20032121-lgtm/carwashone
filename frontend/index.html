@@ -60,24 +60,6 @@
   .wave{display:block;width:100%;line-height:0;}
   .wave svg{width:100%;height:60px;display:block;}
 
-  /* ---------- вертикальное видео-превью ---------- */
-  .video-showcase-grid{display:grid;grid-template-columns:1.2fr 0.8fr;gap:40px;align-items:center;}
-  .video-showcase-frame{display:flex;justify-content:center;}
-  .video-card{
-    position:relative;width:min(300px, 100%);aspect-ratio:9/16;border-radius:26px;overflow:hidden;
-    background:var(--sumi);box-shadow:0 30px 70px -20px rgba(20,15,5,0.4);border:6px solid var(--washi-card);
-  }
-  .video-card video{width:100%;height:100%;object-fit:cover;display:block;}
-  .video-play-btn{
-    position:absolute;inset:0;margin:auto;width:64px;height:64px;border-radius:50%;
-    background:rgba(255,255,255,0.92);color:var(--vermillion);display:flex;align-items:center;justify-content:center;
-    box-shadow:0 10px 30px -8px rgba(0,0,0,0.4);transition:transform .25s var(--ease), opacity .25s ease;
-  }
-  .video-play-btn:hover{transform:scale(1.08);}
-  .video-play-btn svg{width:26px;height:26px;margin-left:3px;}
-  .video-card.playing .video-play-btn{opacity:0;pointer-events:none;}
-  @media (max-width:860px){.video-showcase-grid{grid-template-columns:1fr;text-align:center;}.video-showcase-copy p{margin-left:auto;margin-right:auto;}}
-
   .services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
   .service-card{background:var(--washi-card);border-radius:var(--radius);padding:26px 22px;border:1px solid var(--line);transition:transform .25s ease, box-shadow .25s ease;display:flex;flex-direction:column;gap:12px;}
   .service-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-soft);}
@@ -203,7 +185,6 @@
 
 <button class="booking-backdrop" id="bookingBackdrop" aria-label="Закрыть форму записи"></button>
 <header class="hero dirt-wash-section" id="top">
-  <video class="hero-video" src="static/video/showcase.mp4" poster="static/video/showcase-poster.jpg" autoplay muted loop playsinline aria-hidden="true"></video>
   <div class="dirt-wash-layer" id="dirtWashLayer"></div>
   <div class="wrap hero-grid">
     <div>
@@ -338,29 +319,6 @@
       </div>
       <div class="gallery-item"><img src="static/img/gallery/12-black-sedan-hre.jpg" alt="Тюнинг-седан на дисках HRE" loading="lazy" class="photo-grade"><span class="gallery-cap">Диски HRE — моем аккуратно</span></div>
       <div class="gallery-item"><img src="static/img/gallery/10-iron-remover.jpg" alt="Очиститель Iron Remover на кузове" loading="lazy" class="photo-grade"><span class="gallery-cap">Реагент против металлических вкраплений</span></div>
-    </div>
-  </div>
-</section>
-
-<section id="video-showcase" style="background:var(--washi);">
-  <div class="wrap">
-    <div class="video-showcase-grid reveal">
-      <div class="video-showcase-copy">
-        <div class="kicker">Смотри вживую</div>
-        <h2 style="font-size:clamp(24px,3vw,32px);">Как это выглядит на самом деле</h2>
-        <p class="text-muted" style="margin-top:12px;font-size:15.5px;max-width:420px;">
-          Короткое видео прямо из бокса — без монтажа и постановки. Нажми на превью, чтобы посмотреть со звуком.
-        </p>
-        <a href="#booking" class="btn btn-primary" style="margin-top:20px;">Записаться на мойку</a>
-      </div>
-      <div class="video-showcase-frame">
-        <div class="video-card" id="showcaseVideoCard">
-          <video id="showcaseVideo" src="static/video/showcase.mp4" poster="static/video/showcase-poster.jpg" muted loop playsinline preload="metadata"></video>
-          <button class="video-play-btn" id="showcasePlayBtn" aria-label="Воспроизвести видео">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          </button>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -576,7 +534,7 @@
       ${s.counts_towards_loyalty ? '<span class="loyalty-mark">+ АНАНАС</span>' : ''}
       <h3>${escapeHtml(s.name)}</h3>
       <p class="desc">${escapeHtml(s.description || '')}</p>
-      <div class="service-meta"><span class="price" id="${priceId}">${price}</span><button class="time service-book-btn" data-service-id="${s.id}">${s.duration_min ? '≈ ' + s.duration_min + ' мин · ' : ''}выбрать →</button></div>
+      <div class="service-meta"><span class="price" id="${priceId}">${price}</span><button class="service-book-btn" data-service-id="${s.id}">выбрать →</button></div>
     </div>`;
   }
   function animatePricesIn(containerId) {
@@ -601,8 +559,12 @@
       const wash = washRaw.map(s => ({ ...s, _group: 'wash' }));
       const dry = dryRaw.map(s => ({ ...s, _group: 'care' }));
       allPublicServices = [...wash, ...dry];
-      document.getElementById('washGrid').innerHTML = wash.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
-      document.getElementById('dryGrid').innerHTML = dry.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
+      const washGrid = document.getElementById('washGrid');
+      const dryGrid = document.getElementById('dryGrid');
+      washGrid.className = `services-grid count-${wash.length}`;
+      dryGrid.className = `services-grid count-${dry.length}`;
+      washGrid.innerHTML = wash.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
+      dryGrid.innerHTML = dry.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
       document.getElementById('serviceSelect').innerHTML = allPublicServices.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${s.price_to ? Math.round(s.price_from) + '–' + Math.round(s.price_to) : 'от ' + Math.round(s.price_from)} ₽</option>`).join('');
       renderGoalRecommendation('quick');
     } catch (e) {
@@ -634,14 +596,31 @@
     document.getElementById('goalPrice').textContent = formatServicePrice(service);
   }
 
+  let bookingOpener = null;
   function openBooking(serviceId) {
+    bookingOpener = document.activeElement;
+    const widget = document.getElementById('bookWidget');
+    if (widget.parentElement !== document.body) document.body.appendChild(widget);
     if (serviceId) {
       const select = document.getElementById('serviceSelect');
       if (select) select.value = String(serviceId);
     }
+    if (getAuthToken()) {
+      document.getElementById('stepPhone').style.display = 'none';
+      document.getElementById('stepCode').style.display = 'none';
+      document.getElementById('stepBooking').style.display = 'block';
+      setStep(3);
+    }
     document.body.classList.add('booking-open');
+    requestAnimationFrame(() => {
+      const target = widget.querySelector('input:not([type="hidden"]), select, button');
+      if (target) target.focus({ preventScroll: true });
+    });
   }
-  function closeBooking() { document.body.classList.remove('booking-open'); }
+  function closeBooking() {
+    document.body.classList.remove('booking-open');
+    if (bookingOpener && typeof bookingOpener.focus === 'function') bookingOpener.focus({ preventScroll: true });
+  }
 
   document.querySelectorAll('a[href="#booking"]').forEach(link => {
     link.addEventListener('click', event => { event.preventDefault(); openBooking(); });
@@ -843,17 +822,6 @@
     window.addEventListener('scroll', update, { passive: true });
   })();
 
-
-  const showcaseVideo = document.getElementById('showcaseVideo');
-  const showcaseCard = document.getElementById('showcaseVideoCard');
-  document.getElementById('showcasePlayBtn').addEventListener('click', () => {
-    showcaseVideo.controls = true;
-    showcaseVideo.play();
-    showcaseCard.classList.add('playing');
-  });
-  showcaseVideo.addEventListener('pause', () => showcaseCard.classList.remove('playing'));
-  showcaseVideo.addEventListener('ended', () => showcaseCard.classList.remove('playing'));
-  showcaseVideo.addEventListener('play', () => showcaseCard.classList.add('playing'));
 
   // ---- Текущая загрузка (дышащая точка) ----
   async function loadCurrentLoad() {
