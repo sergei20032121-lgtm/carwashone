@@ -148,7 +148,7 @@
 </style>
 <link rel="stylesheet" href="static/css/site-v2.css">
 <link rel="stylesheet" href="static/css/interactions-v9.css">
-<link rel="stylesheet" href="static/css/hero-wash-v11.css">
+<link rel="stylesheet" href="static/css/hero-inspection-v15.css">
 </head>
 <body>
 
@@ -188,9 +188,8 @@
 </div>
 
 <button class="booking-backdrop" id="bookingBackdrop" aria-label="Закрыть форму записи"></button>
-<header class="hero dirt-wash-section" id="top">
-  <div class="dirt-wash-layer" id="dirtWashLayer"></div>
-  <div class="wash-curtain" id="washCurtain" aria-hidden="true"></div>
+<header class="hero" id="top">
+  <div class="car-inspection-light" id="carInspectionLight" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div>
       <div class="eyebrow">Автомойка №1 · Магистральная, 90/1</div>
@@ -297,11 +296,6 @@
     </div>
 
   </div>
-  <div class="wash-control" id="washControl">
-    <div><b id="washControlTitle">Проведи — и смой грязь</b><span id="washControlHint">или просто посмотри, как вода проходит по кузову</span></div>
-    <input type="range" id="washRange" min="0" max="100" value="0" aria-label="Смыть грязь с автомобиля">
-    <button type="button" id="washReplay">Ещё раз ↻</button>
-  </div>
 </header>
 
 <section class="care-picker" id="pick">
@@ -330,10 +324,11 @@
       </div>
     </div>
     <div class="care-result">
-      <small>РЕКОМЕНДУЕМ</small>
+      <small>КАЛЬКУЛЯТОР · ОРИЕНТИР ПО ПРАЙСУ</small>
       <h3 id="goalService">Загружаем…</h3>
       <p id="goalNote">Ответьте на три вопроса — покажем подходящую услугу и цену.</p>
       <b id="goalPrice"></b>
+      <p id="goalEstimateDetails" class="goal-estimate-details"></p>
       <button class="btn btn-primary btn-magnetic" id="goalBook">Записаться на эту услугу →</button>
     </div>
   </div>
@@ -563,7 +558,7 @@
 
 <script src="static/js/api.js"></script>
 <script src="static/js/interactions-v9.js" defer></script>
-<script src="static/js/hero-wash-v11.js" defer></script>
+<script src="static/js/hero-inspection-v15.js" defer></script>
 <script>
   let authToken = null;
   let pendingPhone = null;
@@ -658,6 +653,22 @@
       : `от ${Math.round(service.price_from).toLocaleString('ru-RU')} ₽`;
   }
 
+  function calculateServiceEstimate(service, vehicle) {
+    const from = Number(service.price_from || 0);
+    const to = Number(service.price_to || 0);
+    if (!to || to <= from) {
+      return { value: from, prefix: 'от ', basis: 'В прайсе указана стартовая цена' };
+    }
+    if (vehicle === 'large') {
+      return { value: to, prefix: '≈ ', basis: 'Большой SUV — верхняя граница диапазона' };
+    }
+    if (vehicle === 'suv') {
+      const midpoint = Math.round(((from + to) / 2) / 50) * 50;
+      return { value: midpoint, prefix: '≈ ', basis: 'Кроссовер — середина диапазона' };
+    }
+    return { value: from, prefix: '≈ ', basis: 'Седан — нижняя граница диапазона' };
+  }
+
   const goalRules = {
     quick: { terms: ['экспресс'], note: 'Если машина просто запылилась и нужно быстро привести её в порядок.' },
     inside: { terms: ['комплексная (полная)', 'комплексная'], note: 'Помоем кузов и уберёмся в салоне за один приезд.' },
@@ -679,7 +690,10 @@
     const vehicleLabel = vehicle === 'large' ? 'большого SUV' : (vehicle === 'suv' ? 'кроссовера' : 'седана');
     const priorityNote = priority === 'fast' ? ' Берём самый быстрый подходящий вариант.' : (priority === 'result' ? ' Здесь лучше не торопиться и сделать работу полностью.' : '');
     document.getElementById('goalNote').textContent = `${rule.note} Подойдёт для ${vehicleLabel}.${priorityNote}`;
-    document.getElementById('goalPrice').textContent = formatServicePrice(service);
+    const estimate = calculateServiceEstimate(service, vehicle);
+    document.getElementById('goalPrice').textContent = `${estimate.prefix}${Math.round(estimate.value).toLocaleString('ru-RU')} ₽`;
+    document.getElementById('goalEstimateDetails').textContent =
+      `${estimate.basis}${service.duration_min ? ` · обычно около ${service.duration_min} мин` : ''}. Итог мастер подтвердит после осмотра.`;
   }
 
   let bookingOpener = null;
@@ -978,7 +992,6 @@
   initRevealObserver();
   initLightbox();
   initScrollSpy();
-  initCursorGlow('.hero');
   initCustomCursor();
   initSoapTrail();
   initMagneticButtons();

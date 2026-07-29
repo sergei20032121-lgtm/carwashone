@@ -1,0 +1,4 @@
+.car-inspection-light{--inspect-x:70%;--inspect-y:48%;position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(ellipse 230px 150px at var(--inspect-x) var(--inspect-y),rgba(215,253,255,.2) 0,rgba(97,229,223,.09) 34%,transparent 72%);-webkit-mask:url("../img/car-body-mask.svg") 58% center/cover no-repeat;mask:url("../img/car-body-mask.svg") 58% center/cover no-repeat;mix-blend-mode:screen;transition:opacity .28s ease}
+.hero.inspecting-car .car-inspection-light{opacity:1}
+@media(max-width:900px),(hover:none),(pointer:coarse){.car-inspection-light{display:none}}
+@media(prefers-reduced-motion:reduce){.car-inspection-light{display:none}}

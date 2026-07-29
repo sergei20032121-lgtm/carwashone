@@ -1,13 +1,13 @@
-const CACHE = 'carwash-one-v14';
+const CACHE = 'carwash-one-v16';
 const STATIC_ASSETS = [
   '/site/',
   '/site/static/css/theme.css',
   '/site/static/css/site-v2.css',
   '/site/static/css/interactions-v9.css',
-  '/site/static/css/hero-wash-v11.css',
+  '/site/static/css/hero-inspection-v15.css',
   '/site/static/js/api.js',
   '/site/static/js/interactions-v9.js',
-  '/site/static/js/hero-wash-v11.js',
+  '/site/static/js/hero-inspection-v15.js',
   '/site/static/img/logo.png',
   '/site/static/img/hero-markii-premium.png',
   '/site/static/img/car-body-mask.svg'

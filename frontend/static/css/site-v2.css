@@ -38,6 +38,7 @@ body.booking-open .booking-backdrop{opacity:1;visibility:visible}
 .goal-buttons{display:grid}.goal-buttons button{min-height:58px;padding:0 16px;border:0;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#7f8b8e;display:flex;align-items:center;gap:13px;text-align:left}
 .goal-buttons button span{width:22px;height:22px;border:1px solid currentColor;border-radius:50%;display:grid;place-items:center}
 .goal-buttons button.active{color:#fff}.goal-buttons button.active span{color:var(--v2-aqua)}
+.goal-estimate-details{max-width:470px;font-size:11px!important;line-height:1.5!important;color:#7f8b8e!important;margin:0 0 18px!important}
 .care-result{position:relative;min-height:480px;padding:65px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;background:radial-gradient(circle at 55% 45%,#16343a,#0d191d 42%,#080d10 75%)}
 .care-result:before{content:"";position:absolute;width:340px;height:340px;border:1px solid rgba(97,229,223,.15);border-radius:50%;left:50%;top:42%;transform:translate(-50%,-50%);box-shadow:0 0 0 60px rgba(97,229,223,.035),0 0 0 120px rgba(97,229,223,.018)}
 .care-result>*{position:relative}.care-result small{color:var(--v2-aqua);letter-spacing:.18em}.care-result h3{font-family:Georgia,serif;font-size:clamp(48px,6vw,92px);font-weight:400;line-height:.9;margin:14px 0}.care-result p{color:#9eaaad}.care-result b{font-size:22px;margin:10px 0 22px}
@@ -99,7 +100,7 @@ body.booking-open .booking-backdrop{opacity:1;visibility:visible}
   .care-picker{padding:0 0 44px}.care-picker-inner{display:block}
   .care-picker-copy{padding:36px 16px 24px}.care-picker-copy h2{font-size:32px;line-height:1;margin:13px 0 18px}
   .goal-buttons{grid-template-columns:1fr 1fr;gap:7px}.goal-buttons button{min-height:52px;border:1px solid rgba(255,255,255,.12);padding:8px;font-size:11px;line-height:1.2}.goal-buttons button span{width:18px;height:18px;flex:0 0 auto}
-  .care-result{min-height:310px;padding:38px 16px}.care-result:before{width:220px;height:220px;top:39%}.care-result h3{font-size:44px;line-height:.92;margin:10px 0 13px}.care-result p{font-size:13px;line-height:1.5}.care-result b{font-size:18px;margin:7px 0 16px}
+  .care-result{min-height:310px;padding:38px 16px}.care-result:before{width:220px;height:220px;top:39%}.care-result h3{font-size:44px;line-height:.92;margin:10px 0 13px}.care-result p{font-size:13px;line-height:1.5}.care-result b{font-size:18px;margin:7px 0 8px}.goal-estimate-details{font-size:10.5px!important;margin-bottom:16px!important}
   #services{padding:58px 0}.catalog-tabs button{padding:12px 13px}.catalog-search{height:42px}
   .services-grid>.service-card,.services-grid>.skeleton{flex-basis:86vw;min-height:265px;padding:21px}
   .service-card h3{font-size:18px}.service-card .desc{font-size:13px;line-height:1.5}.service-card .service-meta .price{font-size:17px}

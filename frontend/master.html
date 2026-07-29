@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111a1d">
+<title>Режим мастера — Автомойка №1</title>
+<link rel="stylesheet" href="static/css/theme.css">
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:#091014;color:#f5f1e8;font-family:Manrope,Arial,sans-serif;min-height:100vh}
+  button,input{font:inherit}
+  .shell{width:min(760px,100%);margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom))}
+  .mast-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+  .brand{display:flex;align-items:center;gap:11px}.brand img{width:42px;height:42px;border-radius:12px}.brand b{display:block;font-size:15px}.brand span{display:block;color:#8fa1a4;font-size:11px;margin-top:2px}
+  .icon-btn{width:44px;height:44px;border-radius:12px;border:1px solid #26363b;background:#111d21;color:#fff;font-size:20px}
+  .login{max-width:430px;margin:12vh auto 0;background:#111d21;border:1px solid #26363b;border-radius:22px;padding:24px}
+  .login h1{font:600 30px Spectral,Georgia,serif;margin:0 0 7px}.muted{color:#91a0a4;font-size:13px;line-height:1.55}
+  .field{margin-top:15px}.field label{display:block;color:#9ca8aa;font-size:11px;font-weight:800;letter-spacing:.08em;margin-bottom:7px}.field input{width:100%;height:52px;border:1px solid #304247;border-radius:12px;background:#081014;color:#fff;padding:0 14px;outline:none}.field input:focus{border-color:#3ac7c1}
+  .primary{width:100%;min-height:54px;margin-top:18px;border:0;border-radius:13px;background:#39c9c1;color:#061012;font-weight:900}
+  .status{min-height:20px;margin-top:12px;color:#e67878;font-size:12px}
+  .dayline{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:2px 0 14px}.dayline h1{font:600 31px Spectral,Georgia,serif;margin:0}.dayline p{margin:3px 0 0;color:#91a0a4;font-size:12px}
+  .filters{display:flex;gap:7px;overflow:auto;padding-bottom:13px;scrollbar-width:none}.filters button{white-space:nowrap;border:1px solid #28383d;background:#111d21;color:#aab5b7;border-radius:99px;padding:9px 13px;font-size:11px;font-weight:800}.filters button.active{background:#eef0e9;color:#0b1215;border-color:#eef0e9}
+  .jobs{display:grid;gap:11px}.job{background:#111d21;border:1px solid #26373b;border-radius:18px;padding:16px;overflow:hidden}.job.active{border-color:#36c6c0;box-shadow:0 0 0 1px #36c6c0 inset}.job.done{opacity:.62}
+  .job-top{display:grid;grid-template-columns:68px 1fr auto;gap:11px;align-items:start}.time{font:700 22px 'Space Mono',monospace;color:#4bd6d0}.tag{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:900;border-radius:99px;padding:6px 8px;background:#26383d;color:#c8d1d2}
+  .job h2{font-size:16px;line-height:1.25;margin:0 0 5px}.client{color:#aab5b7;font-size:12px}.meta{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0}.meta span{border-radius:8px;background:#0a1316;color:#b8c3c4;padding:7px 9px;font-size:11px}
+  .actions{display:grid;grid-template-columns:54px 1fr;gap:8px}.call,.next{min-height:52px;border-radius:12px;font-weight:900}.call{display:grid;place-items:center;border:1px solid #304247;background:#0b1518;color:#fff;text-decoration:none;font-size:20px}.next{border:0;background:#39c9c1;color:#071113}.next:disabled{background:#26363b;color:#738084}
+  .empty{text-align:center;padding:60px 20px;color:#809094}.empty b{display:block;color:#eef1ea;font:600 22px Spectral,serif;margin-bottom:7px}
+  .notice{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,20px);width:min(420px,calc(100% - 28px));padding:13px 15px;background:#eff2eb;color:#0b1316;border-radius:12px;font-size:12px;font-weight:800;opacity:0;pointer-events:none;transition:.2s}.notice.show{opacity:1;transform:translate(-50%,0)}
+  @media(min-width:700px){.shell{padding-left:22px;padding-right:22px}.jobs{grid-template-columns:1fr 1fr}.job-top{grid-template-columns:60px 1fr auto}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <section id="loginScreen" class="login">
+    <div class="brand"><img src="static/img/logo.png" alt="Ананас"><div><b>Автомойка №1</b><span>рабочий экран</span></div></div>
+    <h1>Режим мастера</h1>
+    <p class="muted">Только сегодняшние машины и крупные рабочие действия. Вход для мастера или администратора.</p>
+    <div class="field"><label>ЛОГИН</label><input id="loginInput" autocomplete="username" placeholder="Логин"></div>
+    <div class="field"><label>ПАРОЛЬ</label><input id="passwordInput" type="password" autocomplete="current-password" placeholder="Пароль"></div>
+    <button class="primary" id="loginBtn">Войти</button>
+    <div class="status" id="loginStatus"></div>
+  </section>
+
+  <section id="workScreen" hidden>
+    <header class="mast-head">
+      <div class="brand"><img src="static/img/logo.png" alt="Ананас"><div><b>Автомойка №1</b><span id="syncLabel">синхронизация…</span></div></div>
+      <div><button class="icon-btn" id="refreshBtn" aria-label="Обновить">↻</button> <button class="icon-btn" id="logoutBtn" aria-label="Выйти">⏻</button></div>
+    </header>
+    <div class="dayline"><div><h1>Сегодня</h1><p id="todayLabel"></p></div><b id="jobCount">0 машин</b></div>
+    <div class="filters" id="filters">
+      <button class="active" data-filter="active">В работе</button>
+      <button data-filter="all">Все</button>
+      <button data-filter="pending">Ожидают</button>
+      <button data-filter="done">Готово</button>
+    </div>
+    <div class="jobs" id="jobs"></div>
+  </section>
+</main>
+<div class="notice" id="notice" aria-live="polite"></div>
+<script src="static/js/api.js"></script>
+<script>
+  const statusLabels = {pending:'ожидает',confirmed:'подтверждена',in_progress:'в работе',done:'готово',cancelled:'отменена'};
+  const nextStatus = {pending:'confirmed',confirmed:'in_progress',in_progress:'done'};
+  const nextLabels = {pending:'Подтвердить запись',confirmed:'Начать мойку',in_progress:'Машина готова'};
+  let rows = [], filter = 'active', refreshTimer;
+
+  const localDate = () => {
+    const d = new Date(), offset = d.getTimezoneOffset();
+    return new Date(d.getTime() - offset * 60000).toISOString().slice(0,10);
+  };
+  const plural = n => n % 10 === 1 && n % 100 !== 11 ? 'машина' : ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100) ? 'машины' : 'машин');
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const phoneHref = phone => phone ? 'tel:' + String(phone).replace(/[^\d+]/g,'') : '#';
+  function toast(text) {
+    const el = document.getElementById('notice'); el.textContent = text; el.classList.add('show');
+    clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+  function openWork() {
+    document.getElementById('loginScreen').hidden = true;
+    document.getElementById('workScreen').hidden = false;
+    document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+    loadJobs();
+    clearInterval(refreshTimer); refreshTimer = setInterval(loadJobs, 60000);
+  }
+  async function loadJobs() {
+    try {
+      rows = await api('/bookings/admin/all?day=' + localDate());
+      document.getElementById('syncLabel').textContent = 'обновлено ' + new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+      render();
+    } catch (e) {
+      if (e.status === 401 || e.status === 403) { clearAuth(); location.reload(); return; }
+      toast('Не удалось обновить записи');
+    }
+  }
+  function visibleRows() {
+    if (filter === 'all') return rows;
+    if (filter === 'active') return rows.filter(row => !['done','cancelled'].includes(row.status));
+    return rows.filter(row => row.status === filter);
+  }
+  function render() {
+    const list = visibleRows();
+    document.getElementById('jobCount').textContent = `${list.length} ${plural(list.length)}`;
+    const el = document.getElementById('jobs');
+    if (!list.length) {
+      el.innerHTML = '<div class="empty"><b>Здесь пока пусто</b>Записи появятся автоматически.</div>';
+      return;
+    }
+    el.innerHTML = list.map(row => {
+      const time = new Date(row.scheduled_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+      const canCall = Boolean(row.client_phone);
+      const price = row.price != null ? `${Math.round(row.price).toLocaleString('ru-RU')} ₽` : '';
+      return `<article class="job ${row.status === 'in_progress' ? 'active' : ''} ${row.status === 'done' ? 'done' : ''}">
+        <div class="job-top"><time class="time">${time}</time><div><h2>${esc(row.service_name)}</h2><div class="client">${esc(row.client_name)}${row.client_phone ? ' · ' + esc(row.client_phone) : ''}</div></div><span class="tag">${statusLabels[row.status] || esc(row.status)}</span></div>
+        <div class="meta">${row.service_duration_min ? `<span>≈ ${row.service_duration_min} мин</span>` : ''}${price ? `<span>${price}</span>` : ''}${row.box_number ? `<span>Бокс ${row.box_number}</span>` : ''}</div>
+        <div class="actions"><a class="call" ${canCall ? `href="${phoneHref(row.client_phone)}"` : 'aria-disabled="true"'} aria-label="Позвонить клиенту">☎</a>
+        <button class="next" data-id="${row.id}" data-status="${row.status}" ${nextStatus[row.status] ? '' : 'disabled'}>${nextLabels[row.status] || (row.status === 'done' ? 'Готово' : 'Нет действия')}</button></div>
+      </article>`;
+    }).join('');
+  }
+  document.getElementById('jobs').addEventListener('click', async event => {
+    const button = event.target.closest('.next[data-id]');
+    if (!button || !nextStatus[button.dataset.status]) return;
+    button.disabled = true; button.textContent = 'Сохраняем…';
+    try {
+      await api('/bookings/admin/' + button.dataset.id,{method:'PATCH',body:JSON.stringify({status:nextStatus[button.dataset.status]})});
+      if (navigator.vibrate) navigator.vibrate(12);
+      toast(nextStatus[button.dataset.status] === 'done' ? 'Машина отмечена готовой' : 'Статус обновлён');
+      await loadJobs();
+    } catch (e) { toast(e.message || 'Не удалось обновить статус'); button.disabled = false; render(); }
+  });
+  document.getElementById('filters').addEventListener('click', event => {
+    const button = event.target.closest('button[data-filter]'); if (!button) return;
+    filter = button.dataset.filter;
+    document.querySelectorAll('#filters button').forEach(item => item.classList.toggle('active',item === button));
+    render();
+  });
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const status = document.getElementById('loginStatus'); status.textContent = '';
+    try {
+      const data = await api('/auth/login',{method:'POST',body:JSON.stringify({login:document.getElementById('loginInput').value.trim(),password:document.getElementById('passwordInput').value})});
+      if (!['master','admin'].includes(data.role)) { status.textContent = 'Этот режим доступен только мастеру и администратору.'; return; }
+      setAuthToken(data.access_token,data.role); openWork();
+    } catch (e) { status.textContent = 'Неверный логин или пароль.'; }
+  });
+  document.getElementById('passwordInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+  document.getElementById('refreshBtn').addEventListener('click', loadJobs);
+  document.getElementById('logoutBtn').addEventListener('click', () => { clearAuth(); location.reload(); });
+  if (['master','admin'].includes(getAuthRole()) && getAuthToken()) openWork();
+</script>
+</body>
+</html>

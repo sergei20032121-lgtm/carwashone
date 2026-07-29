@@ -74,25 +74,6 @@
   }
   bindChoiceGroup('vehicleButtons');
   bindChoiceGroup('priorityButtons');
-  const hero = document.querySelector('.hero');
-  if (hero && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const ring = document.createElement('span');
-    ring.className = 'pointer-water';
-    ring.setAttribute('aria-hidden', 'true');
-    hero.appendChild(ring);
-    let timer = 0;
-    hero.addEventListener('pointerdown', event => {
-      if (event.target.closest('a,button,input,select')) return;
-      const rect = hero.getBoundingClientRect();
-      hero.style.setProperty('--px', `${event.clientX - rect.left}px`);
-      hero.style.setProperty('--py', `${event.clientY - rect.top}px`);
-      hero.classList.remove('water-touch');
-      void ring.offsetWidth;
-      hero.classList.add('water-touch');
-      clearTimeout(timer);
-      timer = setTimeout(() => hero.classList.remove('water-touch'), 900);
-    });
-  }
   loadHeroSlots();
   window.setInterval(loadHeroSlots, 120000);
 

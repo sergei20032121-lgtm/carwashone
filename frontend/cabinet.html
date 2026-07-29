@@ -42,6 +42,12 @@
 
   .card-section{padding:26px;margin-bottom:22px;}
   .card-section h3{font-family:'Spectral',serif;font-size:17px;margin-bottom:16px;}
+  .bonus-guide{margin-top:18px;padding:15px 16px;border-radius:12px;background:var(--washi-2);border:1px solid var(--line-soft);}
+  .bonus-guide b{display:block;font-size:14px;margin-bottom:4px;}
+  .bonus-guide p{font-size:12.5px;color:var(--ink-soft);margin:0;line-height:1.5;}
+  #cabPunchCard .punch-slot{cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,background .18s ease;}
+  #cabPunchCard .punch-slot:hover,#cabPunchCard .punch-slot:focus-visible{transform:translateY(-3px);box-shadow:0 9px 20px rgba(17,26,29,.12);outline:none;}
+  #cabPunchCard .punch-slot.selected{outline:2px solid var(--jade);outline-offset:3px;}
 
   .history-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:13px 10px;border-bottom:1px solid var(--line-soft);border-radius:8px;transition:background .15s ease;}
   .history-row:hover{background:var(--washi-2);}
@@ -134,6 +140,10 @@
     <h3>Бонусная карта</h3>
     <div class="xp-bar-track"><div class="xp-bar-fill" id="cabXpFill" style="width:0%;"></div><div class="xp-bar-label" id="cabXpLabel"></div></div>
     <div class="punch-card" id="cabPunchCard"></div>
+    <div class="bonus-guide" id="bonusGuide" aria-live="polite">
+      <b id="bonusGuideTitle">Нажмите на любую ячейку</b>
+      <p id="bonusGuideText">Покажем, что означает выбранный шаг бонусной карты.</p>
+    </div>
   </div>
 
   <div class="card card-section">
@@ -219,9 +229,39 @@
       if (!filled && i === 6) inner = '<span class="reward-label">50%</span>';
       if (!filled && i === 12) inner = '<span class="reward-label">100%</span>';
       const style = filled ? `style="--d:${(i * 0.06).toFixed(2)}s"` : '';
-      html += `<div class="punch-slot ${filled ? 'filled' : ''} ${rewardClass}" ${style}><span class="num">${i}</span>${inner}</div>`;
+      const state = filled ? 'Ананас уже получен' : (i === 6 ? 'Скидка 50%' : (i === 12 ? 'Бесплатная мойка' : 'Будущий ананас'));
+      html += `<button type="button" class="punch-slot ${filled ? 'filled' : ''} ${rewardClass}" data-slot="${i}" aria-label="Ячейка ${i}: ${state}" ${style}><span class="num">${i}</span>${inner}</button>`;
     }
     el.innerHTML = html;
+    if (containerId === 'cabPunchCard') initBonusCard(punchCount);
+  }
+
+  function initBonusCard(punchCount) {
+    const card = document.getElementById('cabPunchCard');
+    const title = document.getElementById('bonusGuideTitle');
+    const text = document.getElementById('bonusGuideText');
+    if (!card || !title || !text) return;
+    const explain = slot => {
+      card.querySelectorAll('.punch-slot').forEach(item => item.classList.toggle('selected', Number(item.dataset.slot) === slot));
+      if (slot <= punchCount) {
+        title.textContent = `${slot}-й ананас уже на карте`;
+        text.textContent = 'Эта полная мойка уже учтена. Прогресс хранится в вашем аккаунте.';
+      } else if (slot === 6) {
+        title.textContent = '6-я полная мойка — скидка 50%';
+        text.textContent = `Осталось ${Math.max(0, 6 - punchCount)}. Скидка применяется к самой 6-й мойке автоматически.`;
+      } else if (slot === 12) {
+        title.textContent = '12-я полная мойка — бесплатно';
+        text.textContent = `Осталось ${Math.max(0, 12 - punchCount)}. После бесплатной мойки начинается новая карта.`;
+      } else {
+        title.textContent = `${slot}-й ананас`;
+        text.textContent = `До этой ячейки осталось ${Math.max(0, slot - punchCount)}. Ананас ставится за комплексную мойку и услуги выше неё.`;
+      }
+    };
+    card.querySelectorAll('.punch-slot').forEach(item => item.addEventListener('click', () => {
+      tactileFeedback(8);
+      explain(Number(item.dataset.slot));
+    }));
+    explain(punchCount < 6 ? 6 : 12);
   }
 
   const statusLabels = {pending:'ожидает', confirmed:'подтверждена', in_progress:'в работе', done:'выполнена', cancelled:'отменена'};
