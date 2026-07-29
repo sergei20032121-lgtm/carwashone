@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080d10">
 <title>Автомойка №1</title>
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="static/css/theme.css">
@@ -145,6 +147,7 @@
   }
 </style>
 <link rel="stylesheet" href="static/css/site-v2.css">
+<link rel="stylesheet" href="static/css/interactions-v9.css">
 </head>
 <body>
 
@@ -199,6 +202,13 @@
       <div class="load-pulse" id="loadPulse" style="color:#C9C2AF;margin-bottom:16px;">
         <span class="load-dot low" id="loadDot"></span>
         <span id="loadText">Проверяем загруженность…</span>
+      </div>
+      <div class="hero-slots" id="heroSlots" aria-live="polite">
+        <div class="hero-slots-head">
+          <span>БЛИЖАЙШИЕ ОКНА</span>
+          <b id="heroSlotsDay">сегодня</b>
+        </div>
+        <div class="hero-slots-list" id="heroSlotsList"><i></i><i></i><i></i></div>
       </div>
       <div class="gis-card" id="gisCard">
         <div class="gis-badge">2Г</div>
@@ -268,6 +278,18 @@
         </div>
         <button class="btn btn-primary" style="width:100%;" id="confirmBookingBtn">Записаться</button>
         <p class="hint" style="margin-top:10px;margin-bottom:0;">После записи — полная история и карта в <a href="cabinet.html" style="color:var(--jade-dark);font-weight:700;">личном кабинете →</a></p>
+        <div class="booking-success" id="bookingSuccess">
+          <div class="booking-success-mark">✓</div>
+          <small>ЗАПИСЬ СОЗДАНА</small>
+          <h4 id="bookingSuccessService">Ждём вас</h4>
+          <p id="bookingSuccessDate"></p>
+          <div class="booking-success-actions">
+            <button type="button" class="btn btn-primary" id="downloadCalendarBtn">Добавить в календарь</button>
+            <a class="btn btn-outline" href="https://go.2gis.com/Q4DrY" target="_blank" rel="noopener">Маршрут в 2ГИС</a>
+            <a class="btn btn-outline" href="cabinet.html">Открыть кабинет</a>
+          </div>
+          <button type="button" class="booking-again" id="bookAgainBtn">Записать ещё один автомобиль</button>
+        </div>
       </div>
 
       <div class="book-status" id="bookStatus"></div>
@@ -281,11 +303,24 @@
     <div class="care-picker-copy">
       <div class="kicker">01 / Подбор ухода</div>
       <h2>Что нужно машине?</h2>
+      <p class="picker-step-label">1 / АВТОМОБИЛЬ</p>
+      <div class="vehicle-buttons" id="vehicleButtons">
+        <button class="active" data-vehicle="sedan">Седан</button>
+        <button data-vehicle="suv">Кроссовер</button>
+        <button data-vehicle="large">Большой SUV</button>
+      </div>
+      <p class="picker-step-label">2 / ЗАДАЧА</p>
       <div class="goal-buttons" id="goalButtons">
         <button class="active" data-goal="quick"><span>✓</span>Быстро освежить</button>
         <button data-goal="inside"><span></span>Кузов + салон</button>
         <button data-goal="restore"><span></span>Вернуть вид</button>
         <button data-goal="protect"><span></span>Защитить кузов</button>
+      </div>
+      <p class="picker-step-label">3 / ПРИОРИТЕТ</p>
+      <div class="priority-buttons" id="priorityButtons">
+        <button class="active" data-priority="balanced">Оптимально</button>
+        <button data-priority="fast">Побыстрее</button>
+        <button data-priority="result">Максимум результата</button>
       </div>
     </div>
     <div class="care-result">
@@ -325,6 +360,36 @@
       </div>
       <div class="gallery-item"><img src="static/img/gallery/12-black-sedan-hre.jpg" alt="Тюнинг-седан на дисках HRE" loading="lazy" class="photo-grade"><span class="gallery-cap">Диски HRE — моем аккуратно</span></div>
       <div class="gallery-item"><img src="static/img/gallery/10-iron-remover.jpg" alt="Очиститель Iron Remover на кузове" loading="lazy" class="photo-grade"><span class="gallery-cap">Реагент против металлических вкраплений</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="compare-section" id="result">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="kicker">Реальная работа</div>
+      <h2>Результат двигается пальцем</h2>
+      <p>Потяните границу — слева автомобиль до работы, справа после. На телефоне слайдер работает одним пальцем.</p>
+    </div>
+    <div class="compare-grid reveal">
+      <article class="compare-card">
+        <div class="compare-slider" data-compare style="--split:50%">
+          <img src="static/img/compare/engine-before.jpg" alt="Подкапотное пространство до мойки">
+          <div class="compare-after"><img src="static/img/compare/engine-after.jpg" alt="Подкапотное пространство после мойки"></div>
+          <span class="compare-label before">ДО</span><span class="compare-label after">ПОСЛЕ</span>
+          <button class="compare-handle" type="button" aria-label="Сравнить фото до и после" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span>↔</span></button>
+        </div>
+        <div class="compare-copy"><b>Подкапотное пространство</b><span>Очистка сложных зон без дешёвых фильтров</span></div>
+      </article>
+      <article class="compare-card">
+        <div class="compare-slider" data-compare style="--split:50%">
+          <img src="static/img/compare/wheel-before.jpg" alt="Колесо до мойки">
+          <div class="compare-after"><img src="static/img/compare/wheel-after.jpg" alt="Колесо после мойки"></div>
+          <span class="compare-label before">ДО</span><span class="compare-label after">ПОСЛЕ</span>
+          <button class="compare-handle" type="button" aria-label="Сравнить фото до и после" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span>↔</span></button>
+        </div>
+        <div class="compare-copy"><b>Диски и арки</b><span>Отдельный этап, а не быстрый проход пеной</span></div>
+      </article>
     </div>
   </div>
 </section>
@@ -491,6 +556,7 @@
 </section>
 
 <script src="static/js/api.js"></script>
+<script src="static/js/interactions-v9.js" defer></script>
 <script>
   let authToken = null;
   let pendingPhone = null;
@@ -594,11 +660,18 @@
 
   function renderGoalRecommendation(goal) {
     if (!allPublicServices.length) return;
-    const rule = goalRules[goal] || goalRules.inside;
+    const priority = document.querySelector('#priorityButtons button.active')?.dataset.priority || 'balanced';
+    const vehicle = document.querySelector('#vehicleButtons button.active')?.dataset.vehicle || 'sedan';
+    let effectiveGoal = goal;
+    if (priority === 'fast' && goal !== 'protect') effectiveGoal = 'quick';
+    if (priority === 'result' && goal === 'quick') effectiveGoal = 'inside';
+    const rule = goalRules[effectiveGoal] || goalRules.inside;
     const service = allPublicServices.find(s => rule.terms.some(term => s.name.toLowerCase().includes(term))) || allPublicServices[0];
     selectedGoalServiceId = service.id;
     document.getElementById('goalService').textContent = service.name;
-    document.getElementById('goalNote').textContent = rule.note;
+    const vehicleLabel = vehicle === 'large' ? 'большого SUV' : (vehicle === 'suv' ? 'кроссовера' : 'седана');
+    const priorityNote = priority === 'fast' ? ' Ставим скорость в приоритет.' : (priority === 'result' ? ' Выбираем максимально полный результат.' : '');
+    document.getElementById('goalNote').textContent = `${rule.note} Подойдёт для ${vehicleLabel}.${priorityNote}`;
     document.getElementById('goalPrice').textContent = formatServicePrice(service);
   }
 
@@ -829,10 +902,15 @@
       track.style.display = 'block';
     } catch (e) {}
   }
-  document.getElementById('confirmBookingBtn').addEventListener('click', async () => {
+  let lastCalendarBooking = null;
+  const confirmBookingBtn = document.getElementById('confirmBookingBtn');
+  confirmBookingBtn.addEventListener('click', async () => {
     const service_id = parseInt(document.getElementById('serviceSelect').value, 10);
     const dt = document.getElementById('dateTimeInput').value;
     if (!dt) { setStatus('Укажите дату и время', 'err'); return; }
+    confirmBookingBtn.disabled = true;
+    const initialText = confirmBookingBtn.textContent;
+    confirmBookingBtn.textContent = 'Проверяем время…';
     try {
       const [day, clock] = dt.split('T');
       const availability = await api(`/bookings/slots?day=${encodeURIComponent(day)}`);
@@ -842,9 +920,52 @@
         return;
       }
       await api('/bookings', { method: 'POST', body: JSON.stringify({ service_id, scheduled_at: dt }) });
-      setStatus('Готово! Вы записаны, ждём вас 🚗', 'ok');
+      const service = allPublicServices.find(item => item.id === service_id);
+      lastCalendarBooking = { dt, service };
+      document.getElementById('bookingSuccessService').textContent = service?.name || 'Мойка автомобиля';
+      document.getElementById('bookingSuccessDate').textContent = new Intl.DateTimeFormat('ru-RU', {
+        weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+      }).format(new Date(dt));
+      stepBooking.classList.add('complete');
+      celebratePineapple(document.getElementById('bookingSuccess'));
+      setStatus('', '');
       tactileFeedback([10, 40, 10]);
-    } catch (e) { setStatus(e.message || 'Не удалось создать запись', 'err'); }
+    } catch (e) {
+      setStatus(e.message || 'Не удалось создать запись', 'err');
+    } finally {
+      confirmBookingBtn.disabled = false;
+      confirmBookingBtn.textContent = initialText;
+    }
+  });
+
+  function icsDate(date) {
+    const pad = value => String(value).padStart(2, '0');
+    return `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`;
+  }
+  document.getElementById('downloadCalendarBtn').addEventListener('click', () => {
+    if (!lastCalendarBooking) return;
+    const start = new Date(lastCalendarBooking.dt);
+    const end = new Date(start.getTime() + (lastCalendarBooking.service?.duration_min || 60) * 60000);
+    const serviceName = (lastCalendarBooking.service?.name || 'Мойка автомобиля').replace(/[;,\\]/g, ' ');
+    const ics = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Carwash One//Booking//RU',
+      'BEGIN:VEVENT', `DTSTART:${icsDate(start)}`, `DTEND:${icsDate(end)}`,
+      `SUMMARY:Автомойка №1 — ${serviceName}`,
+      'LOCATION:Пермь\\, ул. Магистральная\\, 90/1',
+      'DESCRIPTION:Запись в Автомойку №1. Телефон +7 996 323-77-84',
+      'END:VEVENT', 'END:VCALENDAR'
+    ].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url; link.download = 'avtomoyka-1.ics'; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    tactileFeedback(8);
+  });
+  document.getElementById('bookAgainBtn').addEventListener('click', () => {
+    stepBooking.classList.remove('complete');
+    dateTimeInput.value = '';
+    document.querySelectorAll('#bookingSlots button').forEach(item => item.classList.remove('active'));
+    lastCalendarBooking = null;
   });
 
   initRevealObserver();

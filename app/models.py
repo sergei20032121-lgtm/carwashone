@@ -226,6 +226,22 @@ class Booking(Base):
     service = relationship("Service", back_populates="bookings")
     employee = relationship("Employee")
 
+    @property
+    def client_name(self):
+        return self.client.full_name or "Клиент" if self.client else "Клиент"
+
+    @property
+    def client_phone(self):
+        return self.client.phone if self.client else None
+
+    @property
+    def service_name(self):
+        return self.service.name if self.service else f"Услуга #{self.service_id}"
+
+    @property
+    def service_duration_min(self):
+        return self.service.duration_min if self.service else None
+
 
 # ---------------------------------------------------------------------------
 # Химчистка — отдельный журнал заказов (как в Химчистка.xlsx)

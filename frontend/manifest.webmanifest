@@ -1,0 +1,19 @@
+{
+  "name": "Автомойка №1",
+  "short_name": "Автомойка №1",
+  "description": "Запись, бонусная карта и личный кабинет Автомойки №1",
+  "lang": "ru",
+  "start_url": "/site/",
+  "scope": "/site/",
+  "display": "standalone",
+  "background_color": "#080d10",
+  "theme_color": "#080d10",
+  "icons": [
+    {
+      "src": "static/img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

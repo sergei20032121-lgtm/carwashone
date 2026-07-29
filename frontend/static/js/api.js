@@ -32,6 +32,47 @@ async function api(path, options = {}) {
   return res.status === 204 ? null : res.json();
 }
 
+// Таблицы CRM остаются обычными на десктопе, а на телефоне автоматически
+// получают подписи полей и превращаются в карточки. Работает и для строк,
+// которые админка добавляет после API-запросов.
+function initMobileTableCards() {
+  let queued = false;
+  const enhance = () => {
+    queued = false;
+    document.querySelectorAll('table').forEach(table => {
+      const labels = [...table.querySelectorAll('thead th')].map(th => th.textContent.trim());
+      if (!labels.length) return;
+      table.classList.add('mobile-card-table');
+      table.querySelectorAll('tbody tr').forEach(row => {
+        [...row.children].forEach((cell, index) => {
+          if (cell.tagName === 'TD' && !cell.hasAttribute('colspan')) {
+            cell.dataset.label = labels[index] || '';
+          }
+        });
+      });
+    });
+  };
+  const schedule = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(enhance);
+  };
+  schedule();
+  new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMobileTableCards, { once: true });
+} else {
+  initMobileTableCards();
+}
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+  });
+}
+
 // ==== Премиальные UI-фичи ====
 
 // Тактильный отклик на мобильных (успешная запись, начисление ананаса и т.п.)

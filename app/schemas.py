@@ -122,6 +122,10 @@ class BookingOut(BaseModel):
     comment: Optional[str]
     rating: Optional[int] = None
     rating_comment: Optional[str] = None
+    client_name: str = "Клиент"
+    client_phone: Optional[str] = None
+    service_name: str = "Услуга"
+    service_duration_min: Optional[int] = None
 
     class Config:
         from_attributes = True

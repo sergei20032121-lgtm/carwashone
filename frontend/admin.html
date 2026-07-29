@@ -38,6 +38,24 @@
   tbody tr{transition:background .12s ease;}
   tbody tr:hover{background:var(--washi-2);}
   select.status-select{padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--washi-2);font-size:12.5px;}
+  .booking-view-switch{display:flex;gap:6px;background:var(--washi-2);padding:4px;border-radius:10px;}
+  .booking-view-switch button{border:0;background:transparent;padding:7px 11px;border-radius:7px;font-size:12px;font-weight:700;color:var(--ink-soft);cursor:pointer;}
+  .booking-view-switch button.active{background:var(--sumi);color:#fff;}
+  .booking-kanban{display:grid;grid-template-columns:repeat(4,minmax(230px,1fr));gap:12px;overflow-x:auto;padding-bottom:12px;}
+  .kanban-column{background:var(--washi-2);border:1px solid var(--line);border-radius:14px;min-height:310px;padding:11px;}
+  .kanban-column.is-over{outline:2px solid var(--jade);outline-offset:-2px;background:rgba(30,138,114,.08);}
+  .kanban-head{display:flex;justify-content:space-between;align-items:center;padding:3px 3px 11px;font-size:12px;text-transform:uppercase;letter-spacing:.4px;font-weight:800;}
+  .kanban-head span{display:grid;place-items:center;min-width:24px;height:24px;padding:0 7px;border-radius:99px;background:#fff;border:1px solid var(--line);}
+  .kanban-list{display:grid;gap:8px;min-height:240px;}
+  .kanban-card{background:#fff;border:1px solid var(--line);border-left:3px solid var(--jade);border-radius:10px;padding:12px;box-shadow:0 3px 10px rgba(17,26,29,.04);cursor:grab;}
+  .kanban-card:active{cursor:grabbing}.kanban-card.dragging{opacity:.45}
+  .kanban-card time{display:block;font:800 15px 'Manrope',sans-serif;margin-bottom:6px}.kanban-card b{font-size:13px}.kanban-card small{display:block;color:var(--ink-soft-2);margin-top:5px}
+  .kanban-card-actions{display:flex;justify-content:space-between;align-items:center;margin-top:10px}.kanban-card-actions button{border:0;background:transparent;color:var(--jade-dark);font-size:11px;font-weight:800;cursor:pointer}
+  .booking-controlbar{display:grid;grid-template-columns:auto minmax(170px,240px) 1fr;gap:10px;align-items:center;margin-bottom:14px}
+  .booking-day-tabs{display:flex;gap:5px;overflow-x:auto}.booking-day-tabs button{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 11px;font-size:11px;font-weight:800;cursor:pointer}.booking-day-tabs button.active{background:var(--jade-dark);border-color:var(--jade-dark);color:#fff}
+  .load-timeline{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;align-items:end;height:46px}.load-hour{position:relative;min-width:0;height:100%;display:flex;align-items:end}.load-hour i{display:block;width:100%;min-height:4px;height:var(--load);background:var(--jade);border-radius:3px 3px 1px 1px;opacity:.8}.load-hour b{position:absolute;top:100%;left:50%;transform:translateX(-50%);font-size:8px;color:var(--ink-soft-2);font-weight:600}
+  .schedule-week-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:20px 0 10px}.schedule-week-nav{display:flex;gap:6px}.schedule-week-nav button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}
+  .schedule-week{display:grid;grid-template-columns:minmax(130px,1.25fr) repeat(7,minmax(90px,1fr));border:1px solid var(--line);border-radius:12px;overflow:auto;background:#fff}.schedule-cell{min-height:52px;padding:9px;border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);font-size:11px}.schedule-cell.head{min-height:auto;background:var(--washi-2);font-weight:800;text-align:center}.schedule-cell.employee{font-weight:800;position:sticky;left:0;background:#fff;z-index:2}.schedule-shift{display:block;border-radius:7px;padding:7px 5px;text-align:center;background:rgba(30,138,114,.12);color:var(--jade-dark);font-weight:800}.schedule-shift.off{background:#f1efea;color:#8b867d}.schedule-shift.no-show{background:rgba(190,59,59,.1);color:var(--vermillion)}
 
   .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
 
@@ -85,6 +103,7 @@
     .stat-grid{grid-template-columns:1fr;}
     .auth-wrap{margin:36px 16px;}
     .auth-card{padding:20px;}
+    .booking-controlbar{grid-template-columns:1fr}.load-timeline{margin-bottom:12px}.booking-kanban{grid-template-columns:repeat(4,84vw);scroll-snap-type:x mandatory}.kanban-column{scroll-snap-align:start}.schedule-week{grid-template-columns:110px repeat(7,88px)}
   }
 </style>
 </head>
@@ -143,8 +162,14 @@
 
     <!-- ЗАПИСИ -->
     <div class="tab-page" id="tab-bookings" style="display:none;">
-      <div class="toolbar"><h2 style="margin:0;">Записи клиентов</h2><button class="btn btn-outline" id="refreshBookings">Обновить</button></div>
-      <div class="card" style="padding:6px 16px;overflow-x:auto;">
+      <div class="toolbar"><h2 style="margin:0;">Записи клиентов</h2><div style="display:flex;gap:8px;align-items:center;"><div class="booking-view-switch"><button class="active" data-booking-view="board">Доска</button><button data-booking-view="table">Таблица</button></div><button class="btn btn-outline" id="refreshBookings">Обновить</button></div></div>
+      <div class="booking-controlbar">
+        <div class="booking-day-tabs" id="bookingDayTabs"><button class="active" data-booking-range="today">Сегодня</button><button data-booking-range="tomorrow">Завтра</button><button data-booking-range="all">Все</button></div>
+        <input type="search" id="bookingSearch" placeholder="Клиент, телефон, услуга">
+        <div class="load-timeline" id="bookingLoadTimeline" aria-label="Загрузка по часам"></div>
+      </div>
+      <div class="booking-kanban" id="bookingKanban"></div>
+      <div class="card" id="bookingsTableCard" style="padding:6px 16px;overflow-x:auto;display:none;">
         <table id="bookingsTable">
           <thead><tr><th>№</th><th>Дата/время</th><th>Услуга</th><th>Цена</th><th>Скидка</th><th>Статус</th><th>Действия</th></tr></thead>
           <tbody></tbody>
@@ -287,6 +312,8 @@
         </div>
         <div class="auth-status" id="shiftStatus"></div>
       </div>
+      <div class="schedule-week-head"><div><h3 style="font-size:15px;">Неделя одной сеткой</h3><p class="text-muted" id="scheduleWeekLabel" style="font-size:12px;"></p></div><div class="schedule-week-nav"><button type="button" id="scheduleWeekPrev">←</button><button type="button" id="scheduleWeekToday">Сегодня</button><button type="button" id="scheduleWeekNext">→</button></div></div>
+      <div class="schedule-week" id="scheduleWeekGrid"></div>
     </div>
 
     <!-- ЗАРПЛАТА -->
@@ -420,12 +447,15 @@
 
   async function loadBookings() {
     try {
-      const rows = await api('/bookings/admin/all');
+      const query = bookingRange === 'all' ? '' : `?day=${bookingRange}`;
+      bookingRowsCache = await api('/bookings/admin/all' + query);
+      renderFilteredBookings();
+      const rows = bookingRowsCache;
       document.querySelector('#bookingsTable tbody').innerHTML = rows.map(b => `
-        <tr>
+        <tr data-booking-search="${escapeHtml([b.client_name,b.client_phone,b.service_name,b.comment].join(' ').toLowerCase())}">
           <td>${b.id}</td>
           <td>${new Date(b.scheduled_at).toLocaleString('ru-RU')}</td>
-          <td>#${b.service_id}</td>
+          <td>${escapeHtml(b.service_name || ('#' + b.service_id))}</td>
           <td>${b.price != null ? Math.round(b.price) + ' ₽' : '—'}</td>
           <td>${b.discount_pct ? b.discount_pct + '%' : '—'}</td>
           <td>
@@ -457,6 +487,86 @@
       });
     } catch (e) {}
   }
+  let bookingRowsCache = [];
+  let bookingRange = new Date().toISOString().slice(0, 10);
+  function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char])); }
+  function renderFilteredBookings() {
+    const query = document.getElementById('bookingSearch').value.trim().toLowerCase();
+    const rows = bookingRowsCache.filter(row => !query || [row.client_name,row.client_phone,row.service_name,row.comment].some(value => String(value || '').toLowerCase().includes(query)));
+    renderBookingKanban(rows);
+    renderBookingLoad(rows);
+    document.querySelectorAll('#bookingsTable tbody tr[data-booking-search]').forEach(row => {
+      row.style.display = !query || row.dataset.bookingSearch.includes(query) ? '' : 'none';
+    });
+  }
+  function renderBookingLoad(rows) {
+    const timeline = document.getElementById('bookingLoadTimeline');
+    const hours = Array.from({length:12},(_,index)=>index+9);
+    const counts = hours.map(hour => rows.filter(row => new Date(row.scheduled_at).getHours() === hour && row.status !== 'cancelled').length);
+    const max = Math.max(1,...counts);
+    timeline.innerHTML = hours.map((hour,index)=>`<span class="load-hour" title="${hour}:00 — ${counts[index]} записей"><i style="--load:${Math.max(8,Math.round(counts[index]/max*100))}%"></i><b>${hour}</b></span>`).join('');
+  }
+  const kanbanStatuses = ['pending', 'confirmed', 'in_progress', 'done'];
+  async function setBookingStatus(id, status) {
+    await api('/bookings/admin/' + id, { method: 'PATCH', body: JSON.stringify({ status }) });
+    await loadBookings();
+  }
+  function renderBookingKanban(rows) {
+    const board = document.getElementById('bookingKanban');
+    if (!board) return;
+    board.innerHTML = kanbanStatuses.map(status => {
+      const items = rows.filter(row => row.status === status);
+      return `<section class="kanban-column" data-status="${status}">
+        <div class="kanban-head">${statusLabels[status]}<span>${items.length}</span></div>
+        <div class="kanban-list">${items.map(b => {
+          const date = new Date(b.scheduled_at);
+          return `<article class="kanban-card" draggable="true" data-booking-id="${b.id}">
+            <time>${date.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})} · ${date.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</time>
+            <b>${escapeHtml(b.service_name || ('Услуга #' + b.service_id))}</b>
+            <small>${escapeHtml(b.client_name || 'Клиент')}${b.client_phone ? ' · ' + escapeHtml(b.client_phone) : ''}</small>
+            <small>${b.price != null ? Math.round(b.price) + ' ₽' : 'Цена уточняется'}${b.service_duration_min ? ' · ' + b.service_duration_min + ' мин' : ''} · №${b.id}</small>
+            <div class="kanban-card-actions"><button type="button" data-assign-booking="${b.id}">👥 назначить</button>${b.client_phone ? `<a href="tel:${escapeHtml(b.client_phone)}" style="color:var(--jade-dark);font-size:11px;font-weight:800;">позвонить</a>` : ''}${status !== 'done' ? `<button type="button" data-next-booking="${b.id}" data-next-status="${kanbanStatuses[kanbanStatuses.indexOf(status) + 1]}">дальше →</button>` : '<span>готово ✓</span>'}</div>
+          </article>`;
+        }).join('') || '<p class="text-muted" style="font-size:12px;padding:10px 3px;">Пока пусто</p>'}</div>
+      </section>`;
+    }).join('');
+    board.querySelectorAll('.kanban-card').forEach(card => {
+      card.addEventListener('dragstart', () => card.classList.add('dragging'));
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    });
+    board.querySelectorAll('[data-next-booking]').forEach(button => button.addEventListener('click', async () => {
+      try { await setBookingStatus(button.dataset.nextBooking, button.dataset.nextStatus); }
+      catch (error) { alert('Не удалось изменить статус: ' + error.message); }
+    }));
+    board.querySelectorAll('.kanban-column').forEach(column => {
+      column.addEventListener('dragover', event => { event.preventDefault(); column.classList.add('is-over'); });
+      column.addEventListener('dragleave', () => column.classList.remove('is-over'));
+      column.addEventListener('drop', async event => {
+        event.preventDefault(); column.classList.remove('is-over');
+        const card = board.querySelector('.kanban-card.dragging');
+        if (!card || card.closest('.kanban-column') === column) return;
+        try { await setBookingStatus(card.dataset.bookingId, column.dataset.status); }
+        catch (error) { alert('Не удалось изменить статус: ' + error.message); }
+      });
+    });
+  }
+  document.querySelectorAll('[data-booking-view]').forEach(button => button.addEventListener('click', () => {
+    document.querySelectorAll('[data-booking-view]').forEach(item => item.classList.toggle('active', item === button));
+    const boardMode = button.dataset.bookingView === 'board';
+    document.getElementById('bookingKanban').style.display = boardMode ? 'grid' : 'none';
+    document.getElementById('bookingsTableCard').style.display = boardMode ? 'none' : 'block';
+  }));
+  document.getElementById('bookingSearch').addEventListener('input', renderFilteredBookings);
+  document.getElementById('bookingDayTabs').addEventListener('click', event => {
+    const button = event.target.closest('[data-booking-range]'); if (!button) return;
+    document.querySelectorAll('[data-booking-range]').forEach(item => item.classList.toggle('active', item === button));
+    if (button.dataset.bookingRange === 'all') bookingRange = 'all';
+    else {
+      const date = new Date(); if (button.dataset.bookingRange === 'tomorrow') date.setDate(date.getDate() + 1);
+      bookingRange = date.toISOString().slice(0,10);
+    }
+    loadBookings();
+  });
   document.getElementById('refreshBookings').addEventListener('click', loadBookings);
 
   let walkinEditingId = null;
@@ -821,6 +931,7 @@
       employeesCache = await api('/schedule/employees');
       const shiftSelect = document.getElementById('shiftEmployee');
       if (shiftSelect) shiftSelect.innerHTML = employeesCache.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
+      loadScheduleWeek();
 
       document.getElementById('employeesManageList').innerHTML = employeesCache.map(e => `
         <div class="card" style="padding:16px;margin-bottom:10px;">
@@ -895,8 +1006,27 @@
     try {
       await api('/schedule', { method: 'PUT', body: JSON.stringify(body) });
       el.textContent = 'Смена сохранена'; el.className = 'auth-status ok';
+      loadScheduleWeek();
     } catch (e) { el.textContent = e.message; el.className = 'auth-status err'; }
   });
+
+  let scheduleWeekStart = (() => { const d = new Date(); const day = (d.getDay()+6)%7; d.setDate(d.getDate()-day); d.setHours(12,0,0,0); return d; })();
+  const shiftTypeLabels = {full_day:'Полный день',day_9_18:'09–18',evening_17_22:'17–22',day_off:'Выходной',no_show:'Невыход'};
+  function localIso(date){const p=n=>String(n).padStart(2,'0');return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}`;}
+  async function loadScheduleWeek(){
+    const days=Array.from({length:7},(_,i)=>{const d=new Date(scheduleWeekStart);d.setDate(d.getDate()+i);return d;});
+    const from=localIso(days[0]),to=localIso(days[6]);
+    document.getElementById('scheduleWeekLabel').textContent=`${days[0].toLocaleDateString('ru-RU',{day:'numeric',month:'long'})} — ${days[6].toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}`;
+    try{
+      const shifts=await api(`/schedule?date_from=${from}&date_to=${to}`);
+      const head=`<div class="schedule-cell head">Сотрудник</div>`+days.map(day=>`<div class="schedule-cell head">${day.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric'})}</div>`).join('');
+      const body=employeesCache.map(emp=>`<div class="schedule-cell employee">${escapeHtml(emp.full_name)}</div>`+days.map(day=>{const shift=shifts.find(item=>item.employee_id===emp.id&&item.work_date===localIso(day));const type=shift?.shift_type;const cls=type==='day_off'?'off':(type==='no_show'?'no-show':'');return `<div class="schedule-cell"><span class="schedule-shift ${cls}">${type?(shiftTypeLabels[type]||type):'—'}</span></div>`;}).join('')).join('');
+      document.getElementById('scheduleWeekGrid').innerHTML=head+body;
+    }catch(error){document.getElementById('scheduleWeekGrid').innerHTML='<p class="text-muted" style="padding:16px;">Не удалось загрузить график</p>';}
+  }
+  document.getElementById('scheduleWeekPrev').addEventListener('click',()=>{scheduleWeekStart.setDate(scheduleWeekStart.getDate()-7);loadScheduleWeek();});
+  document.getElementById('scheduleWeekNext').addEventListener('click',()=>{scheduleWeekStart.setDate(scheduleWeekStart.getDate()+7);loadScheduleWeek();});
+  document.getElementById('scheduleWeekToday').addEventListener('click',()=>{const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7));d.setHours(12,0,0,0);scheduleWeekStart=d;loadScheduleWeek();});
 
   // ---- Общий пикер сотрудников (мультивыбор) для назначения на заказ ----
   function openEmployeePicker(currentIds, onSave) {
