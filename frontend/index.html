@@ -148,6 +148,7 @@
 </style>
 <link rel="stylesheet" href="static/css/site-v2.css">
 <link rel="stylesheet" href="static/css/interactions-v9.css">
+<link rel="stylesheet" href="static/css/hero-wash-v11.css">
 </head>
 <body>
 
@@ -189,12 +190,14 @@
 <button class="booking-backdrop" id="bookingBackdrop" aria-label="Закрыть форму записи"></button>
 <header class="hero dirt-wash-section" id="top">
   <div class="dirt-wash-layer" id="dirtWashLayer"></div>
-  <div class="water-sweep" id="waterSweep" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="wash-curtain" id="washCurtain" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">Больше, чем просто автомойка</div>
+      <div class="eyebrow">Автомойка №1 · Магистральная, 90/1</div>
       <h1>Моем. Бережём. <em>Доводим до идеала.</em></h1>
-      <p class="lead">Каждый автомобиль моем как своего любимого Марка. Профессиональная химия, внимательная работа и понятная запись без очередей.</p>
+      <p class="lead">Кузов, салон, химчистка и детейлинг. Сразу показываем цены и свободное время — записаться можно прямо здесь.</p>
       <div class="hero-cta">
         <a href="#booking" class="btn btn-primary btn-magnetic">Записаться на мойку</a>
         <a href="#services" class="btn btn-ghost btn-magnetic">Услуги и цены</a>
@@ -226,9 +229,9 @@
         <div class="busy-hours-bar" id="busyHoursBar"></div>
       </div>
       <div class="hero-promise" aria-label="Наши преимущества">
-        <div><b>01</b>Бережный уход</div>
-        <div><b>02</b>Профессиональная химия</div>
-        <div><b>03</b>Запись без очередей</div>
+        <div><b>01</b>Цена известна заранее</div>
+        <div><b>02</b>Не пропускаем мелочи</div>
+        <div><b>03</b>Запись без звонка</div>
       </div>
     </div>
 
@@ -296,6 +299,11 @@
     </div>
 
   </div>
+  <div class="wash-control" id="washControl">
+    <div><b id="washControlTitle">Проведи — и смой грязь</b><span id="washControlHint">или просто посмотри, как вода проходит по кузову</span></div>
+    <input type="range" id="washRange" min="0" max="100" value="0" aria-label="Смыть грязь с автомобиля">
+    <button type="button" id="washReplay">Ещё раз ↻</button>
+  </div>
 </header>
 
 <section class="care-picker" id="pick">
@@ -313,20 +321,20 @@
       <div class="goal-buttons" id="goalButtons">
         <button class="active" data-goal="quick"><span>✓</span>Быстро освежить</button>
         <button data-goal="inside"><span></span>Кузов + салон</button>
-        <button data-goal="restore"><span></span>Вернуть вид</button>
-        <button data-goal="protect"><span></span>Защитить кузов</button>
+        <button data-goal="restore"><span></span>Убрать мелкие царапины</button>
+        <button data-goal="protect"><span></span>Защитить лак</button>
       </div>
       <p class="picker-step-label">3 / ПРИОРИТЕТ</p>
       <div class="priority-buttons" id="priorityButtons">
-        <button class="active" data-priority="balanced">Оптимально</button>
+        <button class="active" data-priority="balanced">Без лишнего</button>
         <button data-priority="fast">Побыстрее</button>
-        <button data-priority="result">Максимум результата</button>
+        <button data-priority="result">Сделать по максимуму</button>
       </div>
     </div>
     <div class="care-result">
       <small>РЕКОМЕНДУЕМ</small>
       <h3 id="goalService">Загружаем…</h3>
-      <p id="goalNote">Подберём программу под состояние автомобиля и вашу задачу.</p>
+      <p id="goalNote">Ответьте на три вопроса — покажем подходящую услугу и цену.</p>
       <b id="goalPrice"></b>
       <button class="btn btn-primary btn-magnetic" id="goalBook">Записаться на эту услугу →</button>
     </div>
@@ -337,8 +345,8 @@
   <div class="wrap">
     <div class="section-head reveal">
       <div class="kicker">Один день на мойке</div>
-      <h2>Как это выглядит в реальности</h2>
-      <p>Фото прямо из бокса — без постановки. Полный фотоотчёт «до/после» по твоим заказам добавим сюда же.</p>
+      <h2>Машины, которые были у нас</h2>
+      <p>Обычные рабочие фотографии из бокса. Без фотостудии и чужих картинок.</p>
     </div>
     <div class="gallery-grid reveal">
       <div class="gallery-item span-2" style="position:relative;">
@@ -368,8 +376,8 @@
   <div class="wrap">
     <div class="section-head reveal">
       <div class="kicker">Реальная работа</div>
-      <h2>Результат двигается пальцем</h2>
-      <p>Потяните границу — слева автомобиль до работы, справа после. На телефоне слайдер работает одним пальцем.</p>
+      <h2>Было грязно. Стало чисто.</h2>
+      <p>Потяните ползунок и сравните фотографии до и после.</p>
     </div>
     <div class="compare-grid reveal">
       <article class="compare-card">
@@ -379,7 +387,7 @@
           <span class="compare-label before">ДО</span><span class="compare-label after">ПОСЛЕ</span>
           <button class="compare-handle" type="button" aria-label="Сравнить фото до и после" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span>↔</span></button>
         </div>
-        <div class="compare-copy"><b>Подкапотное пространство</b><span>Очистка сложных зон без дешёвых фильтров</span></div>
+        <div class="compare-copy"><b>Подкапотное пространство</b><span>Пыль и грязь убраны даже из трудных мест</span></div>
       </article>
       <article class="compare-card">
         <div class="compare-slider" data-compare style="--split:50%">
@@ -388,7 +396,7 @@
           <span class="compare-label before">ДО</span><span class="compare-label after">ПОСЛЕ</span>
           <button class="compare-handle" type="button" aria-label="Сравнить фото до и после" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span>↔</span></button>
         </div>
-        <div class="compare-copy"><b>Диски и арки</b><span>Отдельный этап, а не быстрый проход пеной</span></div>
+        <div class="compare-copy"><b>Диски и арки</b><span>Проходим отдельно, а не заодно с кузовом</span></div>
       </article>
     </div>
   </div>
@@ -398,8 +406,8 @@
   <div class="wrap">
     <div class="section-head reveal">
       <div class="kicker">Услуги и тарифы</div>
-      <h2>Четыре формата — от быстрого ополаскивания до детейлинга</h2>
-      <p>Выбирайте программу под задачу и записывайтесь прямо на сайте.</p>
+      <h2>Что можем сделать</h2>
+      <p>От простого облива водой до полной мойки, полировки и керамики.</p>
     </div>
     <div class="catalog-tools">
       <div class="catalog-tabs" id="catalogTabs">
@@ -450,8 +458,8 @@
   <div class="ritual-copy">
     <b class="number">03</b>
     <p>КАК МЫ РАБОТАЕМ</p>
-    <h2>НЕ КОНВЕЙЕР.<br><em>РИТУАЛ УХОДА.</em></h2>
-    <p>Понятный процесс без лишних обещаний. Выберите этап и посмотрите, из чего складывается результат.</p>
+    <h2>КАК МЫ<br><em>МОЕМ МАШИНУ.</em></h2>
+    <p>Четыре понятных этапа. Нажмите на любой и посмотрите, что именно делаем.</p>
     <div class="ritual-list" id="ritualList">
       <button class="active" data-stage="0"><span>01</span><b>Диагностика</b><i>↗</i></button>
       <button data-stage="1"><span>02</span><b>Точный состав</b><i>↗</i></button>
@@ -557,6 +565,7 @@
 
 <script src="static/js/api.js"></script>
 <script src="static/js/interactions-v9.js" defer></script>
+<script src="static/js/hero-wash-v11.js" defer></script>
 <script>
   let authToken = null;
   let pendingPhone = null;
@@ -652,10 +661,10 @@
   }
 
   const goalRules = {
-    quick: { terms: ['экспресс'], note: 'Когда кузов просто запылился и важны минуты.' },
-    inside: { terms: ['комплексная (полная)', 'комплексная'], note: 'Кузов и салон — полный порядок за один визит.' },
-    restore: { terms: ['полировка'], note: 'Для мелких царапин, паутинки и потёртостей.' },
-    protect: { terms: ['керамическое'], note: 'Долгая защита кузова и выраженный гидрофобный эффект.' }
+    quick: { terms: ['экспресс'], note: 'Если машина просто запылилась и нужно быстро привести её в порядок.' },
+    inside: { terms: ['комплексная (полная)', 'комплексная'], note: 'Помоем кузов и уберёмся в салоне за один приезд.' },
+    restore: { terms: ['полировка'], note: 'Подойдёт, если на лаке появилась паутинка, мелкие царапины и потёртости.' },
+    protect: { terms: ['керамическое'], note: 'После покрытия кузов легче мыть, а вода меньше задерживается на лаке.' }
   };
 
   function renderGoalRecommendation(goal) {
@@ -670,7 +679,7 @@
     selectedGoalServiceId = service.id;
     document.getElementById('goalService').textContent = service.name;
     const vehicleLabel = vehicle === 'large' ? 'большого SUV' : (vehicle === 'suv' ? 'кроссовера' : 'седана');
-    const priorityNote = priority === 'fast' ? ' Ставим скорость в приоритет.' : (priority === 'result' ? ' Выбираем максимально полный результат.' : '');
+    const priorityNote = priority === 'fast' ? ' Берём самый быстрый подходящий вариант.' : (priority === 'result' ? ' Здесь лучше не торопиться и сделать работу полностью.' : '');
     document.getElementById('goalNote').textContent = `${rule.note} Подойдёт для ${vehicleLabel}.${priorityNote}`;
     document.getElementById('goalPrice').textContent = formatServicePrice(service);
   }
@@ -976,34 +985,6 @@
   initSoapTrail();
   initMagneticButtons();
   initPrefetchOnHover('a[href="cabinet.html"]');
-
-  // ---- скролл-эффект "смыв грязи" через hero ----
-  (function initDirtWash() {
-    const layer = document.getElementById('dirtWashLayer');
-    const water = document.getElementById('waterSweep');
-    const hero = document.querySelector('.hero');
-    if (!layer || !hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      if (layer) layer.remove();
-      if (water) water.remove();
-      return;
-    }
-    function update() {
-      const rect = hero.getBoundingClientRect();
-      const total = rect.height + window.innerHeight * 0.6;
-      const scrolled = Math.min(Math.max(-rect.top + window.innerHeight * 0.1, 0), total);
-      const pct = Math.min(100, (scrolled / total) * 100);
-      layer.style.clipPath = `inset(${pct}% 0 0 0)`;
-      if (water) {
-        const progress = pct / 100;
-        water.style.setProperty('--water-x', `${-48 + progress * 85}%`);
-        water.style.setProperty('--water-y', `${28 - progress * 24}%`);
-        water.style.setProperty('--water-opacity', Math.min(.66, .08 + progress * .58).toFixed(3));
-      }
-    }
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-  })();
-
 
   // ---- Текущая загрузка (дышащая точка) ----
   async function loadCurrentLoad() {
