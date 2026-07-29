@@ -186,6 +186,7 @@
 <button class="booking-backdrop" id="bookingBackdrop" aria-label="Закрыть форму записи"></button>
 <header class="hero dirt-wash-section" id="top">
   <div class="dirt-wash-layer" id="dirtWashLayer"></div>
+  <div class="water-sweep" id="waterSweep" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="wrap hero-grid">
     <div>
       <div class="eyebrow">Больше, чем просто автомойка</div>
@@ -257,8 +258,13 @@
           <select id="serviceSelect"></select>
         </div>
         <div class="field">
-          <label>Дата и время</label>
-          <input type="datetime-local" id="dateTimeInput">
+          <label>Выберите день</label>
+          <div class="booking-days" id="bookingDays"></div>
+        </div>
+        <div class="field">
+          <label>Свободное время</label>
+          <div class="booking-slots" id="bookingSlots"><span class="slots-hint">Сначала выберите день</span></div>
+          <input type="hidden" id="dateTimeInput">
         </div>
         <button class="btn btn-primary" style="width:100%;" id="confirmBookingBtn">Записаться</button>
         <p class="hint" style="margin-top:10px;margin-bottom:0;">После записи — полная история и карта в <a href="cabinet.html" style="color:var(--jade-dark);font-weight:700;">личном кабинете →</a></p>
@@ -612,6 +618,10 @@
       setStep(3);
     }
     document.body.classList.add('booking-open');
+    if (!selectedBookingDay) {
+      const firstDay = document.querySelector('#bookingDays button[data-day]');
+      if (firstDay) selectBookingDay(firstDay.dataset.day, firstDay);
+    }
     requestAnimationFrame(() => {
       const target = widget.querySelector('input:not([type="hidden"]), select, button');
       if (target) target.focus({ preventScroll: true });
@@ -719,14 +729,54 @@
     const pad = n => String(n).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
-  const bookingMin = new Date();
-  bookingMin.setMinutes(Math.ceil(bookingMin.getMinutes() / 30) * 30, 0, 0);
-  const bookingMax = new Date(bookingMin);
-  bookingMax.setDate(bookingMax.getDate() + 3);
-  bookingMax.setHours(21, 0, 0, 0);
-  dateTimeInput.min = localDateTime(bookingMin);
-  dateTimeInput.max = localDateTime(bookingMax);
-  dateTimeInput.step = '1800';
+  let selectedBookingDay = '';
+
+  function renderBookingDays() {
+    const days = Array.from({ length: 4 }, (_, index) => {
+      const date = new Date();
+      date.setHours(12, 0, 0, 0);
+      date.setDate(date.getDate() + index);
+      return date;
+    });
+    document.getElementById('bookingDays').innerHTML = days.map((date, index) => {
+      const iso = localDateTime(date).slice(0, 10);
+      const weekday = index === 0 ? 'Сегодня' : new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date);
+      const label = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' }).format(date);
+      return `<button type="button" data-day="${iso}"><b>${weekday}</b><span>${label}</span></button>`;
+    }).join('');
+  }
+
+  async function selectBookingDay(day, button) {
+    selectedBookingDay = day;
+    dateTimeInput.value = '';
+    document.querySelectorAll('#bookingDays button').forEach(item => item.classList.toggle('active', item === button));
+    const slotsEl = document.getElementById('bookingSlots');
+    slotsEl.innerHTML = '<span class="slots-hint">Проверяем свободное время…</span>';
+    try {
+      const data = await api(`/bookings/slots?day=${encodeURIComponent(day)}`);
+      const now = new Date();
+      slotsEl.innerHTML = data.slots.map(slot => {
+        const isPast = new Date(`${day}T${slot.time}:00`) <= now;
+        const disabled = !slot.available || isPast || !data.within_online_window;
+        return `<button type="button" data-time="${slot.time}" ${disabled ? 'disabled' : ''}>${slot.time}</button>`;
+      }).join('') || '<span class="slots-hint">На этот день свободных слотов нет</span>';
+    } catch (error) {
+      slotsEl.innerHTML = '<span class="slots-hint">Не удалось получить свободное время</span>';
+    }
+  }
+
+  renderBookingDays();
+  document.getElementById('bookingDays').addEventListener('click', event => {
+    const button = event.target.closest('button[data-day]');
+    if (button) selectBookingDay(button.dataset.day, button);
+  });
+  document.getElementById('bookingSlots').addEventListener('click', event => {
+    const button = event.target.closest('button[data-time]:not(:disabled)');
+    if (!button || !selectedBookingDay) return;
+    document.querySelectorAll('#bookingSlots button').forEach(item => item.classList.toggle('active', item === button));
+    dateTimeInput.value = `${selectedBookingDay}T${button.dataset.time}`;
+    tactileFeedback(8);
+  });
 
   function setStep(n) {
     document.querySelectorAll('#bookStepper .step').forEach(s => {
@@ -809,14 +859,25 @@
   // ---- скролл-эффект "смыв грязи" через hero ----
   (function initDirtWash() {
     const layer = document.getElementById('dirtWashLayer');
+    const water = document.getElementById('waterSweep');
     const hero = document.querySelector('.hero');
-    if (!layer || !hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { if (layer) layer.remove(); return; }
+    if (!layer || !hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (layer) layer.remove();
+      if (water) water.remove();
+      return;
+    }
     function update() {
       const rect = hero.getBoundingClientRect();
       const total = rect.height + window.innerHeight * 0.6;
       const scrolled = Math.min(Math.max(-rect.top + window.innerHeight * 0.1, 0), total);
       const pct = Math.min(100, (scrolled / total) * 100);
       layer.style.clipPath = `inset(${pct}% 0 0 0)`;
+      if (water) {
+        const progress = pct / 100;
+        water.style.setProperty('--water-x', `${-48 + progress * 85}%`);
+        water.style.setProperty('--water-y', `${28 - progress * 24}%`);
+        water.style.setProperty('--water-opacity', Math.min(.66, .08 + progress * .58).toFixed(3));
+      }
     }
     update();
     window.addEventListener('scroll', update, { passive: true });
