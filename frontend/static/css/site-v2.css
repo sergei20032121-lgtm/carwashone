@@ -71,3 +71,51 @@ body.booking-open .booking-backdrop{opacity:1;visibility:visible}
 @media(max-width:980px){.hero-grid{grid-template-columns:1fr;padding-top:300px}.care-picker-inner,.ritual-v2{grid-template-columns:1fr}.care-result{min-height:430px}.ritual-visual{min-height:540px}.services-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.services-grid>.service-card,.services-grid>.skeleton{grid-column:auto!important}}
 @media(max-width:560px){.hero-grid{padding-top:245px}.hero h1{font-size:47px}.care-picker{padding:0 0 55px}.care-picker-inner{border-left:0;border-right:0}.care-picker-copy,.care-result{padding:42px 18px}.catalog-tools{display:block}.catalog-tabs{overflow:auto}.catalog-search{width:100%;margin:15px 0}.services-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;border-left:0;padding:0 18px 16px;margin-left:-18px;margin-right:-18px;gap:10px;scrollbar-width:none}.services-grid::-webkit-scrollbar{display:none}.services-grid>.service-card,.services-grid>.skeleton{flex:0 0 84vw;scroll-snap-align:center;min-height:300px;border:1px solid var(--line)}#gallery .gallery-grid,#dry-cleaning .gallery-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding:0 18px 12px;margin-left:-18px;margin-right:-18px;scrollbar-width:none}#gallery .gallery-grid::-webkit-scrollbar,#dry-cleaning .gallery-grid::-webkit-scrollbar{display:none}#gallery .gallery-item,#dry-cleaning .gallery-item{flex:0 0 86vw;height:260px;scroll-snap-align:center}.ritual-copy{padding:70px 18px}.wash-rings i{width:44vw;height:44vw}.book-widget{padding:76px 18px 100px}.service-card .service-meta{grid-template-columns:1fr auto}.booking-days{grid-template-columns:repeat(4,minmax(68px,1fr));overflow-x:auto;padding-bottom:4px}.booking-slots{grid-template-columns:repeat(3,1fr)}.water-sweep{width:88%}}
 @media(prefers-reduced-motion:reduce){.wash-rings,.water-sweep{display:none}}
+
+/* ---------- отдельная композиция для телефона ---------- */
+@media(max-width:600px){
+  body{overflow-x:hidden}
+  .nav{position:sticky;top:0}
+  .nav .wrap{height:60px;padding:0 14px}
+  .brand{gap:9px}.brand img{width:34px;height:34px;border-radius:9px}.brand b{font-size:12px}.brand small{font-size:7px}
+  .hero{min-height:0;padding:0}
+  .hero::before{inset:0;background:linear-gradient(180deg,rgba(8,13,16,.02) 0,rgba(8,13,16,.28) 34%,#080d10 57%),url("../img/hero-markii-premium.png") 58% 0/auto 285px no-repeat;background-color:#080d10}
+  .hero-grid{display:block;min-height:0;padding:225px 16px 34px}
+  .eyebrow{font-size:9px;letter-spacing:.14em;margin-bottom:12px}
+  .hero h1{font-size:clamp(38px,11.5vw,46px);line-height:.88;margin-bottom:17px;max-width:360px}
+  .hero h1 em{font-size:.55em;line-height:1.02;margin-top:7px}
+  .hero p.lead{font-size:13px;line-height:1.55;margin-bottom:18px;max-width:350px}
+  .hero-cta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .hero-cta .btn{width:auto;min-height:46px;padding:0 10px;font-size:10px}
+  .hero .load-pulse{font-size:11px!important;margin-bottom:12px!important}
+  .gis-card{max-width:none;padding:11px 12px;border-radius:11px}.gis-badge{width:34px;height:34px}.gis-info b{font-size:12px}.gis-info span{font-size:10px}
+  .busy-hours-panel{display:none}
+  .hero-promise{display:none}
+  .dirt-wash-layer{bottom:auto;height:310px}
+  .water-sweep{inset:-30px -25%;height:370px;width:90%;filter:blur(1px)}
+  section{padding:56px 0}
+  .section-head{margin-bottom:26px}.section-head h2{font-size:30px;line-height:1.02}.section-head p{font-size:14px;line-height:1.55;margin-top:9px}
+  .care-picker{padding:0 0 44px}.care-picker-inner{display:block}
+  .care-picker-copy{padding:36px 16px 24px}.care-picker-copy h2{font-size:32px;line-height:1;margin:13px 0 18px}
+  .goal-buttons{grid-template-columns:1fr 1fr;gap:7px}.goal-buttons button{min-height:52px;border:1px solid rgba(255,255,255,.12);padding:8px;font-size:11px;line-height:1.2}.goal-buttons button span{width:18px;height:18px;flex:0 0 auto}
+  .care-result{min-height:310px;padding:38px 16px}.care-result:before{width:220px;height:220px;top:39%}.care-result h3{font-size:44px;line-height:.92;margin:10px 0 13px}.care-result p{font-size:13px;line-height:1.5}.care-result b{font-size:18px;margin:7px 0 16px}
+  #services{padding:58px 0}.catalog-tabs button{padding:12px 13px}.catalog-search{height:42px}
+  .services-grid>.service-card,.services-grid>.skeleton{flex-basis:86vw;min-height:265px;padding:21px}
+  .service-card h3{font-size:18px}.service-card .desc{font-size:13px;line-height:1.5}.service-card .service-meta .price{font-size:17px}
+  .dry-section{padding:58px 0}.dry-section .section-head{margin-bottom:25px}
+  #gallery .gallery-item,#dry-cleaning .gallery-item{height:235px;flex-basis:87vw}
+  .ritual-v2{display:block;min-height:0}.ritual-copy{padding:55px 16px 36px}.ritual-copy .number{font-size:38px}.ritual-copy h2{font-size:35px;margin:13px 0}.ritual-copy>p{font-size:13px;line-height:1.55}
+  .ritual-list{margin-top:18px}.ritual-list button{min-height:51px;grid-template-columns:38px 1fr auto;font-size:12px}
+  .ritual-visual{min-height:360px;border-left:0;border-top:1px solid rgba(255,255,255,.08)}.ritual-stage{left:16px;right:16px}.ritual-stage h3{font-size:51px;margin:10px 0 16px}.ritual-stage p{font-size:13px;line-height:1.55}
+  .tiers{padding:32px 16px}.tiers .section-head{margin-bottom:20px!important}.tiers .section-head h2{font-size:27px!important}.tiers .section-head p{font-size:13px}
+  .punch-card{grid-template-columns:repeat(4,1fr);gap:8px}.punch-slot .num{font-size:8px}
+  .cabinet-teaser{padding:24px 18px;border-radius:15px}.cabinet-teaser h3{font-size:19px}.cabinet-teaser p{font-size:13px}.cabinet-teaser .btn{width:100%}
+  .contacts-grid{gap:25px}.contacts .map-fake{aspect-ratio:16/10;border-radius:13px}.contact-list{gap:13px}
+  .admin-strip .wrap{align-items:flex-start}.admin-strip .wrap>div{width:100%}.admin-strip .btn{flex:1;padding:9px!important;font-size:10px!important}
+  .book-widget{width:100%;max-width:none;padding:68px 16px calc(86px + env(safe-area-inset-bottom));background:#0d1218;border-left:0}
+  .booking-close{top:12px;right:14px}.book-widget h3{font-size:22px}.book-widget .stepper{margin-bottom:22px}
+  .booking-days{display:flex;overflow-x:auto;gap:7px;scrollbar-width:none}.booking-days::-webkit-scrollbar{display:none}.booking-days button{flex:0 0 78px}
+  .booking-slots{grid-template-columns:repeat(3,1fr);gap:7px}.booking-slots button{min-height:46px}
+  #confirmBookingBtn{position:sticky;bottom:0;z-index:2;box-shadow:0 -12px 25px #0d1218}
+  .mobile-actions{height:64px;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+}
