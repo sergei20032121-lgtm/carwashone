@@ -1,4 +1,4 @@
-const CACHE = 'carwash-one-v11';
+const CACHE = 'carwash-one-v13';
 const STATIC_ASSETS = [
   '/site/',
   '/site/static/css/theme.css',
@@ -9,7 +9,8 @@ const STATIC_ASSETS = [
   '/site/static/js/interactions-v9.js',
   '/site/static/js/hero-wash-v11.js',
   '/site/static/img/logo.png',
-  '/site/static/img/hero-markii-premium.png'
+  '/site/static/img/hero-markii-premium.png',
+  '/site/static/img/car-body-mask.svg'
 ];
 
 self.addEventListener('install', event => {
