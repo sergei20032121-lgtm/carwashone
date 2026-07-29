@@ -126,6 +126,10 @@ class BookingOut(BaseModel):
     client_phone: Optional[str] = None
     service_name: str = "Услуга"
     service_duration_min: Optional[int] = None
+    payment_method: Optional[str] = None
+    payment_status: str = "unmarked"
+    amount_paid: float = 0
+    payment_note: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -170,6 +174,10 @@ class WalkInOrderOut(BaseModel):
     contact_name: Optional[str]
     employee_id: Optional[int]
     assigned_employee_names: List[str] = Field(default_factory=list)
+    payment_method: Optional[str] = None
+    payment_status: str = "unmarked"
+    amount_paid: float = 0
+    payment_note: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -211,6 +219,10 @@ class DryCleaningOrderOut(BaseModel):
     photos_before: List[str] = []
     photos_after: List[str] = []
     assigned_employee_names: List[str] = Field(default_factory=list)
+    payment_method: Optional[str] = None
+    payment_status: str = "unmarked"
+    amount_paid: float = 0
+    payment_note: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -224,6 +236,90 @@ class DryCleaningOrderUpdate(BaseModel):
     amount: Optional[float] = None
     employee_payout: Optional[float] = None
     employee_id: Optional[int] = None
+
+
+class PaymentUpdate(BaseModel):
+    payment_method: Optional[str] = None
+    payment_status: str
+    amount_paid: float = Field(default=0, ge=0)
+    payment_note: Optional[str] = Field(default=None, max_length=255)
+
+
+class PaymentOrderOut(BaseModel):
+    order_type: str
+    order_id: int
+    order_date: datetime
+    client_name: str
+    client_phone: Optional[str] = None
+    description: str
+    expected_amount: float
+    amount_paid: float
+    debt_amount: float
+    payment_method: Optional[str] = None
+    payment_status: str
+    payment_note: Optional[str] = None
+
+
+class PaymentSummaryOut(BaseModel):
+    day: date
+    expected_total: float
+    paid_total: float
+    debt_total: float
+    unmarked_total: float
+    unmarked_count: int
+    by_method: dict[str, float]
+    orders: List[PaymentOrderOut]
+
+
+class ExpenseCreate(BaseModel):
+    expense_date: date
+    category: str = Field(..., min_length=2, max_length=40)
+    description: str = Field(..., min_length=2, max_length=255)
+    amount: float = Field(..., gt=0)
+    payment_method: str = "cash"
+
+
+class ExpenseOut(BaseModel):
+    id: int
+    expense_date: date
+    category: str
+    description: str
+    amount: float
+    payment_method: str
+    created_by_name: Optional[str] = None
+    created_at: datetime
+
+
+class DayClosureUpdate(BaseModel):
+    counted_cash: float = Field(default=0, ge=0)
+    counted_card: float = Field(default=0, ge=0)
+    counted_transfer: float = Field(default=0, ge=0)
+    note: Optional[str] = Field(default=None, max_length=255)
+
+
+class DayClosureOut(BaseModel):
+    closure_date: date
+    counted_cash: float
+    counted_card: float
+    counted_transfer: float
+    counted_total: float
+    variance_cash: float
+    variance_card: float
+    variance_transfer: float
+    variance_total: float
+    note: Optional[str] = None
+    closed_by_name: Optional[str] = None
+    closed_at: datetime
+
+
+class FinanceDayOut(BaseModel):
+    day: date
+    received_total: float
+    expenses_total: float
+    net_total: float
+    expected_by_method: dict[str, float]
+    expenses: List[ExpenseOut]
+    closure: Optional[DayClosureOut] = None
 
 
 # ---------- Schedule ----------
@@ -252,6 +348,18 @@ class ShiftSet(BaseModel):
     work_date: date
     shift_type: ShiftType
     note: Optional[str] = None
+
+
+class ShiftBulkSet(BaseModel):
+    employee_ids: List[int]
+    date_from: date
+    date_to: date
+    shift_type: ShiftType
+
+
+class AdminOnDutySet(BaseModel):
+    employee_id: int
+    work_date: date
 
 
 class ShiftOut(BaseModel):

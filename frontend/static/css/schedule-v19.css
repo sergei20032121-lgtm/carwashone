@@ -1,0 +1,20 @@
+.schedule-command{display:grid;grid-template-columns:1fr 1.4fr;gap:14px;margin-bottom:20px}
+.schedule-command-card{padding:20px;border-top:3px solid var(--jade)}
+.schedule-command-card.admin-card{border-top-color:var(--gold)}
+.schedule-command-card h3{font:600 18px 'Spectral',serif;margin:0 0 5px}
+.schedule-command-card>p{font-size:11px;color:var(--ink-soft);line-height:1.5;margin:0 0 15px}
+.schedule-admin-form{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end}
+.bulk-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;align-items:end}
+.bulk-form .employee-picks{grid-column:1/-1}
+.employee-picks{display:flex;gap:7px;flex-wrap:wrap}
+.employee-pick{position:relative}.employee-pick input{position:absolute;opacity:0;pointer-events:none}.employee-pick span{display:inline-flex;align-items:center;min-height:34px;padding:7px 11px;border:1px solid var(--line);border-radius:99px;background:var(--crm-panel);font-size:10px;font-weight:800;color:var(--ink-soft);cursor:pointer}.employee-pick input:checked+span{background:rgba(46,170,159,.14);border-color:var(--jade);color:var(--jade-dark)}
+.schedule-modebar{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:20px 0 10px;flex-wrap:wrap}
+.schedule-modebar h3{font:600 18px 'Spectral',serif;margin:0}.schedule-modebar p{font-size:11px;color:var(--ink-soft);margin:4px 0 0}
+.quick-shift-mode{display:flex;align-items:center;gap:7px}.quick-shift-mode label{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--ink-soft-2)}
+.schedule-cell.shift-clickable{cursor:pointer;padding:5px!important;transition:background .15s}.schedule-cell.shift-clickable:hover{background:rgba(46,170,159,.08)}
+.schedule-shift{width:100%;border:0;cursor:pointer;min-height:40px!important}.schedule-shift.is-admin{box-shadow:inset 0 0 0 2px var(--gold);position:relative}.schedule-shift.is-admin:after{content:"АДМИН";display:block;color:var(--gold);font-size:7px;letter-spacing:.08em;margin-top:3px}
+.schedule-shift.empty{background:transparent;border:1px dashed var(--line);color:var(--ink-soft-2)}
+.schedule-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:9px;color:var(--ink-soft-2)}.schedule-legend span:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--jade);margin-right:5px}.schedule-legend .admin:before{background:var(--gold)}.schedule-legend .off:before{background:#aaa}.schedule-legend .no-show:before{background:var(--vermillion)}
+.schedule-toast{position:fixed;right:18px;bottom:18px;z-index:130;padding:12px 15px;border-radius:11px;background:#0e1b1f;color:#fff;font-size:11px;font-weight:800;box-shadow:0 16px 38px rgba(0,0,0,.25);opacity:0;transform:translateY(12px);pointer-events:none;transition:.2s}.schedule-toast.show{opacity:1;transform:none}
+@media(max-width:900px){.schedule-command{grid-template-columns:1fr}.schedule-admin-form,.bulk-form{grid-template-columns:1fr 1fr}.schedule-admin-form .btn,.bulk-form .btn{grid-column:1/-1}.schedule-toast{left:14px;right:14px;bottom:90px;text-align:center}}
+@media(max-width:560px){.schedule-admin-form,.bulk-form{grid-template-columns:1fr}.bulk-form .employee-picks{grid-column:auto}.schedule-week{grid-template-columns:104px repeat(7,94px)!important}.schedule-command-card{padding:16px}.quick-shift-mode{width:100%}.quick-shift-mode select{flex:1}}

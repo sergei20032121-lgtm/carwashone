@@ -128,6 +128,8 @@
   }
 </style>
 <link rel="stylesheet" href="static/css/crm-v18.css">
+<link rel="stylesheet" href="static/css/schedule-v19.css">
+<link rel="stylesheet" href="static/css/payments-v20.css">
 </head>
 <body data-crm-theme="light">
 
@@ -164,6 +166,7 @@
     <button class="tab-btn" data-tab="drycleaning"><span class="nav-icon">✦</span><span class="nav-label">Химчистка</span></button>
     <button class="tab-btn" data-tab="services"><span class="nav-icon">◇</span><span class="nav-label">Услуги</span></button>
     <button class="tab-btn" data-tab="schedule"><span class="nav-icon">▦</span><span class="nav-label">График</span></button>
+    <button class="tab-btn" data-tab="payments"><span class="nav-icon">₽</span><span class="nav-label">Касса</span></button>
     <button class="tab-btn" data-tab="payroll"><span class="nav-icon">₽</span><span class="nav-label">Зарплата</span></button>
     <button class="tab-btn" data-tab="vk"><span class="nav-icon">↗</span><span class="nav-label">Новости</span></button>
     <button class="tab-btn" data-tab="clientsearch"><span class="nav-icon">⌕</span><span class="nav-label">Клиенты</span></button>
@@ -321,6 +324,31 @@
     <div class="tab-page" id="tab-schedule" style="display:none;">
       <div class="toolbar"><h2 style="margin:0;">Сотрудники и график</h2><button class="btn btn-outline" id="printScheduleBtn">🖨 Печать списка на смену</button></div>
 
+      <div class="schedule-command">
+        <div class="card schedule-command-card admin-card">
+          <h3>Администратор смены</h3>
+          <p>Выберите одного ответственного на день. Если у него был выходной, система поставит полный день.</p>
+          <div class="schedule-admin-form">
+            <div class="field" style="margin:0"><label>Дата</label><input type="date" id="adminDutyDate"></div>
+            <div class="field" style="margin:0"><label>Администратор</label><select id="adminDutyEmployee"></select></div>
+            <button class="btn btn-dark" id="adminDutySave" type="button">Назначить</button>
+          </div>
+          <div class="auth-status" id="adminDutyStatus"></div>
+        </div>
+        <div class="card schedule-command-card">
+          <h3>Заполнить несколько смен</h3>
+          <p>Отметьте сотрудников, период и тип смены — график заполнится одним действием.</p>
+          <div class="bulk-form">
+            <div class="employee-picks" id="bulkEmployeePicks"></div>
+            <div class="field" style="margin:0"><label>С</label><input type="date" id="bulkDateFrom"></div>
+            <div class="field" style="margin:0"><label>По</label><input type="date" id="bulkDateTo"></div>
+            <div class="field" style="margin:0"><label>Смена</label><select id="bulkShiftType"><option value="full_day">Полный день</option><option value="day_9_18">09:00–18:00</option><option value="evening_17_22">17:00–22:00</option><option value="day_off">Выходной</option><option value="no_show">Невыход</option></select></div>
+            <button class="btn btn-primary" id="bulkShiftSave" type="button">Заполнить график</button>
+          </div>
+          <div class="auth-status" id="bulkShiftStatus"></div>
+        </div>
+      </div>
+
       <div class="card" style="padding:20px;margin-bottom:16px;">
         <h3 style="font-size:14px;margin-bottom:12px;">Добавить сотрудника</h3>
         <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:12px;align-items:end;">
@@ -356,8 +384,66 @@
         </div>
         <div class="auth-status" id="shiftStatus"></div>
       </div>
-      <div class="schedule-week-head"><div><h3 style="font-size:15px;">Неделя одной сеткой</h3><p class="text-muted" id="scheduleWeekLabel" style="font-size:12px;"></p></div><div class="schedule-week-nav"><button type="button" id="scheduleWeekPrev">←</button><button type="button" id="scheduleWeekToday">Сегодня</button><button type="button" id="scheduleWeekNext">→</button></div></div>
+      <div class="schedule-modebar"><div><h3>Неделя одной сеткой</h3><p id="scheduleWeekLabel"></p></div><div class="quick-shift-mode"><label for="gridShiftType">Клик по ячейке ставит</label><select id="gridShiftType"><option value="full_day">Полный день</option><option value="day_9_18">09:00–18:00</option><option value="evening_17_22">17:00–22:00</option><option value="day_off">Выходной</option><option value="no_show">Невыход</option></select><div class="schedule-week-nav"><button type="button" id="scheduleWeekPrev">←</button><button type="button" id="scheduleWeekToday">Сегодня</button><button type="button" id="scheduleWeekNext">→</button></div></div></div>
       <div class="schedule-week" id="scheduleWeekGrid"></div>
+      <div class="schedule-legend"><span>Рабочая смена</span><span class="admin">Администратор дня</span><span class="off">Выходной</span><span class="no-show">Невыход</span></div>
+    </div>
+
+    <!-- КАССА -->
+    <div class="tab-page" id="tab-payments" style="display:none;">
+      <div class="toolbar payment-toolbar">
+        <div><h2 style="margin:0;">Касса и оплаты</h2><p>Фактические деньги отдельно от стоимости заказов.</p></div>
+        <div class="payment-controls">
+          <input type="date" id="paymentDay">
+          <select id="paymentFilter">
+            <option value="all">Все оплаты</option>
+            <option value="unmarked">Не отмечено</option>
+            <option value="debt">Долги</option>
+            <option value="partial">Частично</option>
+            <option value="paid">Оплачено</option>
+            <option value="free">Без оплаты</option>
+          </select>
+          <button class="btn btn-outline" id="refreshPayments">Обновить</button>
+        </div>
+      </div>
+      <div class="payment-summary">
+        <button class="payment-kpi expected" data-payment-filter="all"><span>Заказов на сумму</span><b id="paymentExpected">—</b><small>по прайсу</small></button>
+        <button class="payment-kpi paid" data-payment-filter="paid"><span>Получено</span><b id="paymentPaid">—</b><small>фактически</small></button>
+        <button class="payment-kpi debt" data-payment-filter="debt"><span>К получению</span><b id="paymentDebt">—</b><small>долг и остаток</small></button>
+        <button class="payment-kpi unmarked" data-payment-filter="unmarked"><span>Не разобрано</span><b id="paymentUnmarked">—</b><small id="paymentUnmarkedCount">— заказов</small></button>
+      </div>
+      <div class="payment-methods" id="paymentMethods"></div>
+      <div class="card payment-list-card">
+        <div class="payment-list-head"><b id="paymentListTitle">Операции за день</b><span id="paymentListHint"></span></div>
+        <div class="payment-list" id="paymentsList"></div>
+      </div>
+      <div class="finance-day-grid">
+        <section class="card finance-card">
+          <div class="finance-head"><div><small>Расходы смены</small><h3>Что оплатили сегодня</h3></div><b id="financeExpensesTotal">—</b></div>
+          <div class="expense-form">
+            <select id="expenseCategory"><option>Химия</option><option>Расходники</option><option>Ремонт</option><option>Хозяйственные расходы</option><option>Реклама</option><option>Прочее</option></select>
+            <input type="text" id="expenseDescription" maxlength="255" placeholder="Короткое пояснение">
+            <input type="number" id="expenseAmount" min="1" step="1" placeholder="Сумма, ₽">
+            <select id="expenseMethod"><option value="cash">Наличные</option><option value="card">Карта</option><option value="transfer">Перевод</option><option value="certificate">Сертификат</option></select>
+            <button class="btn btn-dark" id="expenseAdd">Добавить расход</button>
+          </div>
+          <div class="auth-status" id="expenseStatus"></div>
+          <div class="expense-list" id="expenseList"></div>
+        </section>
+        <section class="card finance-card close-card">
+          <div class="finance-head"><div><small>Закрытие дня</small><h3>Сверка факта с CRM</h3></div><b id="financeNetTotal">—</b></div>
+          <div class="closure-lines" id="closureExpected"></div>
+          <div class="closure-form">
+            <div class="field"><label>Наличные по факту</label><input type="number" id="countedCash" min="0" step="1"></div>
+            <div class="field"><label>Карта по факту</label><input type="number" id="countedCard" min="0" step="1"></div>
+            <div class="field"><label>Переводы по факту</label><input type="number" id="countedTransfer" min="0" step="1"></div>
+            <div class="field closure-note"><label>Комментарий</label><input type="text" id="closureNote" maxlength="255" placeholder="Причина расхождения, если есть"></div>
+          </div>
+          <div class="closure-result" id="closureResult">Смена ещё не закрыта</div>
+          <button class="btn btn-primary" id="closeDayBtn">Сверить и закрыть смену</button>
+          <div class="auth-status" id="closureStatus"></div>
+        </section>
+      </div>
     </div>
 
     <!-- ЗАРПЛАТА -->
@@ -455,6 +541,19 @@
   </div>
   <div id="drawerContent"></div>
 </aside>
+<div class="schedule-toast" id="scheduleToast" aria-live="polite"></div>
+<div class="payment-modal-backdrop" id="paymentModalBackdrop"></div>
+<section class="payment-modal" id="paymentModal" aria-hidden="true" aria-labelledby="paymentModalTitle">
+  <div class="payment-modal-head"><div><small>Оплата заказа</small><h2 id="paymentModalTitle">—</h2></div><button type="button" id="paymentModalClose" aria-label="Закрыть">×</button></div>
+  <div class="payment-order-brief" id="paymentOrderBrief"></div>
+  <div class="payment-edit-grid">
+    <div class="field"><label>Статус</label><select id="paymentStatus"><option value="unmarked">Не отмечено</option><option value="paid">Оплачено</option><option value="partial">Частично</option><option value="debt">Долг</option><option value="free">Без оплаты</option></select></div>
+    <div class="field"><label>Способ</label><select id="paymentMethod"><option value="">Не выбран</option><option value="cash">Наличные</option><option value="card">Карта</option><option value="transfer">Перевод</option><option value="certificate">Сертификат</option><option value="free">Без оплаты</option></select></div>
+    <div class="field"><label>Получено, ₽</label><input type="number" id="paymentAmount" min="0" step="1"></div>
+    <div class="field payment-note"><label>Комментарий</label><input type="text" id="paymentNote" maxlength="255" placeholder="Например, доплатит вечером"></div>
+  </div>
+  <div class="payment-modal-actions"><span class="auth-status" id="paymentSaveStatus"></span><button class="btn btn-primary" id="paymentSave">Сохранить оплату</button></div>
+</section>
 
 <script src="static/js/api.js"></script>
 <script>
@@ -486,6 +585,12 @@
   function showPanel() {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('panel').style.display = 'grid';
+    const financeRole = getAuthRole();
+    if (financeRole === 'manager') document.querySelector('.expense-form').style.display = 'none';
+    if (financeRole !== 'admin') {
+      document.getElementById('closeDayBtn').style.display = 'none';
+      ['countedCash','countedCard','countedTransfer','closureNote'].forEach(id => document.getElementById(id).disabled = true);
+    }
     loadEmployees(); loadOverview(); loadBookings(); loadDry(); loadServices(); loadVk(); loadAuditLog();
     document.getElementById('payrollDay').value = new Date().toISOString().slice(0, 10);
     const todayIso = new Date().toISOString().slice(0, 10);
@@ -493,6 +598,11 @@
     document.getElementById('walkinFilterFrom').value = weekAgoIso;
     document.getElementById('walkinFilterTo').value = todayIso;
     document.getElementById('shiftDate').value = todayIso;
+    document.getElementById('adminDutyDate').value = todayIso;
+    document.getElementById('bulkDateFrom').value = todayIso;
+    document.getElementById('bulkDateTo').value = todayIso;
+    document.getElementById('paymentDay').value = todayIso;
+    loadPayments();
     loadWalkin();
   }
 
@@ -507,6 +617,7 @@
     document.querySelectorAll('.tab-page').forEach(page => page.style.display = 'none');
     const page = document.getElementById('tab-' + tab);
     if (page) page.style.display = 'block';
+    if (tab === 'payments') loadPayments();
     closeMobileMenu();
     window.scrollTo({top:0,behavior:'smooth'});
   }
@@ -1188,6 +1299,13 @@
       employeesCache = await api('/schedule/employees');
       const shiftSelect = document.getElementById('shiftEmployee');
       if (shiftSelect) shiftSelect.innerHTML = employeesCache.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
+      const adminCandidates = employeesCache.filter(employee => employee.is_admin_role);
+      const adminDutySelect = document.getElementById('adminDutyEmployee');
+      adminDutySelect.innerHTML = adminCandidates.length
+        ? adminCandidates.map(employee => `<option value="${employee.id}">${escapeHtml(employee.full_name)}</option>`).join('')
+        : '<option value="">Нет сотрудников с допуском</option>';
+      document.getElementById('adminDutySave').disabled = !adminCandidates.length;
+      document.getElementById('bulkEmployeePicks').innerHTML = employeesCache.map(employee => `<label class="employee-pick"><input type="checkbox" value="${employee.id}"><span>${escapeHtml(employee.full_name)}</span></label>`).join('');
       loadScheduleWeek();
 
       document.getElementById('employeesManageList').innerHTML = employeesCache.map(e => `
@@ -1267,6 +1385,42 @@
     } catch (e) { el.textContent = e.message; el.className = 'auth-status err'; }
   });
 
+  function showScheduleToast(message) {
+    const toast = document.getElementById('scheduleToast');
+    toast.textContent = message; toast.classList.add('show');
+    clearTimeout(showScheduleToast.timer);
+    showScheduleToast.timer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  document.getElementById('adminDutySave').addEventListener('click', async () => {
+    const status = document.getElementById('adminDutyStatus');
+    const employeeId = Number(document.getElementById('adminDutyEmployee').value);
+    const workDate = document.getElementById('adminDutyDate').value;
+    if (!employeeId || !workDate) { status.textContent = 'Выберите дату и администратора'; status.className = 'auth-status err'; return; }
+    try {
+      await api('/schedule/admin-on-duty',{method:'PUT',body:JSON.stringify({employee_id:employeeId,work_date:workDate})});
+      status.textContent = 'Администратор смены назначен'; status.className = 'auth-status ok';
+      showScheduleToast('Администратор дня сохранён');
+      loadScheduleWeek();
+    } catch (error) { status.textContent = error.message; status.className = 'auth-status err'; }
+  });
+
+  document.getElementById('bulkShiftSave').addEventListener('click', async () => {
+    const status = document.getElementById('bulkShiftStatus');
+    const employeeIds = [...document.querySelectorAll('#bulkEmployeePicks input:checked')].map(input => Number(input.value));
+    const dateFrom = document.getElementById('bulkDateFrom').value;
+    const dateTo = document.getElementById('bulkDateTo').value;
+    if (!employeeIds.length || !dateFrom || !dateTo) { status.textContent = 'Отметьте сотрудников и период'; status.className = 'auth-status err'; return; }
+    const button = document.getElementById('bulkShiftSave'); button.disabled = true; button.textContent = 'Сохраняем…';
+    try {
+      await api('/schedule/bulk',{method:'PUT',body:JSON.stringify({employee_ids:employeeIds,date_from:dateFrom,date_to:dateTo,shift_type:document.getElementById('bulkShiftType').value})});
+      status.textContent = 'График заполнен'; status.className = 'auth-status ok';
+      showScheduleToast('Смены сохранены');
+      loadScheduleWeek();
+    } catch (error) { status.textContent = error.message; status.className = 'auth-status err'; }
+    finally { button.disabled = false; button.textContent = 'Заполнить график'; }
+  });
+
   let scheduleWeekStart = (() => { const d = new Date(); const day = (d.getDay()+6)%7; d.setDate(d.getDate()-day); d.setHours(12,0,0,0); return d; })();
   const shiftTypeLabels = {full_day:'Полный день',day_9_18:'09–18',evening_17_22:'17–22',day_off:'Выходной',no_show:'Невыход'};
   function localIso(date){const p=n=>String(n).padStart(2,'0');return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}`;}
@@ -1277,8 +1431,16 @@
     try{
       const shifts=await api(`/schedule?date_from=${from}&date_to=${to}`);
       const head=`<div class="schedule-cell head">Сотрудник</div>`+days.map(day=>`<div class="schedule-cell head">${day.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric'})}</div>`).join('');
-      const body=employeesCache.map(emp=>`<div class="schedule-cell employee">${escapeHtml(emp.full_name)}</div>`+days.map(day=>{const shift=shifts.find(item=>item.employee_id===emp.id&&item.work_date===localIso(day));const type=shift?.shift_type;const cls=type==='day_off'?'off':(type==='no_show'?'no-show':'');return `<div class="schedule-cell"><span class="schedule-shift ${cls}">${type?(shiftTypeLabels[type]||type):'—'}</span></div>`;}).join('')).join('');
+      const body=employeesCache.map(emp=>`<div class="schedule-cell employee">${escapeHtml(emp.full_name)}${emp.is_admin_role?' <span title="Есть допуск администратора">♛</span>':''}</div>`+days.map(day=>{const dayIso=localIso(day);const shift=shifts.find(item=>item.employee_id===emp.id&&item.work_date===dayIso);const type=shift?.shift_type;const cls=type==='day_off'?'off':(type==='no_show'?'no-show':(!type?'empty':''));const isAdmin=Boolean(shift?.note?.includes('[ADMIN_ON_DUTY]'));return `<div class="schedule-cell shift-clickable" data-grid-employee="${emp.id}" data-grid-date="${dayIso}" title="Нажмите, чтобы поставить выбранный тип смены"><button type="button" class="schedule-shift ${cls} ${isAdmin?'is-admin':''}">${type?(shiftTypeLabels[type]||type):'Поставить'}</button></div>`;}).join('')).join('');
       document.getElementById('scheduleWeekGrid').innerHTML=head+body;
+      document.querySelectorAll('[data-grid-employee]').forEach(cell => cell.addEventListener('click', async () => {
+        const button = cell.querySelector('button'); button.disabled = true;
+        try {
+          await api('/schedule',{method:'PUT',body:JSON.stringify({employee_id:Number(cell.dataset.gridEmployee),work_date:cell.dataset.gridDate,shift_type:document.getElementById('gridShiftType').value})});
+          showScheduleToast('Смена обновлена');
+          loadScheduleWeek();
+        } catch (error) { alert('Не удалось сохранить смену: ' + error.message); button.disabled = false; }
+      }));
     }catch(error){document.getElementById('scheduleWeekGrid').innerHTML='<p class="text-muted" style="padding:16px;">Не удалось загрузить график</p>';}
   }
   document.getElementById('scheduleWeekPrev').addEventListener('click',()=>{scheduleWeekStart.setDate(scheduleWeekStart.getDate()-7);loadScheduleWeek();});
@@ -1457,7 +1619,7 @@
       const rows = await api('/admin/audit-log');
       auditRowsCache = rows;
       const actionLabels = {create:'создал(а)', update:'изменил(а)', delete:'удалил(а)'};
-      const entityLabels = {booking:'запись', walk_in_order:'заказ (учёт)', dry_cleaning_order:'заказ (химчистка)', service:'услугу'};
+      const entityLabels = {booking:'запись', walk_in_order:'заказ (учёт)', dry_cleaning_order:'заказ (химчистка)', service:'услугу', expense:'расход', day_closure:'закрытие смены', booking_payment:'оплату записи', walk_in_payment:'оплату заказа', dry_cleaning_payment:'оплату химчистки'};
       document.querySelector('#auditTable tbody').innerHTML = rows.map(r => `
         <tr>
           <td>${new Date(r.created_at).toLocaleString('ru-RU')}</td>
@@ -1469,6 +1631,184 @@
     } catch (e) {}
   }
   document.getElementById('refreshAudit').addEventListener('click', loadAuditLog);
+
+  const paymentLabels = {unmarked:'не отмечено',paid:'оплачено',partial:'частично',debt:'долг',free:'без оплаты'};
+  const paymentMethodLabels = {cash:'Наличные',card:'Карта',transfer:'Перевод',certificate:'Сертификат',free:'Без оплаты'};
+  const paymentTypeLabels = {booking:'Запись',walk_in:'Без записи',dry_cleaning:'Химчистка'};
+  let paymentRows = [];
+  let activePayment = null;
+  const rubles = value => `${Math.round(Number(value || 0)).toLocaleString('ru-RU')} ₽`;
+
+  async function loadPayments() {
+    const day = document.getElementById('paymentDay').value;
+    if (!day) return;
+    const list = document.getElementById('paymentsList');
+    list.innerHTML = '<div class="payment-empty">Сверяем операции…</div>';
+    try {
+      const data = await api('/admin/payments?day=' + day);
+      paymentRows = data.orders || [];
+      document.getElementById('paymentExpected').textContent = rubles(data.expected_total);
+      document.getElementById('paymentPaid').textContent = rubles(data.paid_total);
+      document.getElementById('paymentDebt').textContent = rubles(data.debt_total);
+      document.getElementById('paymentUnmarked').textContent = rubles(data.unmarked_total);
+      document.getElementById('paymentUnmarkedCount').textContent = `${data.unmarked_count} ${data.unmarked_count === 1 ? 'заказ' : 'заказов'}`;
+      document.getElementById('paymentMethods').innerHTML = Object.entries(paymentMethodLabels).slice(0,4).map(([key,label]) =>
+        `<div class="payment-method-chip"><span>${label}</span><b>${rubles(data.by_method[key])}</b></div>`).join('');
+      renderPayments();
+      loadFinanceDay();
+    } catch (error) {
+      list.innerHTML = `<div class="payment-empty">${escapeHtml(error.message || 'Не удалось загрузить кассу')}</div>`;
+    }
+  }
+  function renderPayments() {
+    const filter = document.getElementById('paymentFilter').value;
+    const rows = paymentRows.filter(row => filter === 'all' || row.payment_status === filter || (filter === 'debt' && row.payment_status === 'partial'));
+    document.getElementById('paymentListTitle').textContent = filter === 'all' ? 'Операции за день' : `Фильтр: ${paymentLabels[filter] || filter}`;
+    document.getElementById('paymentListHint').textContent = `${rows.length} из ${paymentRows.length}`;
+    document.getElementById('paymentsList').innerHTML = rows.map((row,index) => {
+      const time = row.order_type === 'booking' ? new Date(row.order_date).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}) : 'за день';
+      return `<article class="payment-row" data-payment-index="${paymentRows.indexOf(row)}" tabindex="0">
+        <time class="payment-time">${time}</time>
+        <div class="payment-client"><b>${escapeHtml(row.client_name)}</b><small>${escapeHtml(paymentTypeLabels[row.order_type])}${row.client_phone ? ' · '+escapeHtml(row.client_phone) : ''}</small></div>
+        <div class="payment-work"><b>${escapeHtml(row.description)}</b><small>${row.payment_note ? escapeHtml(row.payment_note) : 'Заказ №'+row.order_id}</small></div>
+        <span class="payment-money">${rubles(row.expected_amount)}</span>
+        <span class="payment-money received">${row.amount_paid ? rubles(row.amount_paid) : '—'}</span>
+        <span class="payment-status-badge ${row.payment_status}">${paymentLabels[row.payment_status] || row.payment_status}</span>
+        <button class="payment-edit-arrow" type="button" aria-label="Изменить оплату">›</button>
+      </article>`;
+    }).join('') || '<div class="payment-empty">В этом разделе пока нет операций.</div>';
+    document.querySelectorAll('[data-payment-index]').forEach(row => {
+      const open = () => openPaymentEditor(paymentRows[Number(row.dataset.paymentIndex)]);
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', event => { if (event.key === 'Enter') open(); });
+    });
+  }
+  function openPaymentEditor(row) {
+    activePayment = row;
+    document.getElementById('paymentModalTitle').textContent = `${paymentTypeLabels[row.order_type]} №${row.order_id}`;
+    document.getElementById('paymentOrderBrief').innerHTML = `<span><strong>${escapeHtml(row.client_name)}</strong><br>${escapeHtml(row.description)}</span><span><small>Сумма заказа</small><br><b>${rubles(row.expected_amount)}</b></span>`;
+    document.getElementById('paymentStatus').value = row.payment_status;
+    document.getElementById('paymentMethod').value = row.payment_method || '';
+    document.getElementById('paymentAmount').value = row.amount_paid || 0;
+    document.getElementById('paymentNote').value = row.payment_note || '';
+    document.getElementById('paymentSaveStatus').textContent = '';
+    document.getElementById('paymentModalBackdrop').classList.add('show');
+    document.getElementById('paymentModal').classList.add('show');
+    document.getElementById('paymentModal').setAttribute('aria-hidden','false');
+  }
+  function closePaymentEditor() {
+    document.getElementById('paymentModalBackdrop').classList.remove('show');
+    document.getElementById('paymentModal').classList.remove('show');
+    document.getElementById('paymentModal').setAttribute('aria-hidden','true');
+    activePayment = null;
+  }
+  document.getElementById('paymentStatus').addEventListener('change', event => {
+    if (!activePayment) return;
+    if (event.target.value === 'paid') document.getElementById('paymentAmount').value = activePayment.expected_amount;
+    if (event.target.value === 'free') { document.getElementById('paymentAmount').value = 0; document.getElementById('paymentMethod').value = 'free'; }
+    if (event.target.value === 'unmarked' || event.target.value === 'debt') document.getElementById('paymentAmount').value = 0;
+  });
+  document.getElementById('paymentSave').addEventListener('click', async () => {
+    if (!activePayment) return;
+    const status = document.getElementById('paymentSaveStatus');
+    status.textContent = 'Сохраняем…'; status.className = 'auth-status';
+    try {
+      await api(`/admin/payments/${activePayment.order_type}/${activePayment.order_id}`, {method:'PUT',body:JSON.stringify({
+        payment_status:document.getElementById('paymentStatus').value,
+        payment_method:document.getElementById('paymentMethod').value || null,
+        amount_paid:Number(document.getElementById('paymentAmount').value || 0),
+        payment_note:document.getElementById('paymentNote').value.trim() || null
+      })});
+      closePaymentEditor(); await loadPayments(); loadAuditLog();
+    } catch (error) { status.textContent = error.message || 'Не удалось сохранить'; status.className = 'auth-status err'; }
+  });
+  document.getElementById('paymentModalClose').addEventListener('click', closePaymentEditor);
+  document.getElementById('paymentModalBackdrop').addEventListener('click', closePaymentEditor);
+  document.getElementById('refreshPayments').addEventListener('click', loadPayments);
+  document.getElementById('paymentDay').addEventListener('change', loadPayments);
+  document.getElementById('paymentFilter').addEventListener('change', renderPayments);
+  document.querySelectorAll('[data-payment-filter]').forEach(button => button.addEventListener('click', () => {
+    document.getElementById('paymentFilter').value = button.dataset.paymentFilter;
+    renderPayments();
+  }));
+
+  const financeMethodLabels = {cash:'Наличные',card:'Карта',transfer:'Перевод'};
+  let financeDay = null;
+  async function loadFinanceDay() {
+    const day = document.getElementById('paymentDay').value;
+    if (!day) return;
+    try {
+      financeDay = await api('/admin/finances/day?day=' + day);
+      document.getElementById('financeExpensesTotal').textContent = '− ' + rubles(financeDay.expenses_total);
+      document.getElementById('financeNetTotal').textContent = rubles(financeDay.net_total);
+      document.getElementById('closureExpected').innerHTML = Object.entries(financeMethodLabels).map(([key,label]) =>
+        `<div><span>${label} по CRM</span><b>${rubles(financeDay.expected_by_method[key])}</b></div>`).join('');
+      const canDeleteExpense = getAuthRole() === 'admin';
+      document.getElementById('expenseList').innerHTML = financeDay.expenses.map(item => `<article>
+        <div><b>${escapeHtml(item.description)}</b><small>${escapeHtml(item.category)} · ${escapeHtml(paymentMethodLabels[item.payment_method] || item.payment_method)}${item.created_by_name ? ' · '+escapeHtml(item.created_by_name) : ''}</small></div>
+        <strong>− ${rubles(item.amount)}</strong>
+        ${canDeleteExpense ? `<button type="button" data-delete-expense="${item.id}" aria-label="Удалить">×</button>` : '<span></span>'}
+      </article>`).join('') || '<div class="payment-empty">Расходов за день нет.</div>';
+      document.querySelectorAll('[data-delete-expense]').forEach(button => button.addEventListener('click', async () => {
+        if (!confirm('Удалить этот расход?')) return;
+        try { await api('/admin/finances/expenses/'+button.dataset.deleteExpense,{method:'DELETE'}); loadFinanceDay(); loadAuditLog(); }
+        catch(error) { alert(error.message || 'Удалить расход может только администратор'); }
+      }));
+      const closure = financeDay.closure;
+      if (closure) {
+        document.getElementById('countedCash').value = closure.counted_cash;
+        document.getElementById('countedCard').value = closure.counted_card;
+        document.getElementById('countedTransfer').value = closure.counted_transfer;
+        document.getElementById('closureNote').value = closure.note || '';
+        const varianceClass = Math.abs(closure.variance_total) < .01 ? 'ok' : 'warn';
+        document.getElementById('closureResult').className = 'closure-result '+varianceClass;
+        document.getElementById('closureResult').innerHTML = `<b>${Math.abs(closure.variance_total)<.01?'Касса сошлась':'Расхождение '+rubles(closure.variance_total)}</b><small>${closure.closed_by_name ? escapeHtml(closure.closed_by_name)+' · ' : ''}${new Date(closure.closed_at).toLocaleString('ru-RU')}</small>`;
+        document.getElementById('closeDayBtn').textContent = 'Пересчитать закрытие';
+      } else {
+        document.getElementById('countedCash').value = financeDay.expected_by_method.cash || 0;
+        document.getElementById('countedCard').value = financeDay.expected_by_method.card || 0;
+        document.getElementById('countedTransfer').value = financeDay.expected_by_method.transfer || 0;
+        document.getElementById('closureNote').value = '';
+        document.getElementById('closureResult').className = 'closure-result';
+        document.getElementById('closureResult').textContent = 'Смена ещё не закрыта';
+        document.getElementById('closeDayBtn').textContent = 'Сверить и закрыть смену';
+      }
+    } catch(error) {
+      document.getElementById('expenseStatus').textContent = error.message || 'Не удалось загрузить финансы';
+    }
+  }
+  document.getElementById('expenseAdd').addEventListener('click', async () => {
+    const status = document.getElementById('expenseStatus');
+    status.textContent = 'Сохраняем…'; status.className = 'auth-status';
+    try {
+      await api('/admin/finances/expenses',{method:'POST',body:JSON.stringify({
+        expense_date:document.getElementById('paymentDay').value,
+        category:document.getElementById('expenseCategory').value,
+        description:document.getElementById('expenseDescription').value.trim(),
+        amount:Number(document.getElementById('expenseAmount').value),
+        payment_method:document.getElementById('expenseMethod').value
+      })});
+      document.getElementById('expenseDescription').value = '';
+      document.getElementById('expenseAmount').value = '';
+      status.textContent = 'Расход добавлен'; status.className = 'auth-status ok';
+      loadFinanceDay(); loadAuditLog();
+    } catch(error) { status.textContent = error.message || 'Проверьте поля'; status.className = 'auth-status err'; }
+  });
+  document.getElementById('closeDayBtn').addEventListener('click', async () => {
+    const day = document.getElementById('paymentDay').value;
+    const status = document.getElementById('closureStatus');
+    status.textContent = 'Сверяем…'; status.className = 'auth-status';
+    try {
+      await api(`/admin/finances/day/${day}/close`,{method:'PUT',body:JSON.stringify({
+        counted_cash:Number(document.getElementById('countedCash').value || 0),
+        counted_card:Number(document.getElementById('countedCard').value || 0),
+        counted_transfer:Number(document.getElementById('countedTransfer').value || 0),
+        note:document.getElementById('closureNote').value.trim() || null
+      })});
+      status.textContent = 'Смена закрыта'; status.className = 'auth-status ok';
+      loadFinanceDay(); loadAuditLog();
+    } catch(error) { status.textContent = error.message || 'Закрыть смену может только администратор'; status.className = 'auth-status err'; }
+  });
 
   document.getElementById('payrollDayBtn').addEventListener('click', async () => {
     const day = document.getElementById('payrollDay').value;

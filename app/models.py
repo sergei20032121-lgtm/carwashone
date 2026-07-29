@@ -215,6 +215,10 @@ class Booking(Base):
     discount_pct = Column(Integer, default=0)  # применённая скидка по карте (0/50/100)
     employee_payout = Column(Float, nullable=True)  # з/п мастера (% от цены услуги, считается автоматически)
     comment = Column(String(255), nullable=True)
+    payment_method = Column(String(20), nullable=True)
+    payment_status = Column(String(20), default="unmarked")
+    amount_paid = Column(Float, default=0)
+    payment_note = Column(String(255), nullable=True)
     loyalty_applied = Column(Boolean, default=False)  # чтобы не насчитать ананас дважды
 
     rating = Column(Integer, nullable=True)          # оценка мастера клиентом, 1-5
@@ -261,6 +265,10 @@ class DryCleaningOrder(Base):
 
     amount = Column(Float, nullable=False)          # сумма заказа
     employee_payout = Column(Float, nullable=True)   # з/п мастера с заказа
+    payment_method = Column(String(20), nullable=True)
+    payment_status = Column(String(20), default="unmarked")
+    amount_paid = Column(Float, default=0)
+    payment_note = Column(String(255), nullable=True)
 
     # фото "до/после" — пришлёшь позже, пока просто список URL в JSON
     photos_before = Column(JSON, default=list)
@@ -292,6 +300,10 @@ class WalkInOrder(Base):
 
     amount = Column(Float, nullable=False)
     employee_payout = Column(Float, nullable=True)  # з/п мастера (% от суммы, считается автоматически)
+    payment_method = Column(String(20), nullable=True)
+    payment_status = Column(String(20), default="unmarked")
+    amount_paid = Column(Float, default=0)
+    payment_note = Column(String(255), nullable=True)
     contact_name = Column(String(120), nullable=True)  # "Контакт" из журнала — имя/номер клиента
     client_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # если удалось привязать к клиенту
 
@@ -393,6 +405,40 @@ class AuditLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     actor = relationship("User")
+
+
+# ---------------------------------------------------------------------------
+# Финансы смены — расходы и контрольное закрытие дня
+# ---------------------------------------------------------------------------
+
+class Expense(Base):
+    __tablename__ = "expenses"
+
+    id = Column(Integer, primary_key=True)
+    expense_date = Column(Date, nullable=False, index=True)
+    category = Column(String(40), nullable=False)
+    description = Column(String(255), nullable=False)
+    amount = Column(Float, nullable=False)
+    payment_method = Column(String(20), nullable=False, default="cash")
+    created_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    created_by = relationship("User")
+
+
+class DayClosure(Base):
+    __tablename__ = "day_closures"
+
+    id = Column(Integer, primary_key=True)
+    closure_date = Column(Date, nullable=False, unique=True, index=True)
+    counted_cash = Column(Float, default=0)
+    counted_card = Column(Float, default=0)
+    counted_transfer = Column(Float, default=0)
+    note = Column(String(255), nullable=True)
+    closed_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    closed_at = Column(DateTime, default=datetime.utcnow)
+
+    closed_by = relationship("User")
 
 
 # ---------------------------------------------------------------------------

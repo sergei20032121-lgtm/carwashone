@@ -85,7 +85,25 @@ def compute_daily_payroll(db: Session, day: date) -> dict:
             employee_jobs_count[a.employee_id] += 1
 
     # админ(ы) на смене в этот день — надбавка 5% от всей выручки дня + фикс
-    admin_on_duty = (
+    marked_admin_on_duty = (
+        db.query(Employee)
+        .join(ShiftSchedule, ShiftSchedule.employee_id == Employee.id)
+        .filter(
+            Employee.is_admin_role == True,  # noqa: E712
+            ShiftSchedule.work_date == day,
+            ShiftSchedule.shift_type.notin_([ShiftType.DAY_OFF, ShiftType.NO_SHOW]),
+            ShiftSchedule.note.contains("[ADMIN_ON_DUTY]"),
+        )
+        .all()
+    )
+    # Старые графики не содержат явной отметки администратора дня. Для них
+    # сохраняем прежний расчёт, пока пользователь не выберет администратора
+    # через новый селектор.
+    has_explicit_admin_choice = db.query(ShiftSchedule).filter(
+        ShiftSchedule.work_date == day,
+        ShiftSchedule.note.contains("[ADMIN_ON_DUTY]"),
+    ).first() is not None
+    admin_on_duty = marked_admin_on_duty if has_explicit_admin_choice else (
         db.query(Employee)
         .join(ShiftSchedule, ShiftSchedule.employee_id == Employee.id)
         .filter(

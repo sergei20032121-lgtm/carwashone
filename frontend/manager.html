@@ -175,6 +175,14 @@
     </div>
     <div class="auth-status" id="newEmpStatus" style="margin-bottom:10px;"></div>
     <hr class="divider">
+    <h4 style="font-size:14px;margin-bottom:12px;">Администратор смены</h4>
+    <div class="manager-admin-form" style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:8px;">
+      <div class="field" style="margin-bottom:0;"><label>Дата</label><input type="date" id="managerAdminDate"></div>
+      <div class="field" style="margin-bottom:0;"><label>Администратор</label><select id="managerAdminEmployee"></select></div>
+      <button class="btn btn-dark" id="managerAdminSave">Назначить</button>
+    </div>
+    <div class="auth-status" id="managerAdminStatus"></div>
+    <hr class="divider">
     <h4 style="font-size:14px;margin-bottom:12px;">Проставить смену</h4>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
       <div class="field" style="margin-bottom:0;"><label>Сотрудник</label><select id="shiftEmployee"></select></div>
@@ -274,6 +282,7 @@
     document.getElementById('dateFrom').value = monthAgo.toISOString().slice(0, 10);
     document.getElementById('payDay').value = today.toISOString().slice(0, 10);
     document.getElementById('shiftDate').value = today.toISOString().slice(0, 10);
+    document.getElementById('managerAdminDate').value = today.toISOString().slice(0, 10);
     loadDashboard();
     loadEmployeesManage();
     initRevealObserver();
@@ -286,6 +295,11 @@
     try {
       employeesCache = await api('/schedule/employees');
       document.getElementById('shiftEmployee').innerHTML = employeesCache.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
+      const admins = employeesCache.filter(employee => employee.is_admin_role);
+      document.getElementById('managerAdminEmployee').innerHTML = admins.length
+        ? admins.map(employee => `<option value="${employee.id}">${employee.full_name}</option>`).join('')
+        : '<option value="">Нет сотрудников с допуском</option>';
+      document.getElementById('managerAdminSave').disabled = !admins.length;
       document.getElementById('employeesManageList').innerHTML = employeesCache.map(e => `
         <div class="card" style="padding:16px;margin-bottom:10px;">
           <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr auto auto;gap:10px;align-items:end;">
@@ -360,6 +374,16 @@
       await api('/schedule', { method: 'PUT', body: JSON.stringify(body) });
       el.textContent = 'Смена сохранена'; el.className = 'auth-status ok';
     } catch (e) { el.textContent = e.message; el.className = 'auth-status err'; }
+  });
+
+  document.getElementById('managerAdminSave').addEventListener('click', async () => {
+    const status = document.getElementById('managerAdminStatus');
+    const body = {employee_id:Number(document.getElementById('managerAdminEmployee').value),work_date:document.getElementById('managerAdminDate').value};
+    if (!body.employee_id || !body.work_date) { status.textContent = 'Выберите дату и администратора'; status.className = 'auth-status err'; return; }
+    try {
+      await api('/schedule/admin-on-duty',{method:'PUT',body:JSON.stringify(body)});
+      status.textContent = 'Администратор смены назначен'; status.className = 'auth-status ok';
+    } catch (error) { status.textContent = error.message; status.className = 'auth-status err'; }
   });
 
   document.getElementById('payDayBtn').addEventListener('click', async () => {
