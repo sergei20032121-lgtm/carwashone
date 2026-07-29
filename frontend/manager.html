@@ -68,13 +68,14 @@
   .card-section{padding:24px;margin-bottom:20px;}
   .card-section h3{font-size:16px;margin-bottom:14px;}
 </style>
+<link rel="stylesheet" href="static/css/manager-v18.css">
 </head>
-<body>
+<body data-crm-theme="light">
 
 <div class="topbar">
   <div class="wrap">
-    <div class="brand"><img src="static/img/logo.png" alt=""><b>Автомойка №1 · Руководитель</b></div>
-    <a class="back" href="index.html">← на сайт</a>
+    <div class="brand"><img src="static/img/logo.png" alt="Ананас"><b>Автомойка №1 · Руководитель</b></div>
+    <div class="mgr-head-actions"><a class="mgr-head-link" href="admin.html">CRM</a><a class="mgr-head-link" href="index.html">На сайт</a><button class="mgr-theme" id="managerThemeToggle" type="button" aria-label="Переключить тему">◐</button></div>
   </div>
 </div>
 
@@ -195,6 +196,14 @@
 
 <script src="static/js/api.js"></script>
 <script>
+  const savedManagerTheme = localStorage.getItem('carwash_crm_theme');
+  document.body.dataset.crmTheme = savedManagerTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.getElementById('managerThemeToggle').textContent = document.body.dataset.crmTheme === 'dark' ? '☀' : '◐';
+  document.getElementById('managerThemeToggle').addEventListener('click', () => {
+    const next = document.body.dataset.crmTheme === 'dark' ? 'light' : 'dark';
+    document.body.dataset.crmTheme = next; localStorage.setItem('carwash_crm_theme',next);
+    document.getElementById('managerThemeToggle').textContent = next === 'dark' ? '☀' : '◐';
+  });
   const authStatusEl = document.getElementById('authStatus');
   function setAuthStatus(msg, type) { authStatusEl.textContent = msg; authStatusEl.className = 'auth-status ' + (type || ''); }
 

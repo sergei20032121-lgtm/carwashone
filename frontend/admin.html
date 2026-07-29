@@ -75,6 +75,25 @@
   .stat-box{padding:20px;}
   .stat-box b{display:block;font-family:'Spectral',serif;font-size:26px;}
   .stat-box span{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px;}
+  .shift-panel{background:var(--sumi);color:#fff;border-radius:16px;padding:22px;margin-bottom:22px;}
+  .shift-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:18px;}
+  .shift-panel h3{font-family:'Spectral',serif;font-size:20px;margin:0 0 4px;}
+  .shift-panel p{margin:0;color:#9ca8aa;font-size:12px;}
+  .shift-live{display:inline-flex;align-items:center;gap:7px;color:#80ddd7;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+  .shift-live:before{content:"";width:7px;height:7px;border-radius:50%;background:#49d1ca;box-shadow:0 0 0 5px rgba(73,209,202,.12);}
+  .shift-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .shift-metric{padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:11px;background:rgba(255,255,255,.035);}
+  .shift-metric b{display:block;font:700 22px 'Space Mono',monospace;margin-bottom:5px;}
+  .shift-metric span{color:#94a1a4;font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
+  .shift-next{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;padding:13px 14px;border-radius:11px;background:#f2efe7;color:var(--sumi);}
+  .shift-next small{display:block;color:#6f7675;font-size:10px;text-transform:uppercase;font-weight:800;margin-bottom:3px;}
+  .shift-next b{font-size:13px}.shift-next time{font:700 19px 'Space Mono',monospace;color:var(--jade-dark);}
+  .quick-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:25px}.quick-actions button,.quick-actions a{font-size:12px;}
+  .client-summary{display:grid;grid-template-columns:1.35fr repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .client-main,.client-kpi{padding:18px}.client-main h3{font-size:18px;margin-bottom:5px}.client-main p{font-size:12px;color:var(--ink-soft);margin:0}
+  .client-actions{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}.client-actions .btn{font-size:11px;padding:8px 11px;}
+  .client-kpi b{display:block;font:700 21px 'Space Mono',monospace;margin-bottom:6px}.client-kpi span{font-size:10px;text-transform:uppercase;color:var(--ink-soft-2);}
+  .loyalty-mini{height:7px;background:var(--washi-2);border-radius:99px;overflow:hidden;margin-top:12px}.loyalty-mini i{display:block;height:100%;background:var(--jade);border-radius:inherit;}
 
   .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:end;margin-bottom:22px;}
   .form-grid .field{margin-bottom:0;}
@@ -95,6 +114,7 @@
     .content table{min-width:720px;}
     .stat-grid{grid-template-columns:repeat(2,1fr);}
     .form-grid{grid-template-columns:1fr;}
+    .shift-grid{grid-template-columns:repeat(2,1fr)}.client-summary{grid-template-columns:1fr 1fr}.client-main{grid-column:1/-1}
   }
   @media (max-width:560px){
     .topbar .wrap{padding:0 14px;}
@@ -104,18 +124,21 @@
     .auth-wrap{margin:36px 16px;}
     .auth-card{padding:20px;}
     .booking-controlbar{grid-template-columns:1fr}.load-timeline{margin-bottom:12px}.booking-kanban{grid-template-columns:repeat(4,84vw);scroll-snap-type:x mandatory}.kanban-column{scroll-snap-align:start}.schedule-week{grid-template-columns:110px repeat(7,88px)}
+    .shift-panel{padding:17px 14px;border-radius:13px}.shift-panel-head{margin-bottom:13px}.shift-grid{gap:6px}.shift-metric{padding:11px 9px}.shift-metric b{font-size:18px}.shift-next{align-items:flex-start}.quick-actions .btn{flex:1}.client-summary{grid-template-columns:1fr 1fr;gap:7px}.client-main,.client-kpi{padding:14px}.client-kpi b{font-size:17px}
   }
 </style>
+<link rel="stylesheet" href="static/css/crm-v18.css">
 </head>
-<body>
+<body data-crm-theme="light">
 
 <div class="topbar">
   <div class="wrap">
-    <div class="brand"><img src="static/img/logo.png" alt=""><b>Автомойка №1 · Админ</b></div>
-    <div style="display:flex;gap:18px;align-items:center;">
-      <a class="back" href="master.html">Режим мастера →</a>
-      <a class="back" href="manager.html">Дашборд руководителя →</a>
-      <a class="back" href="index.html">← на сайт</a>
+    <div class="brand"><img src="static/img/logo.png" alt="Ананас"><b>Автомойка №1 · CRM</b></div>
+    <div class="crm-head-actions">
+      <a class="crm-head-link" href="master.html">Режим мастера</a>
+      <a class="crm-head-link" href="manager.html">Руководителю</a>
+      <a class="crm-head-link" href="index.html">На сайт</a>
+      <button class="crm-icon-button" id="themeToggle" type="button" aria-label="Переключить тему" title="Переключить тему">◐</button>
     </div>
   </div>
 </div>
@@ -135,39 +158,59 @@
 <!-- ПАНЕЛЬ -->
 <div id="panel" class="layout" style="display:none;">
   <div class="sidebar">
-    <button class="tab-btn active" data-tab="overview">Обзор</button>
-    <button class="tab-btn" data-tab="bookings">Записи</button>
-    <button class="tab-btn" data-tab="walkin">Учёт (автомойка)</button>
-    <button class="tab-btn" data-tab="drycleaning">Химчистка</button>
-    <button class="tab-btn" data-tab="services">Услуги</button>
-    <button class="tab-btn" data-tab="schedule">График</button>
-    <button class="tab-btn" data-tab="payroll">Зарплата</button>
-    <button class="tab-btn" data-tab="vk">Новости ВК</button>
-    <button class="tab-btn" data-tab="clientsearch">Поиск клиента</button>
-    <button class="tab-btn" data-tab="auditlog">Журнал изменений</button>
-    <button class="tab-btn" data-tab="logout" style="color:var(--vermillion);margin-top:16px;">Выйти</button>
+    <button class="tab-btn active" data-tab="overview"><span class="nav-icon">⌂</span><span class="nav-label">Обзор</span></button>
+    <button class="tab-btn" data-tab="bookings"><span class="nav-icon">◫</span><span class="nav-label">Записи</span></button>
+    <button class="tab-btn" data-tab="walkin"><span class="nav-icon">＋</span><span class="nav-label">Учёт</span></button>
+    <button class="tab-btn" data-tab="drycleaning"><span class="nav-icon">✦</span><span class="nav-label">Химчистка</span></button>
+    <button class="tab-btn" data-tab="services"><span class="nav-icon">◇</span><span class="nav-label">Услуги</span></button>
+    <button class="tab-btn" data-tab="schedule"><span class="nav-icon">▦</span><span class="nav-label">График</span></button>
+    <button class="tab-btn" data-tab="payroll"><span class="nav-icon">₽</span><span class="nav-label">Зарплата</span></button>
+    <button class="tab-btn" data-tab="vk"><span class="nav-icon">↗</span><span class="nav-label">Новости</span></button>
+    <button class="tab-btn" data-tab="clientsearch"><span class="nav-icon">⌕</span><span class="nav-label">Клиенты</span></button>
+    <button class="tab-btn" data-tab="auditlog"><span class="nav-icon">≡</span><span class="nav-label">История</span></button>
+    <button class="tab-btn" data-tab="logout"><span class="nav-icon">↪</span><span class="nav-label">Выйти</span></button>
   </div>
 
   <div class="content">
     <!-- ОБЗОР -->
     <div class="tab-page" id="tab-overview">
-      <h2>Обзор за последние 30 дней</h2>
+      <div class="shift-panel">
+        <div class="shift-panel-head"><div><h3>Смена сегодня</h3><p id="shiftDateLabel">Загружаем оперативные данные…</p></div><span class="shift-live">в реальном времени</span></div>
+        <div class="shift-grid">
+          <div class="shift-metric"><b id="todayBookings">—</b><span>записей</span></div>
+          <div class="shift-metric"><b id="todayPending">—</b><span>ждут подтверждения</span></div>
+          <div class="shift-metric"><b id="todayInProgress">—</b><span>сейчас в работе</span></div>
+          <div class="shift-metric"><b id="todayRevenue">—</b><span>оборот дня</span></div>
+        </div>
+        <div class="shift-next" id="shiftNext"><div><small>Ближайшая запись</small><b>Ищем в расписании…</b></div><time>—</time></div>
+      </div>
+      <div class="quick-actions">
+        <button class="btn btn-dark" type="button" data-open-tab="bookings">Открыть записи</button>
+        <button class="btn btn-outline" type="button" data-open-tab="walkin">Добавить заказ</button>
+        <button class="btn btn-outline" type="button" data-open-tab="clientsearch">Найти клиента</button>
+        <a class="btn btn-outline" href="master.html">Мобильный режим мастера</a>
+      </div>
+      <h2>Итоги за последние 30 дней</h2>
       <div class="stat-grid">
         <div class="card stat-box"><b id="statWashCount">—</b><span>моек (записи + без записи)</span></div>
         <div class="card stat-box"><b id="statWashRevenue">—</b><span>выручка по мойке</span></div>
         <div class="card stat-box"><b id="statDryCount">—</b><span>заказов химчистки</span></div>
         <div class="card stat-box"><b id="statDryRevenue">—</b><span>выручка химчистки</span></div>
       </div>
-      <p class="text-muted" style="font-size:13px;">Период считается от текущей даты сервера минус 30 дней. Более гибкий выбор периода — следующим шагом.</p>
+      <p class="text-muted" style="font-size:13px;">В итогах учитываются записи, заказы без записи и химчистка за период сервера.</p>
     </div>
 
     <!-- ЗАПИСИ -->
     <div class="tab-page" id="tab-bookings" style="display:none;">
-      <div class="toolbar"><h2 style="margin:0;">Записи клиентов</h2><div style="display:flex;gap:8px;align-items:center;"><div class="booking-view-switch"><button class="active" data-booking-view="board">Доска</button><button data-booking-view="table">Таблица</button></div><button class="btn btn-outline" id="refreshBookings">Обновить</button></div></div>
+      <div class="toolbar"><h2 style="margin:0;">Записи клиентов</h2><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><div class="booking-view-switch"><button class="active" data-booking-view="board">Доска</button><button data-booking-view="table">Таблица</button></div><button class="btn btn-outline" id="exportBookingsCsv">Скачать CSV</button><button class="btn btn-outline" id="refreshBookings">Обновить</button></div></div>
       <div class="booking-controlbar">
         <div class="booking-day-tabs" id="bookingDayTabs"><button class="active" data-booking-range="today">Сегодня</button><button data-booking-range="tomorrow">Завтра</button><button data-booking-range="all">Все</button></div>
-        <input type="search" id="bookingSearch" placeholder="Клиент, телефон, услуга">
+        <div style="display:grid;grid-template-columns:1fr 150px;gap:7px;"><input type="search" id="bookingSearch" placeholder="Клиент, телефон, услуга"><select id="bookingStatusFilter"><option value="all">Все статусы</option><option value="pending">Ожидают</option><option value="confirmed">Подтверждены</option><option value="in_progress">В работе</option><option value="done">Готово</option><option value="cancelled">Отменены</option></select></div>
         <div class="load-timeline" id="bookingLoadTimeline" aria-label="Загрузка по часам"></div>
+      </div>
+      <div class="box-calendar" id="boxCalendar">
+        <div class="box-calendar-head"><b>Загрузка боксов</b><span>09:00–21:00 · нажмите на запись для подробностей</span></div>
+        <div class="box-calendar-grid" id="boxCalendarGrid"></div>
       </div>
       <div class="booking-kanban" id="bookingKanban"></div>
       <div class="card" id="bookingsTableCard" style="padding:6px 16px;overflow-x:auto;display:none;">
@@ -395,9 +438,36 @@
   </div>
 </div>
 
+<div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
+<nav class="mobile-bottom-nav" aria-label="Основные разделы CRM">
+  <button class="active" data-mobile-tab="overview"><i>⌂</i>Обзор</button>
+  <button data-mobile-tab="bookings"><i>◫</i>Записи</button>
+  <button data-mobile-tab="walkin"><i>＋</i>Заказ</button>
+  <button data-mobile-tab="clientsearch"><i>⌕</i>Клиент</button>
+  <button data-mobile-more><i>•••</i>Ещё</button>
+</nav>
+
+<div class="booking-drawer-backdrop" id="bookingDrawerBackdrop"></div>
+<aside class="booking-drawer" id="bookingDrawer" aria-hidden="true" aria-labelledby="drawerTitle">
+  <div class="drawer-head">
+    <div><div class="drawer-kicker" id="drawerKicker">Запись</div><h2 id="drawerTitle">Карточка заказа</h2></div>
+    <button class="drawer-close" id="drawerClose" type="button" aria-label="Закрыть">×</button>
+  </div>
+  <div id="drawerContent"></div>
+</aside>
+
 <script src="static/js/api.js"></script>
 <script>
   const statusLabels = {pending:'ожидает', confirmed:'подтверждена', in_progress:'в работе', done:'выполнена', cancelled:'отменена'};
+  const savedTheme = localStorage.getItem('carwash_crm_theme');
+  document.body.dataset.crmTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const next = document.body.dataset.crmTheme === 'dark' ? 'light' : 'dark';
+    document.body.dataset.crmTheme = next;
+    localStorage.setItem('carwash_crm_theme', next);
+    document.getElementById('themeToggle').textContent = next === 'dark' ? '☀' : '◐';
+  });
+  document.getElementById('themeToggle').textContent = document.body.dataset.crmTheme === 'dark' ? '☀' : '◐';
 
   const authStatusEl = document.getElementById('authStatus');
   function setAuthStatus(msg, type) { authStatusEl.textContent = msg; authStatusEl.className = 'auth-status ' + (type || ''); }
@@ -426,23 +496,58 @@
     loadWalkin();
   }
 
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.dataset.tab === 'logout') { clearAuth(); location.reload(); return; }
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('.tab-page').forEach(p => p.style.display = 'none');
-      document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
-    });
+  function closeMobileMenu() {
+    document.querySelector('.sidebar').classList.remove('mobile-open');
+    document.getElementById('mobileMenuBackdrop').classList.remove('show');
+  }
+  function activateTab(tab) {
+    if (tab === 'logout') { clearAuth(); location.reload(); return; }
+    document.querySelectorAll('.tab-btn').forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
+    document.querySelectorAll('[data-mobile-tab]').forEach(button => button.classList.toggle('active', button.dataset.mobileTab === tab));
+    document.querySelectorAll('.tab-page').forEach(page => page.style.display = 'none');
+    const page = document.getElementById('tab-' + tab);
+    if (page) page.style.display = 'block';
+    closeMobileMenu();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('.tab-btn').forEach(button => button.addEventListener('click', () => activateTab(button.dataset.tab)));
+  document.querySelectorAll('[data-mobile-tab]').forEach(button => button.addEventListener('click', () => activateTab(button.dataset.mobileTab)));
+  document.querySelector('[data-mobile-more]').addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.toggle('mobile-open');
+    document.getElementById('mobileMenuBackdrop').classList.toggle('show');
   });
+  document.getElementById('mobileMenuBackdrop').addEventListener('click', closeMobileMenu);
+
+  function localIsoDate(date = new Date()) {
+    const shifted = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return shifted.toISOString().slice(0, 10);
+  }
 
   async function loadOverview() {
     try {
-      const s = await api('/admin/stats/summary');
+      const today = localIsoDate();
+      const [s, todayStats, todayRows] = await Promise.all([
+        api('/admin/stats/summary'),
+        api(`/admin/stats/summary?date_from=${today}&date_to=${today}`),
+        api('/bookings/admin/all?day=' + today)
+      ]);
       animateCount(document.getElementById('statWashCount'), s.wash_bookings_count);
       animateCount(document.getElementById('statWashRevenue'), Math.round(s.wash_revenue), { suffix: ' ₽' });
       animateCount(document.getElementById('statDryCount'), s.dry_cleaning_orders_count);
       animateCount(document.getElementById('statDryRevenue'), Math.round(s.dry_cleaning_revenue), { suffix: ' ₽' });
+      const activeRows = todayRows.filter(row => row.status !== 'cancelled');
+      document.getElementById('shiftDateLabel').textContent = new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' });
+      animateCount(document.getElementById('todayBookings'), activeRows.length);
+      animateCount(document.getElementById('todayPending'), activeRows.filter(row => row.status === 'pending').length);
+      animateCount(document.getElementById('todayInProgress'), activeRows.filter(row => row.status === 'in_progress').length);
+      animateCount(document.getElementById('todayRevenue'), Math.round(todayStats.wash_revenue + todayStats.dry_cleaning_revenue), { suffix:' ₽' });
+      const now = Date.now();
+      const next = activeRows
+        .filter(row => !['done','cancelled'].includes(row.status) && new Date(row.scheduled_at).getTime() >= now)
+        .sort((a,b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))[0];
+      document.getElementById('shiftNext').innerHTML = next
+        ? `<div><small>Ближайшая запись</small><b>${escapeHtml(next.client_name)} · ${escapeHtml(next.service_name)}</b></div><time>${new Date(next.scheduled_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</time>`
+        : '<div><small>Ближайшая запись</small><b>На сегодня новых записей впереди нет</b></div><time>✓</time>';
     } catch (e) {}
   }
 
@@ -464,7 +569,7 @@
               ${Object.entries(statusLabels).map(([k,v]) => `<option value="${k}" ${k===b.status?'selected':''}>${v}</option>`).join('')}
             </select>
           </td>
-          <td><button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-assign-booking="${b.id}">👥 Сотрудники</button></td>
+          <td><div style="display:flex;gap:5px;flex-wrap:wrap;"><button class="btn btn-dark" style="padding:5px 10px;font-size:12px;" data-open-booking="${b.id}">Открыть</button><button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" data-assign-booking="${b.id}">Сотрудники</button></div></td>
         </tr>`).join('');
       document.querySelectorAll('[data-assign-booking]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -486,18 +591,29 @@
           } catch (e) { alert('Не удалось изменить статус: ' + e.message); }
         });
       });
+      document.querySelectorAll('[data-open-booking]').forEach(button => button.addEventListener('click', () => openBookingDrawer(Number(button.dataset.openBooking))));
+      renderFilteredBookings();
     } catch (e) {}
   }
   let bookingRowsCache = [];
-  let bookingRange = new Date().toISOString().slice(0, 10);
+  let bookingRange = localIsoDate();
   function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char])); }
-  function renderFilteredBookings() {
+  function getFilteredBookingRows() {
     const query = document.getElementById('bookingSearch').value.trim().toLowerCase();
-    const rows = bookingRowsCache.filter(row => !query || [row.client_name,row.client_phone,row.service_name,row.comment].some(value => String(value || '').toLowerCase().includes(query)));
+    const status = document.getElementById('bookingStatusFilter').value;
+    return bookingRowsCache.filter(row => {
+      const matchesQuery = !query || [row.client_name,row.client_phone,row.service_name,row.comment].some(value => String(value || '').toLowerCase().includes(query));
+      return matchesQuery && (status === 'all' || row.status === status);
+    });
+  }
+  function renderFilteredBookings() {
+    const rows = getFilteredBookingRows();
     renderBookingKanban(rows);
     renderBookingLoad(rows);
+    renderBoxCalendar(rows);
     document.querySelectorAll('#bookingsTable tbody tr[data-booking-search]').forEach(row => {
-      row.style.display = !query || row.dataset.bookingSearch.includes(query) ? '' : 'none';
+      const booking = bookingRowsCache.find(item => String(item.id) === row.children[0]?.textContent.trim());
+      row.style.display = booking && rows.includes(booking) ? '' : 'none';
     });
   }
   function renderBookingLoad(rows) {
@@ -507,11 +623,108 @@
     const max = Math.max(1,...counts);
     timeline.innerHTML = hours.map((hour,index)=>`<span class="load-hour" title="${hour}:00 — ${counts[index]} записей"><i style="--load:${Math.max(8,Math.round(counts[index]/max*100))}%"></i><b>${hour}</b></span>`).join('');
   }
+  function renderBoxCalendar(rows) {
+    const grid = document.getElementById('boxCalendarGrid');
+    if (bookingRange === 'all') {
+      grid.innerHTML = '<div class="empty-state" style="min-height:95px;"><div><i>▦</i><b>Выберите «Сегодня» или «Завтра»</b><span>Сетка боксов строится для одного рабочего дня.</span></div></div>';
+      return;
+    }
+    const active = rows.filter(row => row.status !== 'cancelled');
+    const assignedBoxes = [...new Set(active.map(row => row.box_number).filter(value => value != null))].sort((a,b) => a-b);
+    const lanes = [...assignedBoxes.map(value => ({key:String(value),label:`Бокс ${value}`})), {key:'none',label:'Без бокса'}];
+    const hours = Array.from({length:12},(_,index)=>index+9);
+    const head = `<div class="box-time-head"><span>Расположение</span>${hours.map(hour => `<span>${String(hour).padStart(2,'0')}:00</span>`).join('')}</div>`;
+    const body = lanes.map(lane => {
+      const laneRows = active.filter(row => lane.key === 'none' ? row.box_number == null : String(row.box_number) === lane.key);
+      return `<div class="box-row"><div class="box-label">${lane.label}</div>${hours.map(()=>'<div class="box-hour"></div>').join('')}${laneRows.map(row => {
+        const date = new Date(row.scheduled_at);
+        const start = Math.max(1, Math.min(12, date.getHours() - 8));
+        const duration = Math.max(1, Math.min(4, Math.ceil(Number(row.service_duration_min || 30) / 60)));
+        return `<button type="button" class="box-event status-${row.status}" data-open-booking="${row.id}" style="grid-column:${start + 1}/span ${duration};grid-row:1" title="${escapeHtml(row.client_name)} · ${escapeHtml(row.service_name)}">${date.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})} ${escapeHtml(row.client_name)}</button>`;
+      }).join('')}</div>`;
+    }).join('');
+    grid.innerHTML = head + body;
+    grid.querySelectorAll('[data-open-booking]').forEach(button => button.addEventListener('click', () => openBookingDrawer(Number(button.dataset.openBooking))));
+  }
   const kanbanStatuses = ['pending', 'confirmed', 'in_progress', 'done'];
   async function setBookingStatus(id, status) {
     await api('/bookings/admin/' + id, { method: 'PATCH', body: JSON.stringify({ status }) });
     await loadBookings();
   }
+  let activeDrawerBookingId = null;
+  let auditRowsCache = [];
+  function closeBookingDrawer() {
+    document.body.classList.remove('drawer-open');
+    document.getElementById('bookingDrawer').setAttribute('aria-hidden','true');
+    activeDrawerBookingId = null;
+  }
+  function openBookingDrawer(id) {
+    const booking = bookingRowsCache.find(row => Number(row.id) === Number(id));
+    if (!booking) return;
+    activeDrawerBookingId = booking.id;
+    const date = new Date(booking.scheduled_at);
+    const history = auditRowsCache.filter(row => row.entity === 'booking' && Number(row.entity_id) === Number(booking.id));
+    document.getElementById('drawerKicker').textContent = `Запись №${booking.id}`;
+    document.getElementById('drawerTitle').textContent = booking.service_name || 'Заказ';
+    document.getElementById('drawerContent').innerHTML = `
+      <span class="drawer-status status-${booking.status}">${statusLabels[booking.status] || escapeHtml(booking.status)}</span>
+      <div class="drawer-client">
+        <b>${escapeHtml(booking.client_name || 'Клиент')}</b>
+        ${booking.client_phone ? `<a href="tel:${escapeHtml(booking.client_phone)}">${escapeHtml(booking.client_phone)}</a>` : '<span class="text-muted">Телефон не указан</span>'}
+      </div>
+      <div class="drawer-grid">
+        <div class="drawer-field"><span>Дата</span><b>${date.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</b></div>
+        <div class="drawer-field"><span>Время</span><b>${date.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</b></div>
+        <div class="drawer-field"><span>Стоимость</span><b>${booking.price != null ? Math.round(booking.price).toLocaleString('ru-RU') + ' ₽' : 'Уточняется'}</b></div>
+        <div class="drawer-field"><span>Длительность</span><b>${booking.service_duration_min ? booking.service_duration_min + ' мин' : 'Не указана'}</b></div>
+        <div class="drawer-field"><span>Бокс</span><b>${booking.box_number ? booking.box_number : 'Не назначен'}</b></div>
+        <div class="drawer-field"><span>Скидка</span><b>${booking.discount_pct ? booking.discount_pct + '%' : 'Нет'}</b></div>
+      </div>
+      <div class="drawer-form">
+        <div class="field"><label>Статус</label><select id="drawerStatus">${Object.entries(statusLabels).map(([key,label]) => `<option value="${key}" ${key===booking.status?'selected':''}>${label}</option>`).join('')}</select></div>
+        <div class="field"><label>Бокс</label><input id="drawerBox" type="number" min="1" step="1" value="${booking.box_number || ''}" placeholder="Не назначен"></div>
+        <div class="field"><label>Стоимость ₽</label><input id="drawerPrice" type="number" min="0" step="50" value="${booking.price ?? ''}" placeholder="Уточняется"></div>
+        <button class="btn btn-primary" id="drawerSave" type="button">Сохранить изменения</button>
+      </div>
+      <div class="drawer-section">
+        <h3>Исполнители</h3>
+        <p class="drawer-note">${booking.employee_id ? `Назначен сотрудник №${booking.employee_id}.` : 'Сотрудники пока не назначены.'}</p>
+        <button class="btn btn-outline" id="drawerAssign" type="button">Выбрать сотрудников</button>
+      </div>
+      <div class="drawer-section">
+        <h3>Комментарий</h3>
+        <p class="drawer-note">${booking.comment ? escapeHtml(booking.comment) : 'Комментария к записи нет.'}</p>
+      </div>
+      <div class="drawer-section">
+        <h3>История изменений</h3>
+        <div class="drawer-history">${history.length ? history.map(event => `<div class="history-event"><div>${escapeHtml(event.actor_name || 'Сотрудник')}: ${escapeHtml(event.note || event.action)}<time>${new Date(event.created_at).toLocaleString('ru-RU')}</time></div></div>`).join('') : '<p class="drawer-note">Изменений по этой записи пока нет.</p>'}</div>
+      </div>`;
+    document.getElementById('drawerSave').addEventListener('click', async () => {
+      const status = document.getElementById('drawerStatus').value;
+      const boxRaw = document.getElementById('drawerBox').value;
+      const priceRaw = document.getElementById('drawerPrice').value;
+      const payload = {status,box_number:boxRaw ? Number(boxRaw) : null,price:priceRaw ? Number(priceRaw) : null};
+      const button = document.getElementById('drawerSave'); button.disabled = true; button.textContent = 'Сохраняем…';
+      try {
+        await api('/bookings/admin/' + booking.id,{method:'PATCH',body:JSON.stringify(payload)});
+        await Promise.all([loadBookings(),loadAuditLog()]);
+        const currentId = booking.id; closeBookingDrawer(); openBookingDrawer(currentId);
+      } catch (error) { alert('Не удалось сохранить: ' + error.message); button.disabled = false; button.textContent = 'Сохранить изменения'; }
+    });
+    document.getElementById('drawerAssign').addEventListener('click', () => {
+      const currentIds = booking.employee_id ? [booking.employee_id] : [];
+      openEmployeePicker(currentIds, async ids => {
+        await api('/bookings/admin/' + booking.id + '/employees',{method:'PUT',body:JSON.stringify({employee_ids:ids})});
+        await loadBookings(); closeBookingDrawer(); openBookingDrawer(booking.id);
+      });
+    });
+    document.body.classList.add('drawer-open');
+    document.getElementById('bookingDrawer').setAttribute('aria-hidden','false');
+    document.getElementById('drawerClose').focus();
+  }
+  document.getElementById('drawerClose').addEventListener('click', closeBookingDrawer);
+  document.getElementById('bookingDrawerBackdrop').addEventListener('click', closeBookingDrawer);
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && document.body.classList.contains('drawer-open')) closeBookingDrawer(); });
   function renderBookingKanban(rows) {
     const board = document.getElementById('bookingKanban');
     if (!board) return;
@@ -521,23 +734,38 @@
         <div class="kanban-head">${statusLabels[status]}<span>${items.length}</span></div>
         <div class="kanban-list">${items.map(b => {
           const date = new Date(b.scheduled_at);
-          return `<article class="kanban-card" draggable="true" data-booking-id="${b.id}">
+          return `<article class="kanban-card" draggable="true" tabindex="0" role="button" aria-label="Открыть запись ${b.id}" data-booking-id="${b.id}">
             <time>${date.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})} · ${date.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</time>
             <b>${escapeHtml(b.service_name || ('Услуга #' + b.service_id))}</b>
             <small>${escapeHtml(b.client_name || 'Клиент')}${b.client_phone ? ' · ' + escapeHtml(b.client_phone) : ''}</small>
             <small>${b.price != null ? Math.round(b.price) + ' ₽' : 'Цена уточняется'}${b.service_duration_min ? ' · ' + b.service_duration_min + ' мин' : ''} · №${b.id}</small>
             <div class="kanban-card-actions"><button type="button" data-assign-booking="${b.id}">👥 назначить</button>${b.client_phone ? `<a href="tel:${escapeHtml(b.client_phone)}" style="color:var(--jade-dark);font-size:11px;font-weight:800;">позвонить</a>` : ''}${status !== 'done' ? `<button type="button" data-next-booking="${b.id}" data-next-status="${kanbanStatuses[kanbanStatuses.indexOf(status) + 1]}">дальше →</button>` : '<span>готово ✓</span>'}</div>
           </article>`;
-        }).join('') || '<p class="text-muted" style="font-size:12px;padding:10px 3px;">Пока пусто</p>'}</div>
+        }).join('') || '<div class="empty-state"><div><i>○</i><b>Пока пусто</b><span>Записи появятся здесь автоматически.</span></div></div>'}</div>
       </section>`;
     }).join('');
     board.querySelectorAll('.kanban-card').forEach(card => {
       card.addEventListener('dragstart', () => card.classList.add('dragging'));
       card.addEventListener('dragend', () => card.classList.remove('dragging'));
+      card.addEventListener('click', event => {
+        if (event.target.closest('button,a')) return;
+        openBookingDrawer(Number(card.dataset.bookingId));
+      });
+      card.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openBookingDrawer(Number(card.dataset.bookingId)); }
+      });
     });
     board.querySelectorAll('[data-next-booking]').forEach(button => button.addEventListener('click', async () => {
       try { await setBookingStatus(button.dataset.nextBooking, button.dataset.nextStatus); }
       catch (error) { alert('Не удалось изменить статус: ' + error.message); }
+    }));
+    board.querySelectorAll('[data-assign-booking]').forEach(button => button.addEventListener('click', () => {
+      const booking = bookingRowsCache.find(row => Number(row.id) === Number(button.dataset.assignBooking));
+      const currentIds = booking?.employee_id ? [booking.employee_id] : [];
+      openEmployeePicker(currentIds, async ids => {
+        await api('/bookings/admin/' + button.dataset.assignBooking + '/employees',{method:'PUT',body:JSON.stringify({employee_ids:ids})});
+        await loadBookings();
+      });
     }));
     board.querySelectorAll('.kanban-column').forEach(column => {
       column.addEventListener('dragover', event => { event.preventDefault(); column.classList.add('is-over'); });
@@ -558,17 +786,45 @@
     document.getElementById('bookingsTableCard').style.display = boardMode ? 'none' : 'block';
   }));
   document.getElementById('bookingSearch').addEventListener('input', renderFilteredBookings);
+  document.getElementById('bookingStatusFilter').addEventListener('change', renderFilteredBookings);
   document.getElementById('bookingDayTabs').addEventListener('click', event => {
     const button = event.target.closest('[data-booking-range]'); if (!button) return;
     document.querySelectorAll('[data-booking-range]').forEach(item => item.classList.toggle('active', item === button));
     if (button.dataset.bookingRange === 'all') bookingRange = 'all';
     else {
       const date = new Date(); if (button.dataset.bookingRange === 'tomorrow') date.setDate(date.getDate() + 1);
-      bookingRange = date.toISOString().slice(0,10);
+      bookingRange = localIsoDate(date);
     }
     loadBookings();
   });
   document.getElementById('refreshBookings').addEventListener('click', loadBookings);
+  document.getElementById('exportBookingsCsv').addEventListener('click', () => {
+    const rows = getFilteredBookingRows();
+    const quote = value => `"${String(value ?? '').replaceAll('"','""')}"`;
+    const csv = [
+      ['№','Дата и время','Клиент','Телефон','Услуга','Цена','Скидка','Статус'].map(quote).join(';'),
+      ...rows.map(row => [
+        row.id,
+        new Date(row.scheduled_at).toLocaleString('ru-RU'),
+        row.client_name,
+        row.client_phone || '',
+        row.service_name,
+        row.price ?? '',
+        row.discount_pct || '',
+        statusLabels[row.status] || row.status
+      ].map(quote).join(';'))
+    ].join('\r\n');
+    const blob = new Blob(['\ufeff' + csv], { type:'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `записи-${bookingRange === 'all' ? 'все' : bookingRange}.csv`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  });
+
+  document.querySelectorAll('[data-open-tab]').forEach(button => button.addEventListener('click', () => {
+    document.querySelector(`.tab-btn[data-tab="${button.dataset.openTab}"]`)?.click();
+  }));
 
   let walkinEditingId = null;
   let walkinRowsCache = [];
@@ -1135,28 +1391,62 @@
     statusEl.textContent = ''; resultEl.innerHTML = '';
     try {
       const r = await api('/admin/search?phone=' + encodeURIComponent(phone));
+      const bookingRevenue = r.bookings.filter(item => item.status !== 'cancelled').reduce((sum,item) => sum + Number(item.price || 0), 0);
+      const walkInRevenue = r.walk_in_orders.reduce((sum,item) => sum + Number(item.amount || 0), 0);
+      const dryRevenue = r.dry_cleaning_orders.reduce((sum,item) => sum + Number(item.amount || 0), 0);
+      const totalRevenue = bookingRevenue + walkInRevenue + dryRevenue;
+      const visits = [
+        ...r.bookings.filter(item => item.status !== 'cancelled').map(item => new Date(item.scheduled_at)),
+        ...r.walk_in_orders.map(item => new Date(item.order_date + 'T12:00:00')),
+        ...r.dry_cleaning_orders.map(item => new Date(item.order_date + 'T12:00:00'))
+      ].filter(date => !Number.isNaN(date.getTime())).sort((a,b) => b-a);
+      const completedCount = r.bookings.filter(item => item.status === 'done').length + r.walk_in_orders.length + r.dry_cleaning_orders.length;
+      const target = r.user.punch_count < 6 ? 6 : 12;
+      const nextReward = target === 6 ? 'скидки 50%' : 'бесплатной мойки';
+      const cleanPhone = String(r.user.phone || '').replace(/[^\d+]/g,'');
       resultEl.innerHTML = `
-        <div class="card" style="padding:20px;margin-bottom:16px;">
-          <h3 style="font-size:16px;">${r.user.full_name || 'Без имени'} · ${r.user.phone}</h3>
-          <p class="text-muted" style="font-size:13px;margin-top:6px;">
-            ${r.user.tenure_label} · ${r.user.punch_count} ананасов на карте · ${r.user.total_full_washes} полных моек всего
-          </p>
+        <div class="client-summary">
+          <div class="card client-main">
+            <h3>${escapeHtml(r.user.full_name || 'Без имени')}</h3>
+            <p>${escapeHtml(r.user.phone || 'Телефон не указан')} · ${escapeHtml(r.user.tenure_label || '')}</p>
+            <div class="client-actions">
+              ${cleanPhone ? `<a class="btn btn-dark" href="tel:${cleanPhone}">Позвонить</a>` : ''}
+              <button class="btn btn-outline" type="button" data-copy-client-phone="${escapeHtml(r.user.phone || '')}">Скопировать телефон</button>
+              <button class="btn btn-outline" type="button" data-find-client-bookings="${escapeHtml(r.user.phone || '')}">Записи клиента</button>
+            </div>
+            <div class="loyalty-mini" title="${r.user.punch_count} из ${target}"><i style="width:${Math.min(100,Math.round(r.user.punch_count / target * 100))}%"></i></div>
+            <p style="margin-top:7px;">${r.user.punch_count} из ${target} ананасов — до ${nextReward}</p>
+          </div>
+          <div class="card client-kpi"><b>${completedCount}</b><span>визитов в истории</span></div>
+          <div class="card client-kpi"><b>${Math.round(totalRevenue).toLocaleString('ru-RU')} ₽</b><span>оборот по клиенту</span></div>
+          <div class="card client-kpi"><b>${visits[0] ? visits[0].toLocaleDateString('ru-RU') : '—'}</b><span>последний визит</span></div>
         </div>
         <div class="card" style="padding:6px 16px;margin-bottom:16px;overflow-x:auto;">
           <h3 style="font-size:14px;padding-top:14px;">Записи (${r.bookings.length})</h3>
           <table><thead><tr><th>Дата</th><th>Услуга</th><th>Статус</th><th>Цена</th></tr></thead>
-          <tbody>${r.bookings.map(b => `<tr><td>${new Date(b.scheduled_at).toLocaleString('ru-RU')}</td><td>#${b.service_id}</td><td>${statusLabels2[b.status]||b.status}</td><td>${b.price!=null?Math.round(b.price)+' ₽':'—'}</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет записей</td></tr>'}</tbody></table>
+          <tbody>${r.bookings.map(b => `<tr><td>${new Date(b.scheduled_at).toLocaleString('ru-RU')}</td><td>${escapeHtml(b.service_name || ('Услуга #' + b.service_id))}</td><td>${statusLabels2[b.status]||escapeHtml(b.status)}</td><td>${b.price!=null?Math.round(b.price)+' ₽':'—'}</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет записей</td></tr>'}</tbody></table>
         </div>
         <div class="card" style="padding:6px 16px;margin-bottom:16px;overflow-x:auto;">
           <h3 style="font-size:14px;padding-top:14px;">Мойки без записи (${r.walk_in_orders.length})</h3>
           <table><thead><tr><th>Дата</th><th>Услуга</th><th>Авто</th><th>Сумма</th></tr></thead>
-          <tbody>${r.walk_in_orders.map(o => `<tr><td>${o.order_date}</td><td>${o.service_name_raw}</td><td>${o.car_model||'—'}</td><td>${Math.round(o.amount)} ₽</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет заказов</td></tr>'}</tbody></table>
+          <tbody>${r.walk_in_orders.map(o => `<tr><td>${o.order_date}</td><td>${escapeHtml(o.service_name_raw)}</td><td>${escapeHtml(o.car_model||'—')}</td><td>${Math.round(o.amount)} ₽</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет заказов</td></tr>'}</tbody></table>
         </div>
         <div class="card" style="padding:6px 16px;overflow-x:auto;">
           <h3 style="font-size:14px;padding-top:14px;">Химчистка (${r.dry_cleaning_orders.length})</h3>
           <table><thead><tr><th>Дата</th><th>Авто</th><th>Работы</th><th>Сумма</th></tr></thead>
-          <tbody>${r.dry_cleaning_orders.map(o => `<tr><td>${o.order_date}</td><td>${o.car_model}</td><td>${o.works_description}</td><td>${Math.round(o.amount)} ₽</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет заказов</td></tr>'}</tbody></table>
+          <tbody>${r.dry_cleaning_orders.map(o => `<tr><td>${o.order_date}</td><td>${escapeHtml(o.car_model)}</td><td>${escapeHtml(o.works_description)}</td><td>${Math.round(o.amount)} ₽</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет заказов</td></tr>'}</tbody></table>
         </div>`;
+      resultEl.querySelector('[data-copy-client-phone]')?.addEventListener('click', async event => {
+        await navigator.clipboard.writeText(event.currentTarget.dataset.copyClientPhone);
+        event.currentTarget.textContent = 'Скопировано';
+      });
+      resultEl.querySelector('[data-find-client-bookings]')?.addEventListener('click', event => {
+        document.querySelector('.tab-btn[data-tab="bookings"]')?.click();
+        bookingRange = 'all';
+        document.querySelectorAll('[data-booking-range]').forEach(item => item.classList.toggle('active', item.dataset.bookingRange === 'all'));
+        document.getElementById('bookingSearch').value = event.currentTarget.dataset.findClientBookings;
+        loadBookings();
+      });
     } catch (e) {
       statusEl.textContent = e.message || 'Клиент не найден'; statusEl.className = 'auth-status err';
     }
@@ -1165,6 +1455,7 @@
   async function loadAuditLog() {
     try {
       const rows = await api('/admin/audit-log');
+      auditRowsCache = rows;
       const actionLabels = {create:'создал(а)', update:'изменил(а)', delete:'удалил(а)'};
       const entityLabels = {booking:'запись', walk_in_order:'заказ (учёт)', dry_cleaning_order:'заказ (химчистка)', service:'услугу'};
       document.querySelector('#auditTable tbody').innerHTML = rows.map(r => `

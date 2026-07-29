@@ -1,10 +1,12 @@
-const CACHE = 'carwash-one-v16';
+const CACHE = 'carwash-one-v18';
 const STATIC_ASSETS = [
   '/site/',
   '/site/static/css/theme.css',
   '/site/static/css/site-v2.css',
   '/site/static/css/interactions-v9.css',
   '/site/static/css/hero-inspection-v15.css',
+  '/site/static/css/crm-v18.css',
+  '/site/static/css/manager-v18.css',
   '/site/static/js/api.js',
   '/site/static/js/interactions-v9.js',
   '/site/static/js/hero-inspection-v15.js',

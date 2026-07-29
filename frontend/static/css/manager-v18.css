@@ -1,0 +1,14 @@
+:root{--mgr-panel:#fffdf8;--mgr-soft:#f2efe7;--mgr-border:rgba(17,31,34,.12);--mgr-shadow:0 16px 45px rgba(22,28,26,.08)}
+body{transition:background .25s,color .25s}
+body[data-crm-theme="dark"]{--washi:#121b1e;--washi-2:#091114;--washi-card:#111c20;--sumi:#eff0e9;--ink-soft:#9eabad;--ink-soft-2:#78878a;--line:#2a3a3f;--line-soft:#203035;--jade-dark:#69d4cd;--mgr-panel:#111c20;--mgr-soft:#0b1518;--mgr-border:#283a3f;--mgr-shadow:0 16px 45px rgba(0,0,0,.22);color:#eff0e9}
+body[data-crm-theme="dark"] .card{background:var(--mgr-panel);color:#eff0e9}
+body[data-crm-theme="dark"] input,body[data-crm-theme="dark"] select{background:#0a1316;color:#eff0e9;border-color:#304248}
+body[data-crm-theme="dark"] .btn-outline{color:#e3e7e1;border-color:#3a4a4e}
+.topbar{background:#0b1417!important;border-bottom:1px solid rgba(255,255,255,.08)}
+.topbar .wrap{max-width:none!important;padding:0 22px}.brand img{box-shadow:0 0 0 1px rgba(104,223,216,.22),0 0 24px rgba(63,206,198,.14)}
+.mgr-head-actions{display:flex;gap:8px;align-items:center}.mgr-head-link{color:#c5ccca;font-size:11px;font-weight:800;padding:9px 11px;border:1px solid rgba(255,255,255,.12);border-radius:9px}.mgr-head-link:hover{color:#fff}.mgr-theme{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(255,255,255,.14);border-radius:10px;color:#fff;background:rgba(255,255,255,.04)}
+.page{max-width:1240px!important}.page-head h1{font:600 30px 'Spectral',serif!important}.card{border-color:var(--mgr-border)!important;box-shadow:var(--mgr-shadow);border-radius:15px!important}
+.kpi-box{min-height:132px}.kpi-box:after{content:"";position:absolute;width:85px;height:85px;border-radius:50%;right:-35px;top:-35px;background:rgba(47,169,157,.08)}.kpi-box .value{font-family:'Space Mono',monospace!important;font-size:24px!important}.kpi-box .label{font-weight:800}
+.progress-section{background:linear-gradient(135deg,var(--mgr-panel),var(--mgr-soft))}
+.ranking-row{transition:background .15s;border-radius:9px;padding-left:8px!important;padding-right:8px!important}.ranking-row:hover{background:var(--mgr-soft)}
+@media(max-width:560px){.mgr-head-link{display:none}.topbar .wrap{padding:0 13px}.kpi-grid{grid-template-columns:1fr 1fr!important}.kpi-box{min-height:108px;padding:16px!important}.kpi-box .value{font-size:18px!important}.kpi-box .label{font-size:9px!important}.page-head h1{font-size:25px!important}}
