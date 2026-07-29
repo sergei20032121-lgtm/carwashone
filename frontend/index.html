@@ -162,6 +162,7 @@
     .mobile-actions a.primary svg{color:#F04432;}
   }
 </style>
+<link rel="stylesheet" href="static/css/site-v2.css">
 </head>
 <body>
 
@@ -172,12 +173,10 @@
       <span><b>Автомойка №1</b><small>Пермь · Закамск</small></span>
     </a>
     <div class="navlinks">
-      <a href="#gallery">Фото</a>
-      <a href="#video-showcase">Видео</a>
-      <a href="#services">Мойка</a>
-      <a href="#dry-cleaning">Химчистка</a>
-      <a href="#loyalty">Бонусы</a>
-      <a href="#news">Новости</a>
+      <a href="#pick">Подбор ухода</a>
+      <a href="#services">Услуги</a>
+      <a href="#ritual">Как работаем</a>
+      <a href="#loyalty">Ананасы</a>
       <a href="cabinet.html">Кабинет</a>
       <a href="#contacts">Контакты</a>
     </div>
@@ -202,7 +201,9 @@
   <span class="close-x" id="missYouClose">✕</span>
 </div>
 
+<button class="booking-backdrop" id="bookingBackdrop" aria-label="Закрыть форму записи"></button>
 <header class="hero dirt-wash-section" id="top">
+  <video class="hero-video" src="static/video/showcase.mp4" poster="static/video/showcase-poster.jpg" autoplay muted loop playsinline aria-hidden="true"></video>
   <div class="dirt-wash-layer" id="dirtWashLayer"></div>
   <div class="wrap hero-grid">
     <div>
@@ -240,6 +241,7 @@
     </div>
 
     <div class="book-widget" id="bookWidget">
+      <button class="booking-close" id="bookingClose" aria-label="Закрыть">×</button>
       <h3>Быстрая запись</h3>
       <div class="stepper" id="bookStepper">
         <div class="step active" data-step="1"><div class="dot">1</div><span class="label">Телефон</span></div>
@@ -287,7 +289,27 @@
   </div>
 </header>
 
-<div class="wave" style="background:var(--sumi);"><svg viewBox="0 0 1200 60" preserveAspectRatio="none"><path d="M0,34 C 200,80 400,0 600,26 C 800,52 1000,8 1200,34 L1200,60 L0,60 Z" fill="var(--washi)"></path></svg></div>
+<section class="care-picker" id="pick">
+  <div class="care-picker-inner">
+    <div class="care-picker-copy">
+      <div class="kicker">01 / Подбор ухода</div>
+      <h2>Что нужно машине?</h2>
+      <div class="goal-buttons" id="goalButtons">
+        <button class="active" data-goal="quick"><span>✓</span>Быстро освежить</button>
+        <button data-goal="inside"><span></span>Кузов + салон</button>
+        <button data-goal="restore"><span></span>Вернуть вид</button>
+        <button data-goal="protect"><span></span>Защитить кузов</button>
+      </div>
+    </div>
+    <div class="care-result">
+      <small>РЕКОМЕНДУЕМ</small>
+      <h3 id="goalService">Загружаем…</h3>
+      <p id="goalNote">Подберём программу под состояние автомобиля и вашу задачу.</p>
+      <b id="goalPrice"></b>
+      <button class="btn btn-primary btn-magnetic" id="goalBook">Записаться на эту услугу →</button>
+    </div>
+  </div>
+</section>
 
 <section id="gallery">
   <div class="wrap">
@@ -333,7 +355,7 @@
       </div>
       <div class="video-showcase-frame">
         <div class="video-card" id="showcaseVideoCard">
-          <video id="showcaseVideo" src="static/video/showcase.mp4" poster="static/video/showcase-poster.jpg" playsinline preload="metadata"></video>
+          <video id="showcaseVideo" src="static/video/showcase.mp4" poster="static/video/showcase-poster.jpg" muted loop playsinline preload="metadata"></video>
           <button class="video-play-btn" id="showcasePlayBtn" aria-label="Воспроизвести видео">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           </button>
@@ -349,6 +371,14 @@
       <div class="kicker">Услуги и тарифы</div>
       <h2>Четыре формата — от быстрого ополаскивания до детейлинга</h2>
       <p>Выбирайте программу под задачу и записывайтесь прямо на сайте.</p>
+    </div>
+    <div class="catalog-tools">
+      <div class="catalog-tabs" id="catalogTabs">
+        <button class="active" data-filter="all">Все</button>
+        <button data-filter="wash">Мойка</button>
+        <button data-filter="care">Детейлинг и уход</button>
+      </div>
+      <label class="catalog-search"><input id="serviceSearch" type="search" placeholder="Найти услугу" aria-label="Найти услугу"></label>
     </div>
     <div class="services-grid" id="washGrid">
       <div class="skeleton skeleton-card"></div>
@@ -383,6 +413,29 @@
       <div class="gallery-item span-2"><img src="static/img/drycleaning/02-door-panel.jpg" alt="Обшивка двери до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Обшивка двери и стеклоподъёмники</span></div>
       <div class="gallery-item span-2"><img src="static/img/drycleaning/04-seatback.jpg" alt="Спинка сиденья до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Спинка заднего сиденья</span></div>
       <div class="gallery-item span-2"><img src="static/img/drycleaning/05-sill.jpg" alt="Порог и кнопки лючка до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Порог и блок кнопок лючка</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="ritual-v2" id="ritual">
+  <div class="ritual-copy">
+    <b class="number">03</b>
+    <p>КАК МЫ РАБОТАЕМ</p>
+    <h2>НЕ КОНВЕЙЕР.<br><em>РИТУАЛ УХОДА.</em></h2>
+    <p>Понятный процесс без лишних обещаний. Выберите этап и посмотрите, из чего складывается результат.</p>
+    <div class="ritual-list" id="ritualList">
+      <button class="active" data-stage="0"><span>01</span><b>Диагностика</b><i>↗</i></button>
+      <button data-stage="1"><span>02</span><b>Точный состав</b><i>↗</i></button>
+      <button data-stage="2"><span>03</span><b>Ручная работа</b><i>↗</i></button>
+      <button data-stage="3"><span>04</span><b>Контроль</b><i>↗</i></button>
+    </div>
+  </div>
+  <div class="ritual-visual">
+    <div class="wash-rings" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="ritual-stage">
+      <small id="ritualNumber">ЭТАП 01</small>
+      <h3 id="ritualTitle">Диагностика</h3>
+      <p id="ritualText">Смотрим состояние кузова и салона, уточняем задачу и не навязываем лишнее.</p>
     </div>
   </div>
 </section>
@@ -433,7 +486,10 @@
 <div class="admin-strip">
   <div class="wrap">
     <p>Управление сайтом — записи, химчистка, график, статистика — в отдельной админ-панели.</p>
-    <a href="admin.html" class="btn btn-outline" style="padding:10px 20px;font-size:13px;">Открыть админ-панель →</a>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="manager.html" class="btn btn-outline" style="padding:10px 20px;font-size:13px;">Панель руководителя →</a>
+      <a href="admin.html" class="btn btn-outline" style="padding:10px 20px;font-size:13px;">Админ-панель →</a>
+    </div>
   </div>
 </div>
 
@@ -507,17 +563,20 @@
   renderPunchCard('punchCard', 0);
 
   let priceCounter = 0;
+  let allPublicServices = [];
+  let selectedGoalServiceId = null;
   function serviceCard(s, iconPath) {
     priceCounter += 1;
     const priceId = 'price-' + priceCounter;
     const price = s.price_to
       ? `${Math.round(s.price_from).toLocaleString('ru-RU')}–${Math.round(s.price_to).toLocaleString('ru-RU')} ₽`
       : `от ${Math.round(s.price_from).toLocaleString('ru-RU')} ₽`;
-    return `<div class="service-card">
+    return `<div class="service-card ${s.counts_towards_loyalty ? 'featured' : ''}" data-service-id="${s.id}" data-group="${s._group}" data-search="${escapeHtml((s.name + ' ' + (s.description || '')).toLowerCase())}">
       <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${iconPath}</svg></div>
+      ${s.counts_towards_loyalty ? '<span class="loyalty-mark">+ АНАНАС</span>' : ''}
       <h3>${escapeHtml(s.name)}</h3>
       <p class="desc">${escapeHtml(s.description || '')}</p>
-      <div class="service-meta"><span class="price" id="${priceId}">${price}</span><span class="time">${s.duration_min ? '≈ ' + s.duration_min + ' мин' : ''}</span></div>
+      <div class="service-meta"><span class="price" id="${priceId}">${price}</span><button class="time service-book-btn" data-service-id="${s.id}">${s.duration_min ? '≈ ' + s.duration_min + ' мин · ' : ''}выбрать →</button></div>
     </div>`;
   }
   function animatePricesIn(containerId) {
@@ -535,18 +594,110 @@
 
   async function loadServices() {
     try {
-      const wash = await api('/services?category=wash');
+      const [washRaw, dryRaw] = await Promise.all([
+        api('/services?category=wash'),
+        api('/dry-cleaning/services')
+      ]);
+      const wash = washRaw.map(s => ({ ...s, _group: 'wash' }));
+      const dry = dryRaw.map(s => ({ ...s, _group: 'care' }));
+      allPublicServices = [...wash, ...dry];
       document.getElementById('washGrid').innerHTML = wash.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
-      const serviceSelect = document.getElementById('serviceSelect');
-      serviceSelect.innerHTML = wash.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${s.price_to ? Math.round(s.price_from) + '–' + Math.round(s.price_to) : 'от ' + Math.round(s.price_from)} ₽</option>`).join('');
+      document.getElementById('dryGrid').innerHTML = dry.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
+      document.getElementById('serviceSelect').innerHTML = allPublicServices.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${s.price_to ? Math.round(s.price_from) + '–' + Math.round(s.price_to) : 'от ' + Math.round(s.price_from)} ₽</option>`).join('');
+      renderGoalRecommendation('quick');
     } catch (e) {
       document.getElementById('washGrid').innerHTML = '<p style="color:var(--ink-soft);">Не удалось загрузить услуги — проверь, что backend запущен (' + API_BASE + ').</p>';
+      document.getElementById('dryGrid').innerHTML = '';
     }
-    try {
-      const dry = await api('/dry-cleaning/services');
-      document.getElementById('dryGrid').innerHTML = dry.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
-    } catch (e) {}
   }
+
+  function formatServicePrice(service) {
+    return service.price_to
+      ? `${Math.round(service.price_from).toLocaleString('ru-RU')}–${Math.round(service.price_to).toLocaleString('ru-RU')} ₽`
+      : `от ${Math.round(service.price_from).toLocaleString('ru-RU')} ₽`;
+  }
+
+  const goalRules = {
+    quick: { terms: ['экспресс'], note: 'Когда кузов просто запылился и важны минуты.' },
+    inside: { terms: ['комплексная (полная)', 'комплексная'], note: 'Кузов и салон — полный порядок за один визит.' },
+    restore: { terms: ['полировка'], note: 'Для мелких царапин, паутинки и потёртостей.' },
+    protect: { terms: ['керамическое'], note: 'Долгая защита кузова и выраженный гидрофобный эффект.' }
+  };
+
+  function renderGoalRecommendation(goal) {
+    if (!allPublicServices.length) return;
+    const rule = goalRules[goal] || goalRules.inside;
+    const service = allPublicServices.find(s => rule.terms.some(term => s.name.toLowerCase().includes(term))) || allPublicServices[0];
+    selectedGoalServiceId = service.id;
+    document.getElementById('goalService').textContent = service.name;
+    document.getElementById('goalNote').textContent = rule.note;
+    document.getElementById('goalPrice').textContent = formatServicePrice(service);
+  }
+
+  function openBooking(serviceId) {
+    if (serviceId) {
+      const select = document.getElementById('serviceSelect');
+      if (select) select.value = String(serviceId);
+    }
+    document.body.classList.add('booking-open');
+  }
+  function closeBooking() { document.body.classList.remove('booking-open'); }
+
+  document.querySelectorAll('a[href="#booking"]').forEach(link => {
+    link.addEventListener('click', event => { event.preventDefault(); openBooking(); });
+  });
+  document.getElementById('bookingClose').addEventListener('click', closeBooking);
+  document.getElementById('bookingBackdrop').addEventListener('click', closeBooking);
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeBooking(); });
+  document.getElementById('goalBook').addEventListener('click', () => openBooking(selectedGoalServiceId));
+  document.getElementById('goalButtons').addEventListener('click', event => {
+    const button = event.target.closest('button[data-goal]');
+    if (!button) return;
+    document.querySelectorAll('#goalButtons button').forEach(item => {
+      item.classList.toggle('active', item === button);
+      item.querySelector('span').textContent = item === button ? '✓' : '';
+    });
+    renderGoalRecommendation(button.dataset.goal);
+  });
+  document.addEventListener('click', event => {
+    const button = event.target.closest('.service-book-btn');
+    if (button) openBooking(button.dataset.serviceId);
+  });
+
+  let catalogFilter = 'all';
+  function applyCatalogFilter() {
+    const query = document.getElementById('serviceSearch').value.trim().toLowerCase();
+    document.querySelectorAll('.service-card[data-group]').forEach(card => {
+      const groupMatch = catalogFilter === 'all' || card.dataset.group === catalogFilter;
+      const searchMatch = !query || card.dataset.search.includes(query);
+      card.style.display = groupMatch && searchMatch ? '' : 'none';
+    });
+  }
+  document.getElementById('catalogTabs').addEventListener('click', event => {
+    const button = event.target.closest('button[data-filter]');
+    if (!button) return;
+    catalogFilter = button.dataset.filter;
+    document.querySelectorAll('#catalogTabs button').forEach(item => item.classList.toggle('active', item === button));
+    applyCatalogFilter();
+    if (catalogFilter === 'care') document.getElementById('dry-cleaning').scrollIntoView({ behavior: 'smooth' });
+  });
+  document.getElementById('serviceSearch').addEventListener('input', applyCatalogFilter);
+
+  const ritualStages = [
+    ['01', 'Диагностика', 'Смотрим состояние кузова и салона, уточняем задачу и не навязываем лишнее.'],
+    ['02', 'Точный состав', 'Подбираем химию и способ ухода под загрязнение и материал поверхности.'],
+    ['03', 'Ручная работа', 'Проходим сложные зоны, диски, проёмы и детали без конвейерной спешки.'],
+    ['04', 'Контроль', 'Проверяем результат при рабочем свете и только потом отдаём автомобиль.']
+  ];
+  document.getElementById('ritualList').addEventListener('click', event => {
+    const button = event.target.closest('button[data-stage]');
+    if (!button) return;
+    const stage = ritualStages[Number(button.dataset.stage)];
+    document.querySelectorAll('#ritualList button').forEach(item => item.classList.toggle('active', item === button));
+    document.getElementById('ritualNumber').textContent = `ЭТАП ${stage[0]}`;
+    document.getElementById('ritualTitle').textContent = stage[1];
+    document.getElementById('ritualText').textContent = stage[2];
+  });
 
   async function loadGis() {
     try {
