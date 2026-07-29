@@ -25,5 +25,5 @@ if __name__ == "__main__":
     subprocess.run([sys.executable, "-m", "app.seed"], check=False)
 
     # 2. Стартуем сам сервер в этом же процессе.
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 8123))
     uvicorn.run("app.main:app", host="0.0.0.0", port=port)

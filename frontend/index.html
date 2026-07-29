@@ -207,7 +207,7 @@
   <div class="wrap hero-grid">
     <div>
       <div class="eyebrow">Больше, чем просто автомойка</div>
-      <h1>Моем. Бережём. <em>Блестит.</em></h1>
+      <h1>Моем. Бережём. <em>Доводим до идеала.</em></h1>
       <p class="lead">Каждый автомобиль моем как своего любимого Марка. Профессиональная химия, внимательная работа и понятная запись без очередей.</p>
       <div class="hero-cta">
         <a href="#booking" class="btn btn-primary btn-magnetic">Записаться на мойку</a>
@@ -510,11 +510,14 @@
   function serviceCard(s, iconPath) {
     priceCounter += 1;
     const priceId = 'price-' + priceCounter;
+    const price = s.price_to
+      ? `${Math.round(s.price_from).toLocaleString('ru-RU')}–${Math.round(s.price_to).toLocaleString('ru-RU')} ₽`
+      : `от ${Math.round(s.price_from).toLocaleString('ru-RU')} ₽`;
     return `<div class="service-card">
       <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${iconPath}</svg></div>
       <h3>${escapeHtml(s.name)}</h3>
       <p class="desc">${escapeHtml(s.description || '')}</p>
-      <div class="service-meta"><span class="price count-up" id="${priceId}" data-target="${Math.round(s.price_from)}">0 ₽</span><span class="time">${s.duration_min ? '≈ ' + s.duration_min + ' мин' : ''}</span></div>
+      <div class="service-meta"><span class="price" id="${priceId}">${price}</span><span class="time">${s.duration_min ? '≈ ' + s.duration_min + ' мин' : ''}</span></div>
     </div>`;
   }
   function animatePricesIn(containerId) {
@@ -534,16 +537,14 @@
     try {
       const wash = await api('/services?category=wash');
       document.getElementById('washGrid').innerHTML = wash.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
-      animatePricesIn('washGrid');
       const serviceSelect = document.getElementById('serviceSelect');
-      serviceSelect.innerHTML = wash.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — от ${Math.round(s.price_from)} ₽</option>`).join('');
+      serviceSelect.innerHTML = wash.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${s.price_to ? Math.round(s.price_from) + '–' + Math.round(s.price_to) : 'от ' + Math.round(s.price_from)} ₽</option>`).join('');
     } catch (e) {
       document.getElementById('washGrid').innerHTML = '<p style="color:var(--ink-soft);">Не удалось загрузить услуги — проверь, что backend запущен (' + API_BASE + ').</p>';
     }
     try {
       const dry = await api('/dry-cleaning/services');
       document.getElementById('dryGrid').innerHTML = dry.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
-      animatePricesIn('dryGrid');
     } catch (e) {}
   }
 

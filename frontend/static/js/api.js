@@ -2,7 +2,7 @@
 // Адрес backend API. Если открываешь файлы напрямую (file://) или сайт живёт
 // на другом домене — поменяй на реальный адрес сервера.
 const API_BASE = window.location.origin.startsWith('http')
-  ? window.location.origin.replace(/:\d+$/, ':8123')
+  ? (window.CARWASH_API_BASE || window.location.origin)
   : 'http://127.0.0.1:8123';
 
 const TOKEN_KEY = 'avtomoyka1_token';

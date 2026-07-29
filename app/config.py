@@ -22,8 +22,11 @@ class Settings(BaseSettings):
     vk_access_token: str = ""
 
     admin_phone: str = "+79990000000"
-    admin_password: str = "change-me"
-    manager_password: str = "change-me"
+    # В тестовом режиме seed каждый раз восстанавливает понятные демо-доступы.
+    # На продакшене обязательно задайте TEST_MODE=false и собственные пароли.
+    test_mode: bool = True
+    admin_password: str = "admin"
+    manager_password: str = "manager"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

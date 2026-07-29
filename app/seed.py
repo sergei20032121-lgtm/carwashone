@@ -26,48 +26,54 @@ PAYOUT_PCT = 35  # % от цены услуги — з/п мастера, по �
 def seed():
     db = SessionLocal()
     try:
-        if not db.query(Service).first():
-            # (название, описание, price_from, price_to, минуты, ставит ли ананас)
-            # price_to = None означает "от X", иначе показывается вилка "X-Y"
-            wash_services = [
-                ("Облив авто водой", "Быстрое ополаскивание кузова водой без химии.", 250, None, 10, False),
-                ("Бесконтактная мойка", "Мойка кузова активной пеной без соприкосновения щёток с ЛКП.", 350, 500, 20, False),
-                ("Экспресс мойка авто", "Двухфазная мойка кузова и протирка — когда важны минуты.", 800, None, 25, False),
-                ("Сухой туман", "Устранение запахов в салоне парогенератором.", 400, None, 15, False),
-                ("Покрытие кузова жидким воском", "Быстрая защита ЛКП с гидрофобным эффектом после мойки.", 300, None, 10, False),
-                ("Комплексная (полная) мойка", "Кузов, диски, коврики, проёмы, пороги, пылесос и влажная уборка салона.", 1200, None, 45, True),
-                ("Детейлинг экспресс мойка", "Двухфазная мойка, проёмы, диски, турбосушка, стёкла, коврики и чернение резины.", 1400, None, 40, True),
-                ("Премиум мойка авто", "Комплекс плюс расширенная обработка резины, пластика и стёкол.", 1900, 2500, 60, True),
-            ]
-            for i, (name, desc, price_from, price_to, dur, counts) in enumerate(wash_services):
-                db.add(Service(
-                    category=ServiceCategory.WASH, name=name, description=desc,
-                    price_from=price_from, price_to=price_to, duration_min=dur, sort_order=i,
-                    counts_towards_loyalty=counts, payout_pct=PAYOUT_PCT,
-                ))
+        # (название, описание, price_from, price_to, минуты, ставит ли ананас)
+        # Каталог обновляется по имени: новый seed применяет актуальный прайс и к старой БД.
+        wash_services = [
+            ("Облив авто водой", "Быстрое ополаскивание кузова водой без химии.", 250, None, 10, False),
+            ("Бесконтактная мойка", "Мойка кузова активной пеной без соприкосновения щёток с ЛКП.", 350, 500, 20, False),
+            ("Экспресс мойка авто", "Быстрая профессиональная мойка кузова и протирка.", 900, 1400, 25, False),
+            ("Сухой туман", "Устранение неприятных запахов в салоне.", 400, None, 15, False),
+            ("Покрытие кузова жидким воском", "Быстрая защита ЛКП с гидрофобным эффектом.", 300, 600, 10, False),
+            ("Комплексная (полная) мойка", "Кузов, диски, коврики, проёмы, пороги, пылесос и влажная уборка салона.", 1300, 2100, 45, True),
+            ("Премиум мойка авто", "Комплекс с расширенной обработкой резины, пластика и стёкол.", 1900, 2500, 60, True),
+        ]
+        dry_services = [
+            ("Комплексная детейлинг мойка", "Двухфазная мойка, гидрофобный состав, диски, проёмы, турбосушка и уборка салона.", 2300, 3000, 90, True),
+            ("Химчистка кузова авто", "Глубокая очистка внешних пластиковых и резиновых элементов кузова.", 3000, 5000, 90, True),
+            ("Полировка кузова", "Полировка кузова с удалением мелких царапин и потёртостей.", 6000, 14000, 180, True),
+            ("Химчистка салона авто", "Полная химчистка сидений, ковриков, потолка и дверных карт.", 9000, None, 240, True),
+            ("Керамическое покрытие", "Долговременное защитное керамическое покрытие кузова.", 20000, 40000, 360, True),
+        ]
 
-            dry_services = [
-                ("Комплексная детейлинг мойка", "Двухфазная мойка, гидрофобный состав, диски, педали, проёмы, турбосушка и уборка салона.", 2100, None, 90, True),
-                ("Химчистка кузова авто", "Химчистка внешних пластиковых и резиновых элементов кузова.", 3000, 5000, 90, True),
-                ("Полировка кузова", "Полировка кузова с удалением мелких царапин и потёртостей.", 6000, 14000, 180, True),
-                ("Химчистка салона авто", "Полная химчистка сидений, ковриков, потолка и дверных карт.", 9000, None, 240, True),
-                ("Керамическое покрытие", "Долговременное защитное керамическое покрытие кузова.", 20000, 40000, 360, True),
-            ]
-            for i, (name, desc, price_from, price_to, dur, counts) in enumerate(dry_services):
-                db.add(Service(
-                    category=ServiceCategory.DRY_CLEANING, name=name, description=desc,
-                    price_from=price_from, price_to=price_to, duration_min=dur, sort_order=i,
-                    counts_towards_loyalty=counts, payout_pct=PAYOUT_PCT,
-                ))
-            db.commit()
+        active_names = {item[0] for item in wash_services + dry_services}
+        for category, catalog in (
+            (ServiceCategory.WASH, wash_services),
+            (ServiceCategory.DRY_CLEANING, dry_services),
+        ):
+            for i, (name, desc, price_from, price_to, dur, counts) in enumerate(catalog):
+                service = db.query(Service).filter(Service.name == name).first()
+                if not service:
+                    service = Service(name=name)
+                    db.add(service)
+                service.category = category
+                service.description = desc
+                service.price_from = price_from
+                service.price_to = price_to
+                service.duration_min = dur
+                service.sort_order = i
+                service.is_active = True
+                service.counts_towards_loyalty = counts
+                service.payout_pct = PAYOUT_PCT
+        for service in db.query(Service).all():
+            if service.name not in active_names:
+                service.is_active = False
+        db.commit()
 
         admin_user = db.query(User).filter(User.username == "admin").first()
+        admin_password = settings.admin_password
+        if not settings.test_mode and admin_password in {"admin", "change-me"}:
+            admin_password = secrets.token_urlsafe(12)
         if not admin_user:
-            admin_password = (
-                settings.admin_password
-                if settings.admin_password != "change-me"
-                else secrets.token_urlsafe(12)
-            )
             admin_user = User(
                 username="admin",
                 full_name="Администратор",
@@ -78,6 +84,11 @@ def seed():
             db.commit()
             db.refresh(admin_user)
             print(f"Создан админ: логин 'admin', временный пароль: {admin_password}")
+        elif settings.test_mode:
+            admin_user.password_hash = hash_password(admin_password)
+            admin_user.role = UserRole.ADMIN
+            db.commit()
+            print("Тестовый доступ восстановлен: admin / admin")
 
         if not db.query(Employee).first():
             employees = [
@@ -106,20 +117,25 @@ def seed():
                 db.add(ShiftSchedule(employee_id=emp.id, work_date=date.today(), shift_type=ShiftType.FULL_DAY))
             db.commit()
 
-        if not db.query(User).filter(User.username == "manager").first():
-            manager_password = (
-                settings.manager_password
-                if settings.manager_password != "change-me"
-                else secrets.token_urlsafe(12)
-            )
-            db.add(User(
+        manager_user = db.query(User).filter(User.username == "manager").first()
+        manager_password = settings.manager_password
+        if not settings.test_mode and manager_password in {"manager", "change-me"}:
+            manager_password = secrets.token_urlsafe(12)
+        if not manager_user:
+            manager_user = User(
                 username="manager",
                 full_name="Руководитель",
                 role=UserRole.MANAGER,
                 password_hash=hash_password(manager_password),
-            ))
+            )
+            db.add(manager_user)
             db.commit()
             print(f"Создан руководитель: логин 'manager', временный пароль: {manager_password}")
+        elif settings.test_mode:
+            manager_user.password_hash = hash_password(manager_password)
+            manager_user.role = UserRole.MANAGER
+            db.commit()
+            print("Тестовый доступ восстановлен: manager / manager")
 
         if not db.query(GisSettings).first():
             # Рейтинг и количество оценок проверены по публичной карточке 2ГИС 28.07.2026.
