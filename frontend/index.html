@@ -334,8 +334,10 @@
     </div>
     <div class="care-result">
       <small>КАЛЬКУЛЯТОР · ОРИЕНТИР ПО ПРАЙСУ</small>
+      <span class="goal-category" id="goalCategory">МОЙКА</span>
       <h3 id="goalService">Загружаем…</h3>
       <p id="goalNote">Ответьте на три вопроса — покажем подходящую услугу и цену.</p>
+      <ul class="goal-includes" id="goalIncludes"></ul>
       <b id="goalPrice"></b>
       <p id="goalEstimateDetails" class="goal-estimate-details"></p>
       <button class="btn btn-primary btn-magnetic" id="goalBook">Записаться на эту услугу →</button>
@@ -616,11 +618,11 @@
   }
 
   const goalRules = {
-    quick: { terms: ['экспресс'], note: 'Если машина просто запылилась и нужно быстро привести её в порядок.' },
-    inside: { terms: ['комплексная (полная)', 'комплексная'], note: 'Помоем кузов и уберёмся в салоне за один приезд.' },
-    dry: { terms: ['химчистка салона авто', 'химчистка салона'], note: 'Для глубокой очистки сидений, ковролина, потолка и трудных зон салона.' },
-    restore: { terms: ['полировка'], note: 'Подойдёт, если на лаке появилась паутинка, мелкие царапины и потёртости.' },
-    protect: { terms: ['керамическое'], note: 'После покрытия кузов легче мыть, а вода меньше задерживается на лаке.' }
+    quick: { terms: ['экспресс'], category: 'Мойка', includes: ['Кузов', 'Протирка'], note: 'Если машина просто запылилась и нужно быстро привести её в порядок.' },
+    inside: { terms: ['комплексная (полная)', 'комплексная'], category: 'Мойка', includes: ['Кузов', 'Диски', 'Уборка салона'], note: 'Помоем кузов и уберёмся в салоне за один приезд.' },
+    dry: { terms: ['химчистка салона авто', 'химчистка салона'], category: 'Химчистка', includes: ['Сиденья', 'Ковролин', 'Потолок', 'Дверные карты'], note: 'Для глубокой очистки сидений, ковролина, потолка и трудных зон салона.' },
+    restore: { terms: ['полировка'], category: 'Детейлинг', includes: ['Осмотр ЛКП', 'Полировка', 'Финишный контроль'], note: 'Подойдёт, если на лаке появилась паутинка, мелкие царапины и потёртости.' },
+    protect: { terms: ['керамическое'], category: 'Защита кузова', includes: ['Подготовка ЛКП', 'Покрытие', 'Финишный контроль'], note: 'После покрытия кузов легче мыть, а вода меньше задерживается на лаке.' }
   };
 
   function renderGoalRecommendation(goal) {
@@ -635,7 +637,9 @@
       .map(term => allPublicServices.find(s => s.name.toLowerCase().includes(term)))
       .find(Boolean) || allPublicServices[0];
     selectedGoalServiceId = service.id;
+    document.getElementById('goalCategory').textContent = rule.category;
     document.getElementById('goalService').textContent = service.name;
+    document.getElementById('goalIncludes').innerHTML = rule.includes.map(item => `<li>${escapeHtml(item)}</li>`).join('');
     const vehicleLabel = vehicle === 'large' ? 'большого SUV' : (vehicle === 'suv' ? 'кроссовера' : 'седана');
     const priorityNote = priority === 'fast' ? ' Выбираем самый быстрый подходящий вариант.' : (priority === 'result' ? ' Подбираем полноценную обработку, а не расширенную обычную мойку.' : '');
     document.getElementById('goalNote').textContent = `${rule.note} Подойдёт для ${vehicleLabel}.${priorityNote}`;

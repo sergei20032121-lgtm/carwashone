@@ -87,9 +87,15 @@ function initCustomCursor() {
   document.body.classList.add('custom-cursor-on');
   const cursor = document.createElement('div');
   cursor.className = 'custom-cursor';
-  cursor.innerHTML = '<svg viewBox="0 0 24 24" fill="#BE3B3B"><path d="M12 2c4 5.5 7 9.3 7 13a7 7 0 1 1-14 0c0-3.7 3-7.5 7-13Z"/></svg>';
+  cursor.innerHTML = '<span class="cursor-drop-fill"></span><svg viewBox="0 0 24 28" aria-hidden="true"><path d="M12 1.5C16.7 8 21 13.1 21 18a9 9 0 1 1-18 0C3 13.1 7.3 8 12 1.5Z"/></svg>';
   document.body.appendChild(cursor);
   let raf = null, x = 0, y = 0;
+  const updateProgress = () => {
+    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    cursor.style.setProperty('--cursor-progress', `${Math.min(100, Math.max(8, scrollY / max * 100))}%`);
+  };
+  updateProgress();
+  addEventListener('scroll', updateProgress, { passive: true });
   document.addEventListener('mousemove', (e) => {
     x = e.clientX; y = e.clientY;
     cursor.classList.add('visible');
@@ -99,27 +105,22 @@ function initCustomCursor() {
     const target = e.target.closest('a, button, .gallery-item, input, select, .service-card');
     cursor.classList.toggle('hover-target', !!target);
   });
+  document.addEventListener('mousedown', () => cursor.classList.add('pressed'));
+  document.addEventListener('mouseup', () => cursor.classList.remove('pressed'));
   document.addEventListener('mouseleave', () => cursor.classList.remove('visible'));
 }
 
-// Мыльный след из пузырьков за курсором (лёгкий, редкий — не спамит)
+// Водяной отклик только по клику: не оставляет постоянный след за курсором
 function initSoapTrail() {
   if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  let lastSpawn = 0;
-  document.addEventListener('mousemove', (e) => {
-    const now = performance.now();
-    if (now - lastSpawn < 90) return;
-    lastSpawn = now;
-    const size = 5 + Math.random() * 7;
-    const b = document.createElement('div');
-    b.className = 'soap-bubble';
-    b.style.width = size + 'px';
-    b.style.height = size + 'px';
-    b.style.left = (e.clientX + (Math.random() * 10 - 5)) + 'px';
-    b.style.top = (e.clientY + (Math.random() * 10 - 5)) + 'px';
-    document.body.appendChild(b);
-    setTimeout(() => b.remove(), 1200);
+  document.addEventListener('click', (e) => {
+    const ripple = document.createElement('span');
+    ripple.className = 'water-click-ripple';
+    ripple.style.left = `${e.clientX}px`;
+    ripple.style.top = `${e.clientY}px`;
+    document.body.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 650);
   });
 }
 
