@@ -321,7 +321,7 @@
       <div class="goal-buttons" id="goalButtons">
         <button class="active" data-goal="quick"><span>✓</span>Быстро освежить</button>
         <button data-goal="inside"><span></span>Кузов + салон</button>
-        <button data-goal="dry"><span></span>Глубоко очистить салон</button>
+        <button data-goal="dry"><span></span>Химчистка салона</button>
         <button data-goal="restore"><span></span>Убрать мелкие царапины</button>
         <button data-goal="protect"><span></span>Защитить лак</button>
       </div>
@@ -346,25 +346,18 @@
 <section id="gallery">
   <div class="wrap">
     <div class="works-head reveal">
-      <div><div class="kicker">Обычная мойка</div><h2>Кузов и салон.<br>Без путаницы.</h2></div>
-      <p>Здесь только мойка: кузов, арки, диски и уборка салона. Химчистка и детейлинг собраны отдельно ниже.</p>
+      <div><div class="kicker">Реальные работы</div><h2>Доказательства<br>вместо обещаний.</h2></div>
+      <p>Рабочие фотографии из нашего бокса. Показываем результат таким, какой он есть.</p>
     </div>
+    <div class="works-group-label reveal"><span>01</span><h3>Мойка</h3><p>Кузов, арки, диски и уборка салона</p></div>
     <div class="works-grid wash-works reveal">
       <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/01-orange-wash.webp" alt="Кузов автомобиля до и после мойки" loading="lazy"></figure>
       <figure class="gallery-item work-card"><img src="static/img/gallery/08-foam-bmw.jpg" alt="Мойка кузова активной пеной" loading="lazy"></figure>
       <figure class="gallery-item work-card"><img src="static/img/gallery/06-wheel-before-after.jpg" alt="Диск и колёсная арка до и после мойки" loading="lazy"></figure>
       <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/05-driver-area.webp" alt="Салон автомобиля до и после уборки" loading="lazy"></figure>
     </div>
-  </div>
-</section>
-
-<section id="detailing" class="detailing-works">
-  <div class="wrap">
-    <div class="works-head reveal">
-      <div><div class="kicker">Отдельное направление</div><h2>Детейлинг и<br>восстановление.</h2></div>
-      <p>Полировка кузова и оптики, защитные покрытия и работа с деталями — не добавка к мойке, а отдельная задача мастера.</p>
-    </div>
-    <div class="works-grid reveal">
+    <div class="works-group-label works-group-label-second reveal"><span>02</span><h3>Полировка и оптика</h3><p>Отдельные работы мастера</p></div>
+    <div class="works-grid detail-works-grid reveal">
       <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/06-polish.webp" alt="Полировка лакокрасочного покрытия" loading="lazy"></figure>
       <figure class="gallery-item work-card"><img src="static/img/works-v22/03-headlight.webp" alt="Полировка автомобильной фары до и после" loading="lazy"></figure>
       <figure class="gallery-item work-card"><img src="static/img/works-v22/15-headlight-restoration.webp" alt="Восстановление прозрачности фары" loading="lazy"></figure>
@@ -625,7 +618,7 @@
   const goalRules = {
     quick: { terms: ['экспресс'], note: 'Если машина просто запылилась и нужно быстро привести её в порядок.' },
     inside: { terms: ['комплексная (полная)', 'комплексная'], note: 'Помоем кузов и уберёмся в салоне за один приезд.' },
-    dry: { terms: ['химчистка салона', 'химчистка'], note: 'Для глубокой очистки сидений, ковролина, потолка и трудных зон салона.' },
+    dry: { terms: ['химчистка салона авто', 'химчистка салона'], note: 'Для глубокой очистки сидений, ковролина, потолка и трудных зон салона.' },
     restore: { terms: ['полировка'], note: 'Подойдёт, если на лаке появилась паутинка, мелкие царапины и потёртости.' },
     protect: { terms: ['керамическое'], note: 'После покрытия кузов легче мыть, а вода меньше задерживается на лаке.' }
   };
@@ -638,7 +631,9 @@
     if (priority === 'fast' && !['protect', 'dry'].includes(goal)) effectiveGoal = 'quick';
     if (priority === 'result' && goal === 'quick') effectiveGoal = 'restore';
     const rule = goalRules[effectiveGoal] || goalRules.inside;
-    const service = allPublicServices.find(s => rule.terms.some(term => s.name.toLowerCase().includes(term))) || allPublicServices[0];
+    const service = rule.terms
+      .map(term => allPublicServices.find(s => s.name.toLowerCase().includes(term)))
+      .find(Boolean) || allPublicServices[0];
     selectedGoalServiceId = service.id;
     document.getElementById('goalService').textContent = service.name;
     const vehicleLabel = vehicle === 'large' ? 'большого SUV' : (vehicle === 'suv' ? 'кроссовера' : 'седана');
