@@ -1,0 +1,67 @@
+/* V23 — ясные направления, ровный hero и аккуратная мобильная сетка */
+html,body{overflow-x:hidden}
+
+@media(min-width:981px){
+  .hero .hero-grid{
+    width:100%;
+    max-width:none;
+    margin:0;
+    box-sizing:border-box;
+    padding:64px max(28px,calc((100vw - 1480px)/2));
+  }
+}
+
+.gis-badge.gis-logo{
+  width:62px;
+  height:40px;
+  padding:0;
+  border-radius:9px;
+  overflow:hidden;
+  background:#19aa55;
+}
+.gis-logo svg{width:100%;height:100%;display:block}
+
+.work-card:after{display:none}
+.work-card{cursor:zoom-in}
+.wash-works{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:300px}
+
+.detailing-works{
+  padding:118px 0;
+  color:#fff;
+  background:#0b1215;
+}
+.detailing-works .works-head>p{color:#9aa7aa}
+.detailing-works .kicker{color:#65ded9}
+.detailing-works .work-card{border:1px solid rgba(255,255,255,.08)}
+
+.dry-section .section-head h2,
+.dry-section .section-head h3{
+  color:#fff!important;
+  opacity:1!important;
+}
+.dry-section .section-head>p{color:#c9c2af!important}
+.dry-section .gallery-item{overflow:hidden}
+
+.goal-estimate-details{
+  padding-top:13px;
+  border-top:1px solid rgba(255,255,255,.12);
+}
+
+@media(max-width:980px){
+  .hero .hero-grid{width:100%;box-sizing:border-box}
+  .gis-badge.gis-logo{width:56px;height:34px}
+  .detailing-works{padding:80px 0}
+}
+
+@media(max-width:600px){
+  .hero .hero-grid{padding-left:18px;padding-right:18px}
+  .hero h1{max-width:100%;font-size:clamp(42px,13vw,56px)}
+  .gis-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto}
+  .gis-info{min-width:0}
+  .gis-info span a{display:block;white-space:normal}
+  .goal-buttons button{min-height:58px}
+  .detailing-works{padding:64px 0}
+  .detailing-works .works-head{display:block}
+  .detailing-works .works-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;margin:0 -18px;padding:0 18px 12px;scrollbar-width:none}
+  .detailing-works .work-card,.detailing-works .work-card.work-wide{flex:0 0 84vw;height:330px;grid-column:auto;scroll-snap-align:center}
+}

@@ -150,6 +150,7 @@
 <link rel="stylesheet" href="static/css/interactions-v9.css">
 <link rel="stylesheet" href="static/css/hero-inspection-v15.css">
 <link rel="stylesheet" href="static/css/finale-v22.css">
+<link rel="stylesheet" href="static/css/visual-v23.css">
 </head>
 <body>
 
@@ -212,7 +213,13 @@
         <div class="hero-slots-list" id="heroSlotsList"><i></i><i></i><i></i></div>
       </div>
       <div class="gis-card" id="gisCard">
-        <div class="gis-badge">2Г</div>
+        <div class="gis-badge gis-logo" aria-label="2ГИС">
+          <svg viewBox="0 0 72 42" role="img" aria-hidden="true">
+            <rect width="72" height="42" rx="9" fill="#19aa55"/>
+            <path d="M18 11.5a8.5 8.5 0 1 1-5.9 14.6l3.2-3.2a4 4 0 1 0-.8-5.5l-4-2.2A8.5 8.5 0 0 1 18 11.5Z" fill="#fff"/>
+            <text x="30" y="27.5" fill="#fff" font-family="Arial,sans-serif" font-size="15" font-weight="700">2ГИС</text>
+          </svg>
+        </div>
         <div class="gis-info">
           <b>Магистральная, 90/1</b>
           <span id="gisAddressLine"><a href="https://go.2gis.com/Q4DrY" target="_blank" rel="noopener" style="color:#56D7D8;">Маршрут и отзывы в 2ГИС →</a></span>
@@ -314,6 +321,7 @@
       <div class="goal-buttons" id="goalButtons">
         <button class="active" data-goal="quick"><span>✓</span>Быстро освежить</button>
         <button data-goal="inside"><span></span>Кузов + салон</button>
+        <button data-goal="dry"><span></span>Глубоко очистить салон</button>
         <button data-goal="restore"><span></span>Убрать мелкие царапины</button>
         <button data-goal="protect"><span></span>Защитить лак</button>
       </div>
@@ -338,22 +346,29 @@
 <section id="gallery">
   <div class="wrap">
     <div class="works-head reveal">
-      <div><div class="kicker">Реальные работы</div><h2>Доказательства<br>вместо обещаний.</h2></div>
-      <p>Рабочие фотографии из нашего бокса. Кузов, салон, оптика и сложные зоны — показываем результат таким, какой он есть.</p>
+      <div><div class="kicker">Обычная мойка</div><h2>Кузов и салон.<br>Без путаницы.</h2></div>
+      <p>Здесь только мойка: кузов, арки, диски и уборка салона. Химчистка и детейлинг собраны отдельно ниже.</p>
+    </div>
+    <div class="works-grid wash-works reveal">
+      <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/01-orange-wash.webp" alt="Кузов автомобиля до и после мойки" loading="lazy"></figure>
+      <figure class="gallery-item work-card"><img src="static/img/gallery/08-foam-bmw.jpg" alt="Мойка кузова активной пеной" loading="lazy"></figure>
+      <figure class="gallery-item work-card"><img src="static/img/gallery/06-wheel-before-after.jpg" alt="Диск и колёсная арка до и после мойки" loading="lazy"></figure>
+      <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/05-driver-area.webp" alt="Салон автомобиля до и после уборки" loading="lazy"></figure>
+    </div>
+  </div>
+</section>
+
+<section id="detailing" class="detailing-works">
+  <div class="wrap">
+    <div class="works-head reveal">
+      <div><div class="kicker">Отдельное направление</div><h2>Детейлинг и<br>восстановление.</h2></div>
+      <p>Полировка кузова и оптики, защитные покрытия и работа с деталями — не добавка к мойке, а отдельная задача мастера.</p>
     </div>
     <div class="works-grid reveal">
-      <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/01-orange-wash.webp" alt="Кузов автомобиля до и после мойки" loading="lazy"><figcaption><b>Мойка кузова</b><span>01 · до / после</span></figcaption></figure>
-      <figure class="gallery-item work-card work-tall"><img src="static/img/works-v22/11-front-seats.webp" alt="Химчистка передних сидений до и после" loading="lazy"><figcaption><b>Глубокая химчистка</b><span>02 · салон</span></figcaption></figure>
-      <figure class="gallery-item work-card"><img src="static/img/works-v22/03-headlight.webp" alt="Полировка автомобильной фары до и после" loading="lazy"><figcaption><b>Восстановление оптики</b><span>03 · свет</span></figcaption></figure>
-      <figure class="gallery-item work-card"><img src="static/img/works-v22/06-polish.webp" alt="Полировка чёрного кузова" loading="lazy"><figcaption><b>Полировка кузова</b><span>04 · ЛКП</span></figcaption></figure>
-      <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/14-engine.webp" alt="Подкапотное пространство до и после мойки" loading="lazy"><figcaption><b>Подкапотное пространство</b><span>05 · до / после</span></figcaption></figure>
-      <figure class="gallery-item work-card"><img src="static/img/works-v22/05-driver-area.webp" alt="Водительское место до и после уборки" loading="lazy"><figcaption><b>Детальная уборка</b><span>06 · интерьер</span></figcaption></figure>
-      <figure class="gallery-item work-card work-tall"><img src="static/img/works-v22/12-rear-seat.webp" alt="Задний ряд сидений до и после химчистки" loading="lazy"><figcaption><b>Задний ряд</b><span>07 · химчистка</span></figcaption></figure>
-      <figure class="gallery-item work-card"><img src="static/img/works-v22/09-console.webp" alt="Центральная консоль до и после чистки" loading="lazy"><figcaption><b>Сложные зоны</b><span>08 · детали</span></figcaption></figure>
-      <figure class="gallery-item work-card"><img src="static/img/works-v22/04-trim.webp" alt="Пластик автомобиля до и после обработки" loading="lazy"><figcaption><b>Восстановление пластика</b><span>09 · уход</span></figcaption></figure>
-      <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/15-headlight-restoration.webp" alt="Фара автомобиля до и после восстановления" loading="lazy"><figcaption><b>Прозрачная оптика</b><span>10 · результат</span></figcaption></figure>
-      <figure class="gallery-item work-card"><img src="static/img/works-v22/13-headliner.webp" alt="Потолок автомобиля до и после химчистки" loading="lazy"><figcaption><b>Потолок салона</b><span>11 · бережно</span></figcaption></figure>
-      <figure class="gallery-item work-card"><img src="static/img/works-v22/02-peugeot.webp" alt="Белый автомобиль до и после мойки" loading="lazy"><figcaption><b>Чистый кузов</b><span>12 · финиш</span></figcaption></figure>
+      <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/06-polish.webp" alt="Полировка лакокрасочного покрытия" loading="lazy"></figure>
+      <figure class="gallery-item work-card"><img src="static/img/works-v22/03-headlight.webp" alt="Полировка автомобильной фары до и после" loading="lazy"></figure>
+      <figure class="gallery-item work-card"><img src="static/img/works-v22/15-headlight-restoration.webp" alt="Восстановление прозрачности фары" loading="lazy"></figure>
+      <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/04-trim.webp" alt="Восстановление внешнего пластика автомобиля" loading="lazy"></figure>
     </div>
   </div>
 </section>
@@ -388,7 +403,7 @@
     <div class="section-head reveal">
       <div class="kicker">Отдельное направление</div>
       <h2>Химчистка</h2>
-      <p>Сидения, ковролин, потолок, полировка и керамика — отдельный прайс и отдельная запись мастера.</p>
+      <p>Сидения, ковролин, потолок и трудные зоны салона — отдельный прайс и отдельная запись мастера.</p>
     </div>
     <div class="services-grid" id="dryGrid">
       <div class="skeleton skeleton-card" style="background:rgba(255,255,255,0.06);"></div>
@@ -401,11 +416,11 @@
       <p style="color:#C9C2AF;font-size:14px;margin-top:6px;">Реальные заказы наших мастеров — без фильтров и постановки.</p>
     </div>
     <div class="gallery-grid reveal">
-      <div class="gallery-item span-2"><img src="static/img/drycleaning/03-console.jpg" alt="Центральная консоль до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Салон целиком — до и после</span></div>
-      <div class="gallery-item span-2"><img src="static/img/drycleaning/01-carpet.jpg" alt="Ковролин до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Ковролин заднего ряда</span></div>
-      <div class="gallery-item span-2"><img src="static/img/drycleaning/02-door-panel.jpg" alt="Обшивка двери до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Обшивка двери и стеклоподъёмники</span></div>
-      <div class="gallery-item span-2"><img src="static/img/drycleaning/04-seatback.jpg" alt="Спинка сиденья до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Спинка заднего сиденья</span></div>
-      <div class="gallery-item span-2"><img src="static/img/drycleaning/05-sill.jpg" alt="Порог и кнопки лючка до и после химчистки" loading="lazy" class="photo-grade"><span class="gallery-cap">Порог и блок кнопок лючка</span></div>
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/03-console.jpg" alt="Центральная консоль до и после химчистки" loading="lazy" class="photo-grade"></div>
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/01-carpet.jpg" alt="Ковролин до и после химчистки" loading="lazy" class="photo-grade"></div>
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/02-door-panel.jpg" alt="Обшивка двери до и после химчистки" loading="lazy" class="photo-grade"></div>
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/04-seatback.jpg" alt="Спинка сиденья до и после химчистки" loading="lazy" class="photo-grade"></div>
+      <div class="gallery-item span-2"><img src="static/img/drycleaning/05-sill.jpg" alt="Порог и кнопки лючка до и после химчистки" loading="lazy" class="photo-grade"></div>
     </div>
   </div>
 </section>
@@ -610,6 +625,7 @@
   const goalRules = {
     quick: { terms: ['экспресс'], note: 'Если машина просто запылилась и нужно быстро привести её в порядок.' },
     inside: { terms: ['комплексная (полная)', 'комплексная'], note: 'Помоем кузов и уберёмся в салоне за один приезд.' },
+    dry: { terms: ['химчистка салона', 'химчистка'], note: 'Для глубокой очистки сидений, ковролина, потолка и трудных зон салона.' },
     restore: { terms: ['полировка'], note: 'Подойдёт, если на лаке появилась паутинка, мелкие царапины и потёртости.' },
     protect: { terms: ['керамическое'], note: 'После покрытия кузов легче мыть, а вода меньше задерживается на лаке.' }
   };
@@ -619,14 +635,14 @@
     const priority = document.querySelector('#priorityButtons button.active')?.dataset.priority || 'balanced';
     const vehicle = document.querySelector('#vehicleButtons button.active')?.dataset.vehicle || 'sedan';
     let effectiveGoal = goal;
-    if (priority === 'fast' && goal !== 'protect') effectiveGoal = 'quick';
-    if (priority === 'result' && goal === 'quick') effectiveGoal = 'inside';
+    if (priority === 'fast' && !['protect', 'dry'].includes(goal)) effectiveGoal = 'quick';
+    if (priority === 'result' && goal === 'quick') effectiveGoal = 'restore';
     const rule = goalRules[effectiveGoal] || goalRules.inside;
     const service = allPublicServices.find(s => rule.terms.some(term => s.name.toLowerCase().includes(term))) || allPublicServices[0];
     selectedGoalServiceId = service.id;
     document.getElementById('goalService').textContent = service.name;
     const vehicleLabel = vehicle === 'large' ? 'большого SUV' : (vehicle === 'suv' ? 'кроссовера' : 'седана');
-    const priorityNote = priority === 'fast' ? ' Берём самый быстрый подходящий вариант.' : (priority === 'result' ? ' Здесь лучше не торопиться и сделать работу полностью.' : '');
+    const priorityNote = priority === 'fast' ? ' Выбираем самый быстрый подходящий вариант.' : (priority === 'result' ? ' Подбираем полноценную обработку, а не расширенную обычную мойку.' : '');
     document.getElementById('goalNote').textContent = `${rule.note} Подойдёт для ${vehicleLabel}.${priorityNote}`;
     const estimate = calculateServiceEstimate(service, vehicle);
     document.getElementById('goalPrice').textContent = `${estimate.prefix}${Math.round(estimate.value).toLocaleString('ru-RU')} ₽`;
@@ -707,7 +723,7 @@
   const ritualStages = [
     ['01', 'Диагностика', 'Смотрим состояние кузова и салона, уточняем задачу и не навязываем лишнее.'],
     ['02', 'Точный состав', 'Подбираем химию и способ ухода под загрязнение и материал поверхности.'],
-    ['03', 'Ручная работа', 'Проходим сложные зоны, диски, проёмы и детали без конвейерной спешки.'],
+    ['03', 'Ручная работа', 'Проходим диски, арки, проёмы и другие сложные зоны вручную.'],
     ['04', 'Контроль', 'Проверяем результат при рабочем свете и только потом отдаём автомобиль.']
   ];
   document.getElementById('ritualList').addEventListener('click', event => {
