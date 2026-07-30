@@ -267,6 +267,7 @@ section{padding:86px 0;}
     opacity:0;filter:drop-shadow(0 3px 7px rgba(0,0,0,.3));
   }
   .custom-cursor.visible{opacity:1;}
+  .cursor-drop-shape{--drop-angle:0deg;--drop-stretch:1;--drop-squash:1;position:absolute;inset:0;transform:rotate(var(--drop-angle)) scaleX(var(--drop-squash)) scaleY(var(--drop-stretch));transform-origin:50% 62%;will-change:transform}
   .custom-cursor svg{position:absolute;inset:0;width:100%;height:100%;fill:rgba(7,15,18,.72);stroke:#67e1dc;stroke-width:1.35;}
   .cursor-drop-fill{position:absolute;z-index:1;inset:2px;background:linear-gradient(to top,#168d91 0,#67e1dc var(--cursor-progress),transparent var(--cursor-progress));clip-path:polygon(50% 0,72% 27%,91% 54%,100% 70%,94% 86%,78% 97%,50% 100%,22% 97%,6% 86%,0 70%,9% 54%,28% 27%);}
   .custom-cursor.hover-target{transform:translate(-50%,-50%) scale(1.35);}
@@ -277,6 +278,8 @@ section{padding:86px 0;}
 @keyframes cursorWaterRing{0%{transform:scale(.65);opacity:0}30%{opacity:1}100%{transform:scale(1.35);opacity:0}}
 .water-click-ripple{position:fixed;z-index:9997;width:12px;height:12px;border:1px solid rgba(103,225,220,.8);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:waterClickRipple .62s ease-out forwards}
 @keyframes waterClickRipple{0%{opacity:.9;box-shadow:0 0 0 0 rgba(103,225,220,.25)}100%{opacity:0;transform:translate(-50%,-50%) scale(5);box-shadow:0 0 0 7px rgba(103,225,220,0)}}
+.water-click-spark{position:fixed;z-index:9997;width:5px;height:7px;border-radius:50% 50% 58% 42%;background:#67e1dc;pointer-events:none;transform:translate(-50%,-50%);animation:waterClickSpark .5s cubic-bezier(.2,.7,.25,1) forwards}
+@keyframes waterClickSpark{0%{opacity:.9;transform:translate(-50%,-50%) scale(.8)}60%{opacity:.75;transform:translate(calc(-50% + var(--spark-x)),calc(-50% + var(--spark-y))) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--spark-x)),calc(-50% + var(--spark-y) + 12px)) scale(.45)}}
 @keyframes bubbleFloat{
   0%{transform:translate(-50%,-50%) scale(0.4);opacity:.8;}
   100%{transform:translate(-50%,-50%) translateY(-46px) scale(1);opacity:0;}

@@ -1,4 +1,4 @@
-const CACHE = 'carwash-one-v26';
+const CACHE = 'carwash-one-v28';
 const STATIC_ASSETS = [
   '/site/',
   '/site/static/css/theme.css',
@@ -11,6 +11,7 @@ const STATIC_ASSETS = [
   '/site/static/css/payments-v20.css',
   '/site/static/css/finale-v22.css',
   '/site/static/css/visual-v23.css',
+  '/site/static/css/mobile-v27.css',
   '/site/static/js/api.js',
   '/site/static/js/interactions-v9.js',
   '/site/static/js/hero-inspection-v15.js',

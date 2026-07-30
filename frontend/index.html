@@ -151,6 +151,7 @@
 <link rel="stylesheet" href="static/css/hero-inspection-v15.css">
 <link rel="stylesheet" href="static/css/finale-v22.css">
 <link rel="stylesheet" href="static/css/visual-v23.css">
+<link rel="stylesheet" href="static/css/mobile-v27.css">
 </head>
 <body>
 
@@ -311,25 +312,38 @@
     <div class="care-picker-copy">
       <div class="kicker">01 / Подбор ухода</div>
       <h2>Что нужно машине?</h2>
-      <p class="picker-step-label">1 / АВТОМОБИЛЬ</p>
-      <div class="vehicle-buttons" id="vehicleButtons">
-        <button class="active" data-vehicle="sedan">Седан</button>
-        <button data-vehicle="suv">Кроссовер</button>
-        <button data-vehicle="large">Большой SUV</button>
+      <div class="mobile-picker-progress" aria-live="polite">
+        <span id="mobilePickerStep">1 из 3</span><i><b id="mobilePickerBar"></b></i>
       </div>
-      <p class="picker-step-label">2 / ЗАДАЧА</p>
-      <div class="goal-buttons" id="goalButtons">
-        <button class="active" data-goal="quick"><span>✓</span>Быстро освежить</button>
-        <button data-goal="inside"><span></span>Кузов + салон</button>
-        <button data-goal="dry"><span></span>Химчистка салона</button>
-        <button data-goal="restore"><span></span>Убрать мелкие царапины</button>
-        <button data-goal="protect"><span></span>Защитить лак</button>
+      <div class="picker-question mobile-active" data-picker-step="1">
+        <p class="picker-step-label">1 / АВТОМОБИЛЬ</p>
+        <div class="vehicle-buttons" id="vehicleButtons">
+          <button class="active" data-vehicle="sedan">Седан</button>
+          <button data-vehicle="suv">Кроссовер</button>
+          <button data-vehicle="large">Большой SUV</button>
+        </div>
       </div>
-      <p class="picker-step-label">3 / ПРИОРИТЕТ</p>
-      <div class="priority-buttons" id="priorityButtons">
-        <button class="active" data-priority="balanced">Без лишнего</button>
-        <button data-priority="fast">Побыстрее</button>
-        <button data-priority="result">Сделать по максимуму</button>
+      <div class="picker-question" data-picker-step="2">
+        <p class="picker-step-label">2 / ЗАДАЧА</p>
+        <div class="goal-buttons" id="goalButtons">
+          <button class="active" data-goal="quick"><span>✓</span>Быстро освежить</button>
+          <button data-goal="inside"><span></span>Кузов + салон</button>
+          <button data-goal="dry"><span></span>Химчистка салона</button>
+          <button data-goal="restore"><span></span>Убрать мелкие царапины</button>
+          <button data-goal="protect"><span></span>Защитить лак</button>
+        </div>
+      </div>
+      <div class="picker-question" data-picker-step="3">
+        <p class="picker-step-label">3 / ПРИОРИТЕТ</p>
+        <div class="priority-buttons" id="priorityButtons">
+          <button class="active" data-priority="balanced">Без лишнего</button>
+          <button data-priority="fast">Побыстрее</button>
+          <button data-priority="result">Сделать по максимуму</button>
+        </div>
+      </div>
+      <div class="mobile-picker-actions">
+        <button type="button" class="mobile-picker-back" id="mobilePickerBack">Назад</button>
+        <button type="button" class="mobile-picker-next" id="mobilePickerNext">Далее</button>
       </div>
     </div>
     <div class="care-result">
@@ -341,6 +355,7 @@
       <b id="goalPrice"></b>
       <p id="goalEstimateDetails" class="goal-estimate-details"></p>
       <button class="btn btn-primary btn-magnetic" id="goalBook">Записаться на эту услугу →</button>
+      <button type="button" class="mobile-result-back" id="mobileResultBack">← Изменить ответы</button>
     </div>
   </div>
 </section>
@@ -949,6 +964,34 @@
   initSoapTrail();
   initMagneticButtons();
   initPrefetchOnHover('a[href="cabinet.html"]');
+  initMobileCareWizard();
+
+  function initMobileCareWizard() {
+    const root = document.getElementById('pick');
+    const next = document.getElementById('mobilePickerNext');
+    const back = document.getElementById('mobilePickerBack');
+    const resultBack = document.getElementById('mobileResultBack');
+    if (!root || !next || !back || !resultBack) return;
+    let step = 1;
+    const setStep = value => {
+      step = Math.max(1, Math.min(4, value));
+      root.dataset.mobileStep = String(step);
+      root.querySelectorAll('.picker-question').forEach(item => item.classList.toggle('mobile-active', Number(item.dataset.pickerStep) === step));
+      document.getElementById('mobilePickerStep').textContent = step === 4 ? 'Готово' : `${step} из 3`;
+      document.getElementById('mobilePickerBar').style.width = `${step === 4 ? 100 : step / 3 * 100}%`;
+      back.disabled = step === 1;
+      next.textContent = step === 3 ? 'Показать результат' : 'Далее';
+      if (step === 4) {
+        const goal = document.querySelector('#goalButtons button.active')?.dataset.goal || 'quick';
+        renderGoalRecommendation(goal);
+        root.querySelector('.care-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+    next.addEventListener('click', () => setStep(step + 1));
+    back.addEventListener('click', () => setStep(step - 1));
+    resultBack.addEventListener('click', () => setStep(2));
+    setStep(1);
+  }
 
   // ---- Текущая загрузка (дышащая точка) ----
   async function loadCurrentLoad() {

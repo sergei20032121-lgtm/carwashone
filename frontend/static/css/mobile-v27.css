@@ -1,0 +1,59 @@
+/* V27 — мобильный сценарий без изменений десктопной архитектуры */
+.mobile-picker-progress,.mobile-picker-actions,.mobile-result-back,.lightbox-prev,.lightbox-next,.lightbox-counter{display:none}
+body.lightbox-open{overflow:hidden}
+
+@media(max-width:600px){
+  /* Калькулятор: один вопрос на экран */
+  .care-picker-inner{min-height:560px}
+  .mobile-picker-progress{display:flex;align-items:center;gap:12px;margin:0 0 20px;color:#83edef;font:700 9px 'Space Mono',monospace;letter-spacing:.1em}
+  .mobile-picker-progress i{position:relative;display:block;flex:1;height:2px;background:rgba(255,255,255,.12);overflow:hidden}
+  .mobile-picker-progress b{position:absolute;inset:0 auto 0 0;width:33.333%;background:#67e1dc;transition:width .28s ease}
+  .picker-question{display:none;min-height:275px}
+  .picker-question.mobile-active{display:block;animation:mobileQuestionIn .28s ease both}
+  .mobile-picker-actions{display:grid;grid-template-columns:104px 1fr;gap:9px;margin-top:20px}
+  .mobile-picker-actions button{min-height:48px;border-radius:8px;font-weight:800;font-size:12px}
+  .mobile-picker-back{border:1px solid rgba(255,255,255,.16);color:#b9c4c7}
+  .mobile-picker-back:disabled{opacity:.3}
+  .mobile-picker-next{background:#67e1dc;color:#071719}
+  .care-picker[data-mobile-step="1"] .care-result,
+  .care-picker[data-mobile-step="2"] .care-result,
+  .care-picker[data-mobile-step="3"] .care-result{display:none}
+  .care-picker[data-mobile-step="4"] .care-picker-copy{display:none}
+  .care-picker[data-mobile-step="4"] .care-result{display:flex;min-height:570px;animation:mobileQuestionIn .32s ease both}
+  .mobile-result-back{display:block;margin-top:13px;color:#8fa2a6;font-size:11px;text-align:left}
+  .vehicle-buttons{display:grid;grid-template-columns:1fr}
+  .vehicle-buttons button,.priority-buttons button{min-height:48px}
+  .priority-buttons{display:grid;grid-template-columns:1fr}
+  .goal-buttons button{min-height:54px}
+
+  /* Запись: нижняя панель вместо бокового/полноэкранного окна */
+  .book-widget{
+    top:auto!important;
+    bottom:0!important;
+    width:100%!important;
+    height:min(88dvh,760px)!important;
+    padding:54px 16px calc(24px + env(safe-area-inset-bottom))!important;
+    border:0!important;
+    border-radius:22px 22px 0 0!important;
+    transform:translateY(105%)!important;
+    transition:transform .34s cubic-bezier(.2,.8,.2,1)!important;
+    box-shadow:0 -24px 70px rgba(0,0,0,.48)!important;
+    overscroll-behavior:contain;
+  }
+  .book-widget:before{content:"";position:absolute;top:12px;left:50%;width:44px;height:4px;border-radius:99px;background:rgba(255,255,255,.25);transform:translateX(-50%)}
+  body.booking-open .book-widget{transform:translateY(0)!important}
+  .booking-close{top:17px!important;right:15px!important}
+  .booking-backdrop{background:rgba(3,6,7,.68)!important;backdrop-filter:blur(2px)!important}
+
+  /* Полноэкранные работы */
+  .lightbox-overlay{padding:58px 12px 72px;background:rgba(4,9,11,.98)}
+  .lightbox-overlay img{width:100%;height:calc(100dvh - 142px);max-height:none;object-fit:contain;border-radius:0}
+  .lightbox-close{top:14px;right:14px;width:42px;height:42px}
+  .lightbox-caption{display:none}
+  .lightbox-prev,.lightbox-next{position:absolute;z-index:3;top:50%;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:rgba(5,13,16,.66);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:21px;transform:translateY(-50%)}
+  .lightbox-prev{left:9px}.lightbox-next{right:9px}
+  .lightbox-counter{position:absolute;left:50%;bottom:24px;color:#9dadaf;font:700 10px 'Space Mono',monospace;transform:translateX(-50%)}
+}
+
+@keyframes mobileQuestionIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.picker-question.mobile-active,.care-picker[data-mobile-step="4"] .care-result{animation:none}}
