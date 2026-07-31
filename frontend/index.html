@@ -257,6 +257,11 @@
           <label>Номер телефона</label>
           <input type="tel" id="phoneInput" placeholder="+7 900 000-00-00">
         </div>
+        <label class="consent-check">
+          <input type="checkbox" id="phoneConsent">
+          <span>Согласен на <a href="consent.html" target="_blank" rel="noopener">обработку персональных данных</a>
+          и получение сервисного SMS-кода. Ознакомился с <a href="privacy.html" target="_blank" rel="noopener">политикой конфиденциальности</a>.</span>
+        </label>
         <button class="btn btn-dark" style="width:100%;" id="sendCodeBtn">Получить код по смс</button>
       </div>
 
@@ -516,7 +521,7 @@
       <div class="finale-actions"><a href="#booking" class="btn btn-primary">Выбрать время</a><a href="https://vk.ru/carwash_one_zkm" target="_blank" rel="noopener" class="btn finale-vk">ВКонтакте ↗</a></div>
     </div>
   </div>
-  <footer class="finale-bottom"><div class="finale-foot-brand"><img src="static/img/logo.png" alt=""><b>АВТОМОЙКА №1<small>ПЕРМЬ · ЗАКАМСК</small></b></div><span>© 2026 · Бережный уход за автомобилем</span><a href="#">Наверх ↑</a></footer>
+  <footer class="finale-bottom"><div class="finale-foot-brand"><img src="static/img/logo.png" alt=""><b>АВТОМОЙКА №1<small>ПЕРМЬ · ЗАКАМСК</small></b></div><span class="legal-links"><a href="privacy.html">Политика конфиденциальности</a><a href="consent.html">Согласие на обработку данных</a></span><a href="#">Наверх ↑</a></footer>
 </section>
 
 <script src="static/js/api.js"></script>
@@ -853,9 +858,10 @@
   document.getElementById('sendCodeBtn').addEventListener('click', async () => {
     const phone = document.getElementById('phoneInput').value.trim();
     if (phone.replace(/\D/g,'').length < 10) { setStatus('Введите корректный номер телефона', 'err'); return; }
+    if (!document.getElementById('phoneConsent').checked) { setStatus('Подтвердите согласие на обработку данных', 'err'); return; }
     pendingPhone = phone;
     try {
-      await api('/auth/otp/request', { method: 'POST', body: JSON.stringify({ phone }) });
+      await api('/auth/otp/request', { method: 'POST', body: JSON.stringify({ phone, consent: true, policy_version: '2026-07-31' }) });
       setStatus('Код отправлен по смс', 'ok');
       stepPhone.style.display = 'none';
       stepCode.style.display = 'block';

@@ -7,7 +7,7 @@ from app.database import get_db
 from app.models import User, UserRole, OTPCode
 from app.schemas import OTPRequest, OTPVerify, StaffLogin, SetPassword, Token, UserOut
 from app.security import generate_otp_code, create_access_token, verify_password, hash_password
-from app.sms import send_sms
+from app.sms import SMSDeliveryError, send_sms
 from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
@@ -46,10 +46,19 @@ def request_otp(data: OTPRequest, db: Session = Depends(get_db)):
         phone=data.phone,
         code=code,
         expires_at=now + timedelta(minutes=OTP_TTL_MINUTES),
+        consent_at=now,
+        consent_policy_version=data.policy_version,
     )
-    db.add(otp)
-    db.commit()
-    send_sms(data.phone, code)
+    try:
+        send_sms(data.phone, code)
+        db.add(otp)
+        db.commit()
+    except SMSDeliveryError as exc:
+        db.rollback()
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY,
+            "Не удалось отправить SMS. Попробуйте ещё раз через минуту.",
+        ) from exc
     return {"detail": "Код отправлен", "ttl_minutes": OTP_TTL_MINUTES}
 
 

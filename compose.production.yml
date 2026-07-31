@@ -1,0 +1,16 @@
+services:
+  carwashone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: carwashone
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: "8123"
+      DATABASE_URL: "sqlite:////data/carwash.db"
+    ports:
+      - "127.0.0.1:8123:8123"
+    volumes:
+      - /opt/carwashone-data:/data

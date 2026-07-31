@@ -14,6 +14,10 @@ Base = declarative_base()
 def ensure_compatible_schema():
     """Добавляет новые необязательные CRM-поля в существующую БД без пересоздания таблиц."""
     additions = {
+        "otp_codes": {
+            "consent_at": "DATETIME",
+            "consent_policy_version": "VARCHAR(20)",
+        },
         "bookings": {
             "payment_method": "VARCHAR(20)",
             "payment_status": "VARCHAR(20) DEFAULT 'unmarked'",

@@ -17,11 +17,20 @@ def normalize_phone(v: str) -> str:
 
 class OTPRequest(BaseModel):
     phone: str = Field(..., examples=["+79991234567"])
+    consent: bool = Field(..., description="Согласие на обработку персональных данных и получение сервисного SMS")
+    policy_version: str = Field(default="2026-07-31", max_length=20)
 
     @field_validator("phone")
     @classmethod
     def _norm(cls, v: str) -> str:
         return normalize_phone(v)
+
+    @field_validator("consent")
+    @classmethod
+    def _consent_required(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("Необходимо согласие на обработку персональных данных")
+        return v
 
 
 class OTPVerify(BaseModel):

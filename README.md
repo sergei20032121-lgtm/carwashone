@@ -370,3 +370,86 @@ Render по умолчанию может взять самую новую ве�
 
 ### Всё ещё в очереди (пока только запомнено, не реализовано)
 - Автоматическая тёмная тема по времени суток
+
+## Production: carwashone.ru
+
+Боевой запуск рассчитан на Ubuntu, Nginx и Docker Compose:
+
+- приложение слушает только `127.0.0.1:8123`;
+- Nginx принимает HTTP/HTTPS и проксирует запросы в контейнер;
+- база лежит вне репозитория: `/opt/carwashone-data/carwash.db`;
+- перед каждым обновлением создаётся консистентный SQLite-бэкап;
+- ежедневный бэкап запускается systemd-таймером;
+- обновление выполняется только fast-forward через `git pull --ff-only`.
+
+### Первый запуск после клонирования
+
+```bash
+cd /opt/carwashone
+cp .env.example .env
+nano .env
+docker compose -f compose.production.yml up -d --build
+bash deploy/install_server_tools.sh
+docker exec carwashone python scripts/release_smoke.py --base-url https://carwashone.ru
+```
+
+В `.env` для production обязательно:
+
+- поставить `TEST_MODE=false`;
+- задать длинный случайный `SECRET_KEY`;
+- заменить `ADMIN_PASSWORD` и `MANAGER_PASSWORD`;
+- оставить `DATABASE_URL=sqlite:////data/carwash.db`;
+- указать HTTPS-домены в `CORS_ORIGINS`.
+
+### Обычное обновление с GitHub
+
+```bash
+cd /opt/carwashone
+./scripts/update_server.sh
+docker exec carwashone python scripts/release_smoke.py --base-url https://carwashone.ru
+```
+
+Скрипт остановится, если в Git-репозитории есть локальные изменения. Секреты
+и база не затрагиваются: `.env` игнорируется Git, а `/opt/carwashone-data`
+находится вне репозитория.
+
+### Бэкапы SQLite
+
+```bash
+cd /opt/carwashone
+./scripts/backup_sqlite.sh
+systemctl list-timers carwashone-backup.timer
+ls -lh /opt/carwashone-data/backups
+```
+
+Бэкап делается SQLite Backup API, а не копированием работающего файла.
+Рядом сохраняется SHA-256; файлы старше 30 дней удаляются автоматически.
+Период хранения меняется переменной `KEEP_DAYS`.
+
+## Персональные данные
+
+Перед отправкой SMS-кода клиент обязан принять согласие. Backend сохраняет
+время согласия и версию текста. Страницы:
+
+- `/site/privacy.html` — политика обработки персональных данных;
+- `/site/consent.html` — согласие на обработку персональных данных.
+
+Перед публикацией юридических текстов заполните в обеих страницах полное
+наименование оператора, ИНН и email. Также отдельно проверьте обязанность
+подать уведомление оператора персональных данных в Роскомнадзор.
+
+## Реальные SMS через SMS.ru
+
+Проект отправляет одноразовые сервисные коды через официальный endpoint
+`https://sms.ru/sms/send`. Ключ хранится только в серверном `.env`:
+
+```dotenv
+SMS_PROVIDER_API_KEY="ваш-api-id-из-кабинета-sms-ru"
+SMS_PROVIDER_SENDER=""
+SMS_PROVIDER_TIMEOUT_SECONDS=10
+```
+
+`SMS_PROVIDER_SENDER` оставьте пустым, пока буквенное имя не одобрено в
+кабинете SMS.ru. Если провайдер не принял сообщение, код не сохраняется в БД,
+а клиент получает предложение повторить попытку. Повторная отправка одному
+номеру ограничена одной минутой и пятью запросами за 15 минут.

@@ -11,7 +11,9 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./carwash.db"
 
     sms_provider_api_key: str = ""
-    sms_provider_sender: str = "AVTOMOYKA1"
+    # Оставьте пустым, пока имя отправителя не одобрено в кабинете SMS.ru.
+    sms_provider_sender: str = ""
+    sms_provider_timeout_seconds: float = 10.0
 
     twogis_api_key: str = ""
     twogis_org_id: str = ""

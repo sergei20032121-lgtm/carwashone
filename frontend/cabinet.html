@@ -94,6 +94,11 @@
     <div id="tabPhone">
       <div id="phoneStep1">
         <div class="field"><label>Номер телефона</label><input type="tel" id="loginPhoneInput" placeholder="+7 900 000-00-00"></div>
+        <label class="consent-check">
+          <input type="checkbox" id="loginPhoneConsent">
+          <span>Согласен на <a href="consent.html" target="_blank" rel="noopener">обработку персональных данных</a>
+          и получение сервисного SMS-кода. Ознакомился с <a href="privacy.html" target="_blank" rel="noopener">политикой конфиденциальности</a>.</span>
+        </label>
         <button class="btn btn-dark" style="width:100%;" id="loginSendCodeBtn">Получить код по смс</button>
       </div>
       <div id="phoneStep2" style="display:none;">
@@ -283,9 +288,10 @@
   document.getElementById('loginSendCodeBtn').addEventListener('click', async () => {
     const phone = document.getElementById('loginPhoneInput').value.trim();
     if (phone.replace(/\D/g,'').length < 10) { setAuthStatus('Введите корректный номер телефона', 'err'); return; }
+    if (!document.getElementById('loginPhoneConsent').checked) { setAuthStatus('Подтвердите согласие на обработку данных', 'err'); return; }
     pendingPhone = phone;
     try {
-      await api('/auth/otp/request', { method: 'POST', body: JSON.stringify({ phone }) });
+      await api('/auth/otp/request', { method: 'POST', body: JSON.stringify({ phone, consent: true, policy_version: '2026-07-31' }) });
       setAuthStatus('Код отправлен по смс', 'ok');
       document.getElementById('phoneStep1').style.display = 'none';
       document.getElementById('phoneStep2').style.display = 'block';
@@ -516,6 +522,10 @@
       el.textContent = `Сертификат на ${cert.amount} ₽ погашен`; el.className = 'auth-status ok';
     } catch (e) { el.textContent = e.message || 'Не удалось погасить сертификат'; el.className = 'auth-status err'; }
   });
-</script>
+ </script>
+<div style="max-width:920px;margin:0 auto;padding:0 28px 34px;color:var(--ink-soft);font-size:12px;" class="legal-links">
+  <a href="privacy.html">Политика конфиденциальности</a>
+  <a href="consent.html">Согласие на обработку данных</a>
+</div>
 </body>
 </html>

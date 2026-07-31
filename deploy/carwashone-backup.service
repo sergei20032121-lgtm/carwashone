@@ -1,0 +1,8 @@
+[Unit]
+Description=Backup CarwashOne SQLite database
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/carwashone/scripts/backup_sqlite.sh

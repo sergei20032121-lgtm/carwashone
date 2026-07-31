@@ -114,6 +114,8 @@ class OTPCode(Base):
     code = Column(String(6), nullable=False)
     expires_at = Column(DateTime, nullable=False)
     is_used = Column(Boolean, default=False)
+    consent_at = Column(DateTime, nullable=True)
+    consent_policy_version = Column(String(20), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
