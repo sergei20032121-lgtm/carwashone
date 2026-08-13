@@ -130,6 +130,7 @@
 <link rel="stylesheet" href="static/css/crm-v18.css">
 <link rel="stylesheet" href="static/css/schedule-v19.css">
 <link rel="stylesheet" href="static/css/payments-v20.css">
+<link rel="stylesheet" href="static/css/communications-v30.css">
 </head>
 <body data-crm-theme="light">
 
@@ -170,6 +171,7 @@
     <button class="tab-btn" data-tab="payroll"><span class="nav-icon">₽</span><span class="nav-label">Зарплата</span></button>
     <button class="tab-btn" data-tab="vk"><span class="nav-icon">↗</span><span class="nav-label">Новости</span></button>
     <button class="tab-btn" data-tab="clientsearch"><span class="nav-icon">⌕</span><span class="nav-label">Клиенты</span></button>
+    <button class="tab-btn" data-tab="communications"><span class="nav-icon">☎</span><span class="nav-label">Связь</span><span class="comm-nav-badge" id="commNavBadge" hidden>0</span></button>
     <button class="tab-btn" data-tab="auditlog"><span class="nav-icon">≡</span><span class="nav-label">История</span></button>
     <button class="tab-btn" data-tab="logout"><span class="nav-icon">↪</span><span class="nav-label">Выйти</span></button>
   </div>
@@ -511,6 +513,46 @@
       <div id="searchResult"></div>
     </div>
 
+    <!-- ЗВОНКИ И SMS -->
+    <div class="tab-page" id="tab-communications" style="display:none;">
+      <div class="comm-titlebar">
+        <div><span class="comm-kicker">Рабочий телефон</span><h2>Связь с клиентами</h2><p>Звонки, пропущенные и SMS — в одном журнале.</p></div>
+        <button class="btn btn-outline" id="refreshCommunications" type="button">Обновить</button>
+      </div>
+      <div class="comm-stats">
+        <button class="comm-stat urgent" type="button" data-comm-filter="pending"><b id="commPendingCount">—</b><span>ждут звонка</span></button>
+        <button class="comm-stat" type="button" data-comm-filter="calls"><b id="commCallsToday">—</b><span>звонков сегодня</span></button>
+        <div class="comm-stat"><b id="commVisibleCount">—</b><span>событий в списке</span></div>
+      </div>
+      <div class="comm-workspace">
+        <div class="comm-journal card">
+          <div class="comm-toolbar">
+            <div class="comm-filters" role="group" aria-label="Фильтр журнала">
+              <button class="active" type="button" data-comm-filter="all">Все</button>
+              <button type="button" data-comm-filter="pending">Не перезвонили</button>
+              <button type="button" data-comm-filter="calls">Звонки</button>
+              <button type="button" data-comm-filter="sms">SMS</button>
+            </div>
+            <input type="search" id="commSearch" placeholder="Телефон или линия" aria-label="Поиск по журналу">
+          </div>
+          <div class="comm-list" id="communicationsList"><div class="comm-empty">Загружаем журнал…</div></div>
+        </div>
+        <aside class="comm-compose card">
+          <span class="comm-kicker">Новое сообщение</span><h3>Отправить SMS</h3>
+          <div class="field"><label>Телефон</label><input type="tel" id="commSmsPhone" placeholder="+7 900 000-00-00"></div>
+          <div class="field"><label>Сообщение</label><textarea id="commSmsMessage" maxlength="500" rows="6" placeholder="Например: ждём вас сегодня к 17:30."></textarea></div>
+          <div class="comm-templates">
+            <button type="button" data-sms-template="Здравствуйте! Вы записаны на автомойку. Если планы изменились, пожалуйста, сообщите нам.">Напомнить о записи</button>
+            <button type="button" data-sms-template="Здравствуйте! Мы увидели ваш звонок и скоро перезвоним.">Пропущенный звонок</button>
+            <button type="button" data-sms-template="Ваш автомобиль готов. Можно забирать.">Автомобиль готов</button>
+          </div>
+          <button class="btn btn-primary" id="commSendSms" type="button">Поставить в отправку</button>
+          <div class="auth-status" id="commSmsStatus" aria-live="polite"></div>
+          <p class="comm-compose-note">Сообщение заберёт рабочий телефон и отправит с его SIM-карты.</p>
+        </aside>
+      </div>
+    </div>
+
     <!-- ЖУРНАЛ ИЗМЕНЕНИЙ -->
     <div class="tab-page" id="tab-auditlog" style="display:none;">
       <div class="toolbar"><h2 style="margin:0;">Журнал изменений</h2><button class="btn btn-outline" id="refreshAudit">Обновить</button></div>
@@ -591,7 +633,7 @@
       document.getElementById('closeDayBtn').style.display = 'none';
       ['countedCash','countedCard','countedTransfer','closureNote'].forEach(id => document.getElementById(id).disabled = true);
     }
-    loadEmployees(); loadOverview(); loadBookings(); loadDry(); loadServices(); loadVk(); loadAuditLog();
+    loadEmployees(); loadOverview(); loadBookings(); loadDry(); loadServices(); loadVk(); loadAuditLog(); loadCommunicationSummary();
     document.getElementById('payrollDay').value = new Date().toISOString().slice(0, 10);
     const todayIso = new Date().toISOString().slice(0, 10);
     const weekAgoIso = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
@@ -618,6 +660,7 @@
     const page = document.getElementById('tab-' + tab);
     if (page) page.style.display = 'block';
     if (tab === 'payments') loadPayments();
+    if (tab === 'communications') loadCommunications();
     closeMobileMenu();
     window.scrollTo({top:0,behavior:'smooth'});
   }
@@ -1612,6 +1655,103 @@
     } catch (e) {
       statusEl.textContent = e.message || 'Клиент не найден'; statusEl.className = 'auth-status err';
     }
+  });
+
+  let communicationRows = [];
+  let communicationFilter = 'all';
+  const communicationLabels = {answered:'Принят',missed:'Пропущен',rejected:'Отклонён',blocked:'Заблокирован',outgoing:'Исходящий',sent:'SMS отправлено',delivered:'SMS доставлено',failed:'Ошибка SMS'};
+
+  function communicationQuery() {
+    const params = new URLSearchParams({limit:'200'});
+    if (communicationFilter === 'pending') params.set('pending_only','true');
+    if (communicationFilter === 'calls') params.set('channel','call');
+    if (communicationFilter === 'sms') params.set('channel','sms');
+    const search = document.getElementById('commSearch').value.trim();
+    if (search) params.set('query', search);
+    return params.toString();
+  }
+  function formatCallDuration(seconds) {
+    if (!seconds) return '';
+    const mins = Math.floor(seconds / 60), secs = seconds % 60;
+    return `${mins ? mins + ' мин ' : ''}${secs} сек`;
+  }
+  function renderCommunications() {
+    document.getElementById('commVisibleCount').textContent = communicationRows.length;
+    document.getElementById('communicationsList').innerHTML = communicationRows.map(row => {
+      const missed = row.channel === 'call' && ['missed','rejected'].includes(row.status);
+      const clientName = row.client ? row.client.name : 'Незнакомый номер';
+      const direction = row.direction === 'incoming' ? 'Входящий' : 'Исходящий';
+      const detail = row.channel === 'call'
+        ? `${direction}${formatCallDuration(row.duration_seconds) ? ' · ' + formatCallDuration(row.duration_seconds) : ''}`
+        : direction;
+      return `<article class="comm-row ${missed ? 'missed' : ''}" data-comm-id="${row.id}">
+        <span class="comm-channel" aria-hidden="true">${row.channel === 'call' ? '☎' : '✉'}</span>
+        <div class="comm-person"><b>${escapeHtml(clientName)}</b><a href="tel:${escapeHtml(row.phone)}">${escapeHtml(row.phone)}</a>${row.client ? `<small>Клиент CRM #${row.client.id}</small>` : '<small>В базе не найден</small>'}</div>
+        <div class="comm-event"><b>${escapeHtml(communicationLabels[row.status] || row.status)}</b><small>${detail} · ${new Date(row.occurred_at).toLocaleString('ru-RU')}${row.line_label ? ' · '+escapeHtml(row.line_label) : ''}</small></div>
+        <div class="comm-actions">
+          <button type="button" data-comm-sms="${escapeHtml(row.phone)}">SMS</button>
+          ${row.client ? `<button type="button" data-comm-client="${escapeHtml(row.client.phone || row.phone)}">Карточка</button>` : ''}
+          ${missed ? `<button type="button" class="${row.handled_at ? 'handled' : 'resolve'}" data-comm-resolve="${row.id}" data-comm-handled="${row.handled_at ? '1' : '0'}">${row.handled_at ? '✓ Перезвонили' : 'Отметить звонок'}</button>` : ''}
+        </div>
+        ${row.handling_note || row.handled_by ? `<div class="comm-note">${row.handled_by ? `Обработал: ${escapeHtml(row.handled_by)}. ` : ''}${escapeHtml(row.handling_note || '')}</div>` : ''}
+      </article>`;
+    }).join('') || '<div class="comm-empty">По этому фильтру событий пока нет.</div>';
+    document.querySelectorAll('[data-comm-sms]').forEach(button => button.addEventListener('click', () => {
+      document.getElementById('commSmsPhone').value = button.dataset.commSms;
+      document.getElementById('commSmsMessage').focus();
+      document.querySelector('.comm-compose').scrollIntoView({behavior:'smooth',block:'center'});
+    }));
+    document.querySelectorAll('[data-comm-client]').forEach(button => button.addEventListener('click', () => {
+      document.getElementById('searchPhone').value = button.dataset.commClient;
+      activateTab('clientsearch'); document.getElementById('searchClientBtn').click();
+    }));
+    document.querySelectorAll('[data-comm-resolve]').forEach(button => button.addEventListener('click', async () => {
+      const handled = button.dataset.commHandled !== '1';
+      const note = handled ? (prompt('Короткая заметка (необязательно):', '') || '') : '';
+      try {
+        await api(`/phone-gateway/logs/${button.dataset.commResolve}/handled`, {method:'PATCH',body:JSON.stringify({handled,note})});
+        await loadCommunications();
+      } catch (error) { alert(error.message || 'Не удалось сохранить отметку'); }
+    }));
+  }
+  async function loadCommunicationSummary() {
+    try {
+      const summary = await api('/phone-gateway/logs/summary');
+      document.getElementById('commPendingCount').textContent = summary.pending_missed;
+      document.getElementById('commCallsToday').textContent = summary.calls_today;
+      const badge = document.getElementById('commNavBadge');
+      badge.textContent = summary.pending_missed > 99 ? '99+' : summary.pending_missed;
+      badge.hidden = !summary.pending_missed;
+    } catch (error) {}
+  }
+  async function loadCommunications() {
+    const list = document.getElementById('communicationsList');
+    list.innerHTML = '<div class="comm-empty">Загружаем журнал…</div>';
+    try {
+      const [rows] = await Promise.all([api('/phone-gateway/logs?' + communicationQuery()), loadCommunicationSummary()]);
+      communicationRows = rows; renderCommunications();
+    } catch (error) { list.innerHTML = `<div class="comm-empty">${escapeHtml(error.message || 'Не удалось загрузить журнал')}</div>`; }
+  }
+  document.querySelectorAll('[data-comm-filter]').forEach(button => button.addEventListener('click', () => {
+    communicationFilter = button.dataset.commFilter;
+    document.querySelectorAll('.comm-filters [data-comm-filter]').forEach(item => item.classList.toggle('active', item.dataset.commFilter === communicationFilter));
+    activateTab('communications'); loadCommunications();
+  }));
+  let commSearchTimer;
+  document.getElementById('commSearch').addEventListener('input', () => { clearTimeout(commSearchTimer); commSearchTimer = setTimeout(loadCommunications, 300); });
+  document.getElementById('refreshCommunications').addEventListener('click', loadCommunications);
+  document.querySelectorAll('[data-sms-template]').forEach(button => button.addEventListener('click', () => { document.getElementById('commSmsMessage').value = button.dataset.smsTemplate; }));
+  document.getElementById('commSendSms').addEventListener('click', async () => {
+    const phone = document.getElementById('commSmsPhone').value.trim();
+    const message = document.getElementById('commSmsMessage').value.trim();
+    const status = document.getElementById('commSmsStatus');
+    if (!phone || !message) { status.textContent = 'Укажите телефон и текст сообщения'; status.className = 'auth-status err'; return; }
+    try {
+      const result = await api('/phone-gateway/messages', {method:'POST',body:JSON.stringify({phone,message})});
+      status.textContent = `SMS №${result.id} поставлено в очередь`; status.className = 'auth-status ok';
+      document.getElementById('commSmsMessage').value = '';
+      setTimeout(loadCommunications, 1200);
+    } catch (error) { status.textContent = error.message || 'Не удалось поставить SMS в очередь'; status.className = 'auth-status err'; }
   });
 
   async function loadAuditLog() {

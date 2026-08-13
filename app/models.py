@@ -119,6 +119,45 @@ class OTPCode(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class PhoneGatewayCommand(Base):
+    """Очередь команд для рабочего Android-телефона."""
+    __tablename__ = "phone_gateway_commands"
+
+    id = Column(Integer, primary_key=True)
+    command_type = Column(String(30), nullable=False, default="send_sms")
+    recipient = Column(String(20), nullable=False)
+    message = Column(Text, nullable=False)
+    status = Column(String(20), nullable=False, default="pending", index=True)
+    attempts = Column(Integer, nullable=False, default=0)
+    device_name = Column(String(80), nullable=True)
+    error = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    claimed_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+
+
+class CommunicationLog(Base):
+    """Звонки и SMS рабочего телефона, видимые в CRM."""
+    __tablename__ = "communication_logs"
+
+    id = Column(Integer, primary_key=True)
+    external_id = Column(String(120), unique=True, index=True, nullable=False)
+    channel = Column(String(20), nullable=False)       # call | sms
+    direction = Column(String(20), nullable=False)     # incoming | outgoing
+    phone = Column(String(20), nullable=False, index=True)
+    status = Column(String(30), nullable=False)        # answered | missed | sent | failed ...
+    occurred_at = Column(DateTime, nullable=False, index=True)
+    duration_seconds = Column(Integer, nullable=True)
+    line_label = Column(String(80), nullable=True)
+    device_name = Column(String(80), nullable=True)
+    command_id = Column(Integer, ForeignKey("phone_gateway_commands.id"), nullable=True)
+    details = Column(JSON, default=dict)
+    handled_at = Column(DateTime, nullable=True, index=True)
+    handled_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    handling_note = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Employee(Base):
     """Сотрудник мойки/химчистки — для графика и распределения записей."""
     __tablename__ = "employees"

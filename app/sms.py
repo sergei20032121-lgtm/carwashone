@@ -4,6 +4,8 @@ import logging
 import httpx
 
 from app.config import settings
+from app.database import SessionLocal
+from app.models import PhoneGatewayCommand
 
 logger = logging.getLogger("sms")
 SMS_RU_SEND_URL = "https://sms.ru/sms/send"
@@ -21,7 +23,27 @@ def _recipient(phone: str) -> str:
 
 
 def send_sms(phone: str, code: str) -> None:
-    if not settings.sms_provider_api_key:
+    message_text = f"Код для входа в Автомойку №1: {code}"
+    mode = settings.sms_delivery_mode.strip().lower()
+
+    if mode == "phone":
+        if not settings.phone_gateway_token:
+            raise SMSDeliveryError("Телефонный шлюз не настроен")
+        db = SessionLocal()
+        try:
+            db.add(PhoneGatewayCommand(
+                command_type="send_sms",
+                recipient=_recipient(phone),
+                message=message_text,
+                status="pending",
+            ))
+            db.commit()
+        finally:
+            db.close()
+        logger.info("SMS для номера …%s поставлено в очередь рабочего телефона", _recipient(phone)[-4:])
+        return
+
+    if mode == "console" or not settings.sms_provider_api_key:
         # Локальный режим: без ключа код остаётся доступен в консоли разработчика.
         logger.warning("[SMS-DEV] Код для %s: %s", phone, code)
         print(f"[SMS-DEV] Код подтверждения для {phone}: {code}")
@@ -31,7 +53,7 @@ def send_sms(phone: str, code: str) -> None:
     payload = {
         "api_id": settings.sms_provider_api_key,
         "to": recipient,
-        "msg": f"Код для входа в Автомойку №1: {code}",
+        "msg": message_text,
         "json": 1,
     }
     if settings.sms_provider_sender.strip():

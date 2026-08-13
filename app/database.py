@@ -36,6 +36,11 @@ def ensure_compatible_schema():
             "amount_paid": "FLOAT DEFAULT 0",
             "payment_note": "VARCHAR(255)",
         },
+        "communication_logs": {
+            "handled_at": "DATETIME",
+            "handled_by_user_id": "INTEGER",
+            "handling_note": "VARCHAR(500)",
+        },
     }
     inspector = inspect(engine)
     existing_tables = set(inspector.get_table_names())

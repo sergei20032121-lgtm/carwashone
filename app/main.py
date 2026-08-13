@@ -5,7 +5,7 @@ from pathlib import Path
 
 from app.config import settings
 from app.database import Base, engine, ensure_compatible_schema
-from app.routers import auth, services, bookings, dry_cleaning, schedule, reviews, admin, walk_in, vk, client, public_stats, payments, finances
+from app.routers import auth, services, bookings, dry_cleaning, schedule, reviews, admin, walk_in, vk, client, public_stats, payments, finances, phone_gateway
 
 Base.metadata.create_all(bind=engine)
 ensure_compatible_schema()
@@ -39,6 +39,7 @@ app.include_router(client.router)
 app.include_router(public_stats.router)
 app.include_router(payments.router)
 app.include_router(finances.router)
+app.include_router(phone_gateway.router)
 
 app.mount("/static", StaticFiles(directory=PROJECT_DIR / "app" / "static"), name="static")
 app.mount("/site", StaticFiles(directory=PROJECT_DIR / "frontend", html=True), name="site")
