@@ -232,6 +232,7 @@ class Service(Base):
     description = Column(Text, nullable=True)
     price_from = Column(Float, nullable=False)
     price_to = Column(Float, nullable=True)   # если есть вилка цены (напр. 1300–2100 ₽); иначе просто "от"
+    price_negotiable = Column(Boolean, default=False)  # цена договорная, price_from/price_to не показываем
     duration_min = Column(Integer, nullable=True)
     is_active = Column(Boolean, default=True)
     sort_order = Column(Integer, default=0)

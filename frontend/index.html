@@ -409,6 +409,7 @@
       <figure class="gallery-item work-card"><img src="static/img/works-v22/03-headlight.webp" alt="Полировка автомобильной фары до и после" loading="lazy"></figure>
       <figure class="gallery-item work-card"><img src="static/img/works-v22/15-headlight-restoration.webp" alt="Восстановление прозрачности фары" loading="lazy"></figure>
       <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/04-trim.webp" alt="Восстановление внешнего пластика автомобиля" loading="lazy"></figure>
+      <figure class="gallery-item work-card"><img src="static/img/works-v22/16-soundproofing.webp" alt="Шумоизоляция двери до и после" loading="lazy"></figure>
     </div>
   </div>
 </section>
@@ -659,9 +660,11 @@
   function serviceCard(s, iconPath) {
     priceCounter += 1;
     const priceId = 'price-' + priceCounter;
-    const price = s.price_to
-      ? `${Math.round(s.price_from).toLocaleString('ru-RU')}–${Math.round(s.price_to).toLocaleString('ru-RU')} ₽`
-      : `от ${Math.round(s.price_from).toLocaleString('ru-RU')} ₽`;
+    const price = s.price_negotiable
+      ? 'Цена договорная'
+      : (s.price_to
+        ? `${Math.round(s.price_from).toLocaleString('ru-RU')}–${Math.round(s.price_to).toLocaleString('ru-RU')} ₽`
+        : `от ${Math.round(s.price_from).toLocaleString('ru-RU')} ₽`);
     return `<div class="service-card ${s.counts_towards_loyalty ? 'featured' : ''}" data-service-id="${s.id}" data-group="${s._group}" data-search="${escapeHtml((s.name + ' ' + (s.description || '')).toLowerCase())}">
       <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${iconPath}</svg></div>
       ${s.counts_towards_loyalty ? '<span class="loyalty-mark">+ АНАНАС</span>' : ''}
@@ -703,7 +706,7 @@
       washGrid.innerHTML = wash.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
       dryGrid.innerHTML = dry.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
       detailingGrid.innerHTML = detailing.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
-      document.getElementById('serviceSelect').innerHTML = allPublicServices.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${s.price_to ? Math.round(s.price_from) + '–' + Math.round(s.price_to) : 'от ' + Math.round(s.price_from)} ₽</option>`).join('');
+      document.getElementById('serviceSelect').innerHTML = allPublicServices.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${s.price_negotiable ? 'цена договорная' : (s.price_to ? Math.round(s.price_from) + '–' + Math.round(s.price_to) + ' ₽' : 'от ' + Math.round(s.price_from) + ' ₽')}</option>`).join('');
       renderGoalRecommendation('quick');
     } catch (e) {
       document.getElementById('washGrid').innerHTML = '<p style="color:var(--ink-soft);">Не удалось загрузить услуги — проверь, что backend запущен (' + API_BASE + ').</p>';
@@ -713,6 +716,7 @@
   }
 
   function formatServicePrice(service) {
+    if (service.price_negotiable) return 'Цена договорная';
     return service.price_to
       ? `${Math.round(service.price_from).toLocaleString('ru-RU')}–${Math.round(service.price_to).toLocaleString('ru-RU')} ₽`
       : `от ${Math.round(service.price_from).toLocaleString('ru-RU')} ₽`;

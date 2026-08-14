@@ -18,6 +18,9 @@ def ensure_compatible_schema():
             "consent_at": "DATETIME",
             "consent_policy_version": "VARCHAR(20)",
         },
+        "services": {
+            "price_negotiable": "BOOLEAN DEFAULT 0",
+        },
         "bookings": {
             "payment_method": "VARCHAR(20)",
             "payment_status": "VARCHAR(20) DEFAULT 'unmarked'",

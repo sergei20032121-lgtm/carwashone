@@ -10,7 +10,7 @@
 """
 from datetime import date
 import secrets
-from app.database import SessionLocal, Base, engine
+from app.database import SessionLocal, Base, engine, ensure_compatible_schema
 from app.models import (
     Service, ServiceCategory, Employee, User, UserRole,
     GisSettings, VkSettings, BusinessSettings, ShiftSchedule, ShiftType,
@@ -19,6 +19,7 @@ from app.security import hash_password
 from app.config import settings
 
 Base.metadata.create_all(bind=engine)
+ensure_compatible_schema()
 
 PAYOUT_PCT = 35  # % от цены услуги — з/п мастера, по всем услугам одинаково
 
@@ -45,6 +46,7 @@ def seed():
             ("Восстановление пластика и резины кузова", "Глубокая очистка внешних пластиковых и резиновых элементов кузова.", 3000, 5000, 90, True),
             ("Полировка кузова", "Полировка кузова с удалением мелких царапин и потёртостей.", 6000, 14000, 180, True),
             ("Керамическое покрытие", "Долговременное защитное керамическое покрытие кузова.", 20000, 40000, 360, True),
+            ("Шумоизоляция и замена штатной акустики", "Шумоизоляция дверей и других зон кузова, установка и замена акустической системы.", 0, None, None, False, True),
         ]
 
         active_names = {item[0] for item in wash_services + dry_services + detailing_services}
@@ -53,7 +55,9 @@ def seed():
             (ServiceCategory.DRY_CLEANING, dry_services),
             (ServiceCategory.DETAILING, detailing_services),
         ):
-            for i, (name, desc, price_from, price_to, dur, counts) in enumerate(catalog):
+            for i, item in enumerate(catalog):
+                name, desc, price_from, price_to, dur, counts = item[:6]
+                negotiable = item[6] if len(item) > 6 else False
                 service = db.query(Service).filter(Service.name == name).first()
                 if not service:
                     service = Service(name=name)
@@ -62,6 +66,7 @@ def seed():
                 service.description = desc
                 service.price_from = price_from
                 service.price_to = price_to
+                service.price_negotiable = negotiable
                 service.duration_min = dur
                 service.sort_order = i
                 service.is_active = True

@@ -89,6 +89,7 @@ class ServiceOut(BaseModel):
     description: Optional[str]
     price_from: float
     price_to: Optional[float] = None
+    price_negotiable: bool = False
     duration_min: Optional[int]
     counts_towards_loyalty: bool
     payout_pct: float = 0
