@@ -30,19 +30,26 @@
   .auth-status.err{color:var(--vermillion);}
 
   /* --- кабинет --- */
-  .profile-head{display:flex;align-items:center;gap:16px;margin-bottom:30px;}
-  .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--jade),var(--sumi));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-family:'Spectral',serif;font-size:20px;}
-  .profile-head .name{font-size:20px;font-family:'Spectral',serif;font-weight:600;}
-  .profile-head .phone{font-size:13px;color:var(--ink-soft);font-family:'Space Mono';}
-  .logout-link{margin-left:auto;font-size:13px;color:var(--vermillion);font-weight:700;}
+  .cab-hero{position:relative;overflow:hidden;background:var(--sumi);border-radius:20px;padding:32px 28px 28px;margin-bottom:26px;}
+  .cab-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(480px 260px at 85% -10%,rgba(33,191,196,.22),transparent 70%);pointer-events:none;}
+  .cab-hero::after{content:'';position:absolute;right:-40px;bottom:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(33,191,196,.16),transparent 70%);pointer-events:none;}
+  .profile-head{position:relative;display:flex;align-items:center;gap:16px;margin-bottom:26px;}
+  .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--jade),var(--jade-dark));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-family:'Spectral',serif;font-size:20px;flex-shrink:0;box-shadow:0 8px 22px rgba(33,191,196,.3);}
+  .profile-head .name{font-size:20px;font-family:'Spectral',serif;font-weight:600;color:#fff;}
+  .profile-head .phone{font-size:13px;color:#8D99A6;font-family:'Space Mono';}
+  .logout-link{margin-left:auto;font-size:13px;color:#F19E92;font-weight:700;}
 
-  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;}
-  .stat-box{padding:20px;text-align:center;}
-  .stat-box b{display:block;font-family:'Spectral',serif;font-size:30px;}
-  .stat-box span{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px;}
+  .stat-row{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .stat-box{padding:18px 14px;text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;}
+  .stat-box b{display:block;font-family:'Spectral',serif;font-size:28px;color:#fff;}
+  .stat-box span{font-size:11px;color:#8D99A6;text-transform:uppercase;letter-spacing:.5px;}
 
-  .card-section{padding:26px;margin-bottom:22px;}
-  .card-section h3{font-family:'Spectral',serif;font-size:17px;margin-bottom:16px;}
+  .card-section{padding:26px;margin-bottom:22px;box-shadow:var(--shadow-soft);}
+  .card-section h3{display:flex;align-items:center;gap:11px;font-family:'Spectral',serif;font-size:17px;margin-bottom:16px;}
+  .section-icon{width:34px;height:34px;min-width:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--washi-2);}
+  .empty-state{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:22px 4px;}
+  .empty-state .empty-icon{font-size:26px;opacity:.7;}
+  .empty-state p{margin:0;font-size:13.5px;color:var(--ink-soft);}
   .bonus-guide{margin-top:18px;padding:15px 16px;border-radius:12px;background:var(--washi-2);border:1px solid var(--line-soft);}
   .bonus-guide b{display:block;font-size:14px;margin-bottom:4px;}
   .bonus-guide p{font-size:12.5px;color:var(--ink-soft);margin:0;line-height:1.5;}
@@ -126,24 +133,26 @@
 
 <!-- КАБИНЕТ -->
 <div id="cabinetScreen" class="page" style="display:none;">
-  <div class="profile-head">
-    <div class="avatar" id="cabAvatar">?</div>
-    <div>
-      <div class="name" id="cabName">Клиент</div>
-      <div class="phone" id="cabPhone">—</div>
+  <div class="cab-hero">
+    <div class="profile-head">
+      <div class="avatar" id="cabAvatar">?</div>
+      <div>
+        <div class="name" id="cabName">Клиент</div>
+        <div class="phone" id="cabPhone">—</div>
+      </div>
+      <span class="badge" id="cabTenureBadge" style="margin-left:8px;"></span>
+      <a href="#" class="logout-link" id="logoutBtn">Выйти</a>
     </div>
-    <span class="badge" id="cabTenureBadge" style="margin-left:8px;"></span>
-    <a href="#" class="logout-link" id="logoutBtn">Выйти</a>
-  </div>
 
-  <div class="stat-row">
-    <div class="card stat-box"><b id="statPunch">0</b><span>ананасов на карте</span></div>
-    <div class="card stat-box"><b id="statTotal">0</b><span>полных моек всего</span></div>
-    <div class="card stat-box"><b id="statNext">—</b><span>до следующей награды</span></div>
+    <div class="stat-row">
+      <div class="stat-box"><b id="statPunch">0</b><span>ананасов на карте</span></div>
+      <div class="stat-box"><b id="statTotal">0</b><span>полных моек всего</span></div>
+      <div class="stat-box"><b id="statNext">—</b><span>до следующей награды</span></div>
+    </div>
   </div>
 
   <div class="card card-section">
-    <h3>Бонусная карта</h3>
+    <h3><span class="section-icon">🍍</span>Бонусная карта</h3>
     <div class="xp-bar-track"><div class="xp-bar-fill" id="cabXpFill" style="width:0%;"></div><div class="xp-bar-label" id="cabXpLabel"></div></div>
     <div class="punch-card" id="cabPunchCard"></div>
     <div class="bonus-guide" id="bonusGuide" aria-live="polite">
@@ -153,18 +162,18 @@
   </div>
 
   <div class="card card-section">
-    <h3>Достижения</h3>
+    <h3><span class="section-icon">🏆</span>Достижения</h3>
     <div class="achievement-grid" id="achievementGrid"></div>
   </div>
 
   <div class="card card-section">
-    <h3>История записей</h3>
-    <div id="historyList"><p class="text-muted" style="font-size:13.5px;">Пока нет записей.</p></div>
+    <h3><span class="section-icon">📋</span>История записей</h3>
+    <div id="historyList"><div class="empty-state"><span class="empty-icon">🧼</span><p>Пока нет записей — самое время исправить.</p><a href="index.html#booking" class="btn btn-dark">Записаться на мойку →</a></div></div>
   </div>
 
   <div class="card card-section">
-    <h3>Мои машины</h3>
-    <div id="carsList" style="margin-bottom:16px;"><p class="text-muted" style="font-size:13.5px;">Машины ещё не добавлены.</p></div>
+    <h3><span class="section-icon">🚗</span>Мои машины</h3>
+    <div id="carsList" style="margin-bottom:16px;"><div class="empty-state" style="padding:12px 4px;"><span class="empty-icon">🚗</span><p>Машины ещё не добавлены — впишите первую ниже.</p></div></div>
     <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
       <div class="field" style="margin-bottom:0;"><label>Марка</label><input type="text" id="carBrand" placeholder="Toyota Mark II"></div>
       <div class="field" style="margin-bottom:0;"><label>Номер</label><input type="text" id="carPlate" placeholder="А123ВС 197"></div>
@@ -174,7 +183,7 @@
   </div>
 
   <div class="card card-section">
-    <h3>Приведи друга</h3>
+    <h3><span class="section-icon">🤝</span>Приведи друга</h3>
     <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Отправьте другу свою ссылку — как только он запишется к нам впервые, вам обоим капнет ананас на карту.</p>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <input type="text" id="referralLink" readonly style="flex:1;min-width:220px;padding:12px 14px;border-radius:9px;border:1.5px solid var(--line);background:var(--washi-2);font-family:'Space Mono';font-size:13px;">
@@ -189,7 +198,7 @@
   </div>
 
   <div class="card card-section">
-    <h3>День рождения</h3>
+    <h3><span class="section-icon">🎂</span>День рождения</h3>
     <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Укажите дату — сделаем подарок в этот день.</p>
     <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
       <div class="field" style="margin-bottom:0;"><label>Дата рождения</label><input type="date" id="birthdayInput"></div>
@@ -199,7 +208,7 @@
   </div>
 
   <div class="card card-section">
-    <h3>Подарочный сертификат</h3>
+    <h3><span class="section-icon">🎁</span>Подарочный сертификат</h3>
     <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Купите сертификат в подарок или погасите свой код в счёт оплаты.</p>
     <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:16px;">
       <div class="field" style="margin-bottom:0;"><label>Сумма ₽</label><input type="number" id="certAmount" placeholder="2000"></div>
@@ -214,7 +223,7 @@
   </div>
 
   <div class="card card-section">
-    <h3>Вход по логину и паролю</h3>
+    <h3><span class="section-icon">🔒</span>Вход по логину и паролю</h3>
     <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Задайте логин и пароль один раз — и в следующий раз можно будет не ждать смс.</p>
     <div class="set-pass-row">
       <div class="field" style="margin-bottom:0;"><label>Логин</label><input type="text" id="setUsername" placeholder="username"></div>
@@ -462,7 +471,7 @@
           });
         });
       } else {
-        el.innerHTML = '<p class="text-muted" style="font-size:13.5px;">Машины ещё не добавлены.</p>';
+        el.innerHTML = '<div class="empty-state" style="padding:12px 4px;"><span class="empty-icon">🚗</span><p>Машины ещё не добавлены — впишите первую ниже.</p></div>';
       }
     } catch (e) {}
   }
