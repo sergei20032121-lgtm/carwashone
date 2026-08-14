@@ -284,9 +284,17 @@ section{padding:86px 0;}
   .custom-cursor svg{position:absolute;inset:0;width:100%;height:100%;fill:rgba(7,15,18,.72);stroke:#67e1dc;stroke-width:1.35;}
   .cursor-drop-fill{position:absolute;z-index:1;inset:2px;background:linear-gradient(to top,#168d91 0,#67e1dc var(--cursor-progress),transparent var(--cursor-progress));clip-path:polygon(50% 0,72% 27%,91% 54%,100% 70%,94% 86%,78% 97%,50% 100%,22% 97%,6% 86%,0 70%,9% 54%,28% 27%);}
   .custom-cursor.hover-target .cursor-scale-wrap{transform:scale(1.35);}
+  .custom-cursor.cursor-card .cursor-scale-wrap{transform:scale(1.55);}
+  .custom-cursor.cursor-cta .cursor-scale-wrap{transform:scale(1.5);}
   .custom-cursor.hover-target:after{content:"";position:absolute;inset:-7px;border:1px solid rgba(103,225,220,.55);border-radius:50%;animation:cursorWaterRing 1.15s ease-out infinite}
+  .custom-cursor.cursor-card:after{inset:-10px;border-color:rgba(103,225,220,.75);animation-duration:1.5s}
+  .custom-cursor.cursor-cta:after{inset:-6px;border-width:2px;border-color:rgba(255,138,101,.8);animation-duration:.85s}
   .custom-cursor.pressed .cursor-scale-wrap{transform:scale(.78)}
 }
+.cursor-impulse{position:fixed;z-index:9997;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;pointer-events:none;border:2px solid rgba(255,138,101,.9);box-shadow:0 0 20px rgba(255,138,101,.5);animation:cursorImpulseBurst .5s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes cursorImpulseBurst{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(4.2)}}
+.cursor-trail-drop{position:fixed;z-index:9996;width:4px;height:5px;margin:-2.5px 0 0 -2px;border-radius:50% 50% 60% 40%;background:linear-gradient(180deg,#8be9e4,#168d91);pointer-events:none;opacity:.8;animation:cursorTrailFall .56s ease-in forwards}
+@keyframes cursorTrailFall{0%{opacity:.8;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx,0px),var(--ty,14px)) scale(.25)}}
 
 @keyframes cursorWaterRing{0%{transform:scale(.65);opacity:0}30%{opacity:1}100%{transform:scale(1.35);opacity:0}}
 .water-click-ripple{position:fixed;z-index:9997;width:12px;height:12px;border:1px solid rgba(103,225,220,.8);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:waterClickRipple .62s ease-out forwards}

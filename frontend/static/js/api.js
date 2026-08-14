@@ -100,6 +100,26 @@ function initCustomCursor() {
   };
   updateProgress();
   addEventListener('scroll', updateProgress, { passive: true });
+  let wasCta = false;
+  function spawnCursorImpulse(x, y) {
+    const impulse = document.createElement('span');
+    impulse.className = 'cursor-impulse';
+    impulse.style.left = `${x}px`;
+    impulse.style.top = `${y}px`;
+    document.body.appendChild(impulse);
+    setTimeout(() => impulse.remove(), 520);
+  }
+  let lastTrailTime = 0;
+  function spawnCursorTrail(x, y, dx, dy) {
+    const drop = document.createElement('span');
+    drop.className = 'cursor-trail-drop';
+    drop.style.left = `${x}px`;
+    drop.style.top = `${y}px`;
+    drop.style.setProperty('--tx', `${dx * -0.4 + (Math.random() * 8 - 4)}px`);
+    drop.style.setProperty('--ty', `${Math.max(10, dy * -0.3) + Math.random() * 8}px`);
+    document.body.appendChild(drop);
+    setTimeout(() => drop.remove(), 560);
+  }
   document.addEventListener('mousemove', (e) => {
     targetX = e.clientX; targetY = e.clientY;
     if (!started) {
@@ -107,8 +127,14 @@ function initCustomCursor() {
       cursor.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
     }
     cursor.classList.add('visible');
-    const target = e.target.closest('a, button, .gallery-item, input, select, .service-card');
-    cursor.classList.toggle('hover-target', !!target);
+    const cta = e.target.closest('a[href="#booking"], #goalBook, .service-book-btn, .btn-primary, .btn-dark');
+    const card = e.target.closest('.gallery-item, .service-card, .ba-slider');
+    const plain = !cta && !card && e.target.closest('a, button, input, select');
+    cursor.classList.toggle('cursor-cta', !!cta);
+    cursor.classList.toggle('cursor-card', !cta && !!card);
+    cursor.classList.toggle('hover-target', !!(cta || card || plain));
+    if (cta && !wasCta) spawnCursorImpulse(targetX, targetY);
+    wasCta = !!cta;
   });
   const animateDrop = () => {
     const dx = targetX - currentX;
@@ -121,6 +147,11 @@ function initCustomCursor() {
     shape.style.setProperty('--drop-stretch', String(1 + speed * .02));
     shape.style.setProperty('--drop-squash', String(1 - Math.min(.16, speed * .011)));
     cursor.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+    const now = performance.now();
+    if (speed > 7 && now - lastTrailTime > 65) {
+      lastTrailTime = now;
+      spawnCursorTrail(currentX, currentY, dx, dy);
+    }
     requestAnimationFrame(animateDrop);
   };
   requestAnimationFrame(animateDrop);
