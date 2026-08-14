@@ -6,7 +6,7 @@ from pathlib import Path
 
 from app.config import settings
 from app.database import Base, engine, ensure_compatible_schema
-from app.routers import auth, services, bookings, dry_cleaning, schedule, reviews, admin, walk_in, vk, client, public_stats, payments, finances, phone_gateway
+from app.routers import auth, services, bookings, dry_cleaning, detailing, schedule, reviews, admin, walk_in, vk, client, public_stats, payments, finances, phone_gateway
 
 Base.metadata.create_all(bind=engine)
 ensure_compatible_schema()
@@ -31,6 +31,7 @@ app.include_router(auth.router)
 app.include_router(services.router)
 app.include_router(bookings.router)
 app.include_router(dry_cleaning.router)
+app.include_router(detailing.router)
 app.include_router(schedule.router)
 app.include_router(reviews.router)
 app.include_router(admin.router)

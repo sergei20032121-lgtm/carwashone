@@ -22,8 +22,9 @@ class UserRole(str, enum.Enum):
 
 
 class ServiceCategory(str, enum.Enum):
-    WASH = "wash"                   # обычная мойка (экспресс/комплекс/детейлинг/защита)
-    DRY_CLEANING = "dry_cleaning"   # химчистка — отдельный раздел по ТЗ
+    WASH = "wash"                   # обычная мойка кузова и салона
+    DRY_CLEANING = "dry_cleaning"   # химчистка салона — отдельный раздел по ТЗ
+    DETAILING = "detailing"         # полировка, керамика, восстановление — отдельное направление
 
 
 class BookingStatus(str, enum.Enum):

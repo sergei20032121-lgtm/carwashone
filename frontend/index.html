@@ -452,7 +452,8 @@
       <div class="catalog-tabs" id="catalogTabs">
         <button class="active" data-filter="all">Все</button>
         <button data-filter="wash">Мойка</button>
-        <button data-filter="care">Детейлинг и уход</button>
+        <button data-filter="dry_cleaning">Химчистка</button>
+        <button data-filter="detailing">Детейлинг</button>
       </div>
       <label class="catalog-search"><input id="serviceSearch" type="search" placeholder="Найти услугу" aria-label="Найти услугу"></label>
     </div>
@@ -489,6 +490,21 @@
       <div class="gallery-item span-2"><img src="static/img/drycleaning/02-door-panel.jpg" alt="Обшивка двери до и после химчистки" loading="lazy" class="photo-grade"></div>
       <div class="gallery-item span-2"><img src="static/img/drycleaning/04-seatback.jpg" alt="Спинка сиденья до и после химчистки" loading="lazy" class="photo-grade"></div>
       <div class="gallery-item span-2"><img src="static/img/drycleaning/05-sill.jpg" alt="Порог и кнопки лючка до и после химчистки" loading="lazy" class="photo-grade"></div>
+    </div>
+  </div>
+</section>
+
+<section id="detailing" class="dry-section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="kicker">Отдельное направление</div>
+      <h2>Детейлинг и восстановление</h2>
+      <p>Полировка, керамика и работа с пластиком — отдельный прайс, финальную стоимость мастер подтверждает после осмотра.</p>
+    </div>
+    <div class="services-grid" id="detailingGrid">
+      <div class="skeleton skeleton-card" style="background:rgba(255,255,255,0.06);"></div>
+      <div class="skeleton skeleton-card" style="background:rgba(255,255,255,0.06);"></div>
+      <div class="skeleton skeleton-card" style="background:rgba(255,255,255,0.06);"></div>
     </div>
   </div>
 </section>
@@ -662,24 +678,30 @@
 
   async function loadServices() {
     try {
-      const [washRaw, dryRaw] = await Promise.all([
+      const [washRaw, dryRaw, detailingRaw] = await Promise.all([
         api('/services?category=wash'),
-        api('/dry-cleaning/services')
+        api('/dry-cleaning/services'),
+        api('/detailing/services')
       ]);
       const wash = washRaw.map(s => ({ ...s, _group: 'wash' }));
-      const dry = dryRaw.map(s => ({ ...s, _group: 'care' }));
-      allPublicServices = [...wash, ...dry];
+      const dry = dryRaw.map(s => ({ ...s, _group: 'dry_cleaning' }));
+      const detailing = detailingRaw.map(s => ({ ...s, _group: 'detailing' }));
+      allPublicServices = [...wash, ...dry, ...detailing];
       const washGrid = document.getElementById('washGrid');
       const dryGrid = document.getElementById('dryGrid');
+      const detailingGrid = document.getElementById('detailingGrid');
       washGrid.className = `services-grid count-${wash.length}`;
       dryGrid.className = `services-grid count-${dry.length}`;
+      detailingGrid.className = `services-grid count-${detailing.length}`;
       washGrid.innerHTML = wash.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
       dryGrid.innerHTML = dry.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
+      detailingGrid.innerHTML = detailing.map((s,i)=>serviceCard(s, icons[i % icons.length])).join('');
       document.getElementById('serviceSelect').innerHTML = allPublicServices.map(s => `<option value="${s.id}">${escapeHtml(s.name)} — ${s.price_to ? Math.round(s.price_from) + '–' + Math.round(s.price_to) : 'от ' + Math.round(s.price_from)} ₽</option>`).join('');
       renderGoalRecommendation('quick');
     } catch (e) {
       document.getElementById('washGrid').innerHTML = '<p style="color:var(--ink-soft);">Не удалось загрузить услуги — проверь, что backend запущен (' + API_BASE + ').</p>';
       document.getElementById('dryGrid').innerHTML = '';
+      document.getElementById('detailingGrid').innerHTML = '';
     }
   }
 
@@ -803,7 +825,8 @@
     catalogFilter = button.dataset.filter;
     document.querySelectorAll('#catalogTabs button').forEach(item => item.classList.toggle('active', item === button));
     applyCatalogFilter();
-    if (catalogFilter === 'care') document.getElementById('dry-cleaning').scrollIntoView({ behavior: 'smooth' });
+    if (catalogFilter === 'dry_cleaning') document.getElementById('dry-cleaning').scrollIntoView({ behavior: 'smooth' });
+    if (catalogFilter === 'detailing') document.getElementById('detailing').scrollIntoView({ behavior: 'smooth' });
   });
   document.getElementById('serviceSearch').addEventListener('input', applyCatalogFilter);
 
