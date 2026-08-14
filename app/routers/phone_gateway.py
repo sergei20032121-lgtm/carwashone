@@ -224,6 +224,27 @@ def set_log_handled(
     return {"ok": True, "handled": bool(row.handled_at)}
 
 
+@router.post("/logs/{log_id}/retry-sms", status_code=201)
+def retry_failed_sms(
+    log_id: int,
+    db: Session = Depends(get_db),
+    _user: User = Depends(require_staff),
+):
+    log_row = db.query(CommunicationLog).filter(CommunicationLog.id == log_id).first()
+    if not log_row or log_row.channel != "sms" or log_row.status != "failed":
+        raise HTTPException(404, "Неудачное SMS-событие не найдено")
+    if not log_row.command_id:
+        raise HTTPException(409, "Исходная команда не найдена, повтор невозможен")
+    original = db.query(PhoneGatewayCommand).filter(PhoneGatewayCommand.id == log_row.command_id).first()
+    if not original:
+        raise HTTPException(409, "Исходная команда не найдена, повтор невозможен")
+    row = PhoneGatewayCommand(recipient=original.recipient, message=original.message)
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return {"id": row.id, "status": row.status, "recipient": row.recipient}
+
+
 @router.get("/logs")
 def communication_logs(
     limit: int = Query(default=100, ge=1, le=500),
@@ -262,5 +283,7 @@ def communication_logs(
         "handled_at": row.handled_at, "handling_note": row.handling_note,
         "handled_by": handler.full_name or handler.username if handler else None,
         "client": {"id": client.id, "name": client.full_name or "Клиент", "phone": client.phone} if client else None,
+        "error": (row.details or {}).get("error"),
+        "command_id": row.command_id,
         })
     return result

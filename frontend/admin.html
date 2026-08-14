@@ -637,6 +637,8 @@
       ['countedCash','countedCard','countedTransfer','closureNote'].forEach(id => document.getElementById(id).disabled = true);
     }
     loadEmployees(); loadOverview(); loadBookings(); loadDry(); loadServices(); loadVk(); loadAuditLog(); loadCommunicationSummary();
+    if (window.Notification && Notification.permission === 'default') { Notification.requestPermission(); }
+    setInterval(loadCommunicationSummary, 30000);
     document.getElementById('payrollDay').value = new Date().toISOString().slice(0, 10);
     const todayIso = new Date().toISOString().slice(0, 10);
     const weekAgoIso = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
@@ -1695,8 +1697,10 @@
           <button type="button" data-comm-sms="${escapeHtml(row.phone)}">SMS</button>
           ${row.client ? `<button type="button" data-comm-client="${escapeHtml(row.client.phone || row.phone)}">Карточка</button>` : ''}
           ${missed ? `<button type="button" class="${row.handled_at ? 'handled' : 'resolve'}" data-comm-resolve="${row.id}" data-comm-handled="${row.handled_at ? '1' : '0'}">${row.handled_at ? '✓ Перезвонили' : 'Отметить звонок'}</button>` : ''}
+          ${row.channel === 'sms' && row.status === 'failed' ? `<button type="button" class="resolve" data-comm-retry="${row.id}">↻ Повторить</button>` : ''}
         </div>
         ${row.handling_note || row.handled_by ? `<div class="comm-note">${row.handled_by ? `Обработал: ${escapeHtml(row.handled_by)}. ` : ''}${escapeHtml(row.handling_note || '')}</div>` : ''}
+        ${row.error ? `<div class="comm-note" style="color:#e1493e;">Ошибка: ${escapeHtml(row.error)}</div>` : ''}
       </article>`;
     }).join('') || '<div class="comm-empty">По этому фильтру событий пока нет.</div>';
     document.querySelectorAll('[data-comm-sms]').forEach(button => button.addEventListener('click', () => {
@@ -1716,6 +1720,26 @@
         await loadCommunications();
       } catch (error) { alert(error.message || 'Не удалось сохранить отметку'); }
     }));
+    document.querySelectorAll('[data-comm-retry]').forEach(button => button.addEventListener('click', async () => {
+      button.disabled = true; button.textContent = 'Ставим…';
+      try {
+        await api(`/phone-gateway/logs/${button.dataset.commRetry}/retry-sms`, {method:'POST'});
+        await loadCommunications();
+      } catch (error) {
+        alert(error.message || 'Не удалось поставить SMS повторно');
+        button.disabled = false; button.textContent = '↻ Повторить';
+      }
+    }));
+  }
+  let lastKnownPendingMissed = null;
+  function notifyNewMissedCall(count) {
+    if (!window.Notification || Notification.permission !== 'granted') return;
+    try {
+      new Notification('Новый пропущенный звонок', {
+        body: `Необработанных пропущенных: ${count}`,
+        tag: 'carwashone-missed-call',
+      });
+    } catch (error) {}
   }
   async function loadCommunicationSummary() {
     try {
@@ -1725,6 +1749,10 @@
       const badge = document.getElementById('commNavBadge');
       badge.textContent = summary.pending_missed > 99 ? '99+' : summary.pending_missed;
       badge.hidden = !summary.pending_missed;
+      if (lastKnownPendingMissed !== null && summary.pending_missed > lastKnownPendingMissed) {
+        notifyNewMissedCall(summary.pending_missed);
+      }
+      lastKnownPendingMissed = summary.pending_missed;
     } catch (error) {}
     try {
       const device = await api('/phone-gateway/device-status');
