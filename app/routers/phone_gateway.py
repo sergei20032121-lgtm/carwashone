@@ -10,15 +10,25 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.dependencies import require_staff
-from app.models import CommunicationLog, PhoneGatewayCommand, User
+from app.models import CommunicationLog, PhoneGatewayCommand, PhoneGatewayDevice, User
 
 router = APIRouter(prefix="/phone-gateway", tags=["Телефонный шлюз"])
 
 
-def _device_auth(x_phone_gateway_token: str = Header(default="")) -> None:
+def _device_auth(x_phone_gateway_token: str = Header(default=""), db: Session = Depends(get_db)) -> None:
     expected = settings.phone_gateway_token
     if not expected or x_phone_gateway_token != expected:
         raise HTTPException(401, "Неверный токен телефонного шлюза")
+    row = db.query(PhoneGatewayDevice).first()
+    if not row:
+        row = PhoneGatewayDevice()
+        db.add(row)
+    row.device_name = settings.phone_gateway_name
+    row.last_seen_at = datetime.utcnow()
+    db.commit()
+
+
+DEVICE_ONLINE_THRESHOLD_MINUTES = 5
 
 
 class SmsStatusIn(BaseModel):
@@ -146,6 +156,18 @@ def calls_batch(data: CallBatchIn, db: Session = Depends(get_db)):
 @router.get("/health", dependencies=[Depends(_device_auth)])
 def gateway_health():
     return {"ok": True, "server_time": datetime.now(timezone.utc)}
+
+
+@router.get("/device-status")
+def device_status(
+    db: Session = Depends(get_db),
+    _user: User = Depends(require_staff),
+):
+    row = db.query(PhoneGatewayDevice).first()
+    if not row or not row.last_seen_at:
+        return {"device_name": settings.phone_gateway_name, "last_seen_at": None, "online": False}
+    online = datetime.utcnow() - row.last_seen_at < timedelta(minutes=DEVICE_ONLINE_THRESHOLD_MINUTES)
+    return {"device_name": row.device_name, "last_seen_at": row.last_seen_at, "online": online}
 
 
 @router.get("/logs/summary")

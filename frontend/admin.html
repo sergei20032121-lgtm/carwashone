@@ -517,7 +517,10 @@
     <div class="tab-page" id="tab-communications" style="display:none;">
       <div class="comm-titlebar">
         <div><span class="comm-kicker">Рабочий телефон</span><h2>Связь с клиентами</h2><p>Звонки, пропущенные и SMS — в одном журнале.</p></div>
-        <button class="btn btn-outline" id="refreshCommunications" type="button">Обновить</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="commDeviceStatus" class="auth-status" aria-live="polite"></span>
+          <button class="btn btn-outline" id="refreshCommunications" type="button">Обновить</button>
+        </div>
       </div>
       <div class="comm-stats">
         <button class="comm-stat urgent" type="button" data-comm-filter="pending"><b id="commPendingCount">—</b><span>ждут звонка</span></button>
@@ -1722,6 +1725,23 @@
       const badge = document.getElementById('commNavBadge');
       badge.textContent = summary.pending_missed > 99 ? '99+' : summary.pending_missed;
       badge.hidden = !summary.pending_missed;
+    } catch (error) {}
+    try {
+      const device = await api('/phone-gateway/device-status');
+      const el = document.getElementById('commDeviceStatus');
+      if (!el) return;
+      if (device.online) {
+        el.textContent = '● в сети';
+        el.className = 'auth-status ok';
+      } else if (device.last_seen_at) {
+        const mins = Math.round((Date.now() - new Date(device.last_seen_at).getTime()) / 60000);
+        const ago = mins < 60 ? (mins + ' мин назад') : new Date(device.last_seen_at).toLocaleString('ru-RU');
+        el.textContent = '○ не на связи, последний раз: ' + ago;
+        el.className = 'auth-status err';
+      } else {
+        el.textContent = '○ никогда не выходил на связь';
+        el.className = 'auth-status err';
+      }
     } catch (error) {}
   }
   async function loadCommunications() {

@@ -33,7 +33,7 @@ def send_sms(phone: str, code: str) -> None:
         try:
             db.add(PhoneGatewayCommand(
                 command_type="send_sms",
-                recipient=_recipient(phone),
+                recipient="+" + _recipient(phone),
                 message=message_text,
                 status="pending",
             ))

@@ -158,6 +158,15 @@ class CommunicationLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class PhoneGatewayDevice(Base):
+    """Единственная запись-статус: когда рабочий телефон последний раз выходил на связь."""
+    __tablename__ = "phone_gateway_device"
+
+    id = Column(Integer, primary_key=True)
+    device_name = Column(String(80), nullable=True)
+    last_seen_at = Column(DateTime, nullable=True)
+
+
 class Employee(Base):
     """Сотрудник мойки/химчистки — для графика и распределения записей."""
     __tablename__ = "employees"
