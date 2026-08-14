@@ -180,6 +180,11 @@
       <input type="text" id="referralLink" readonly style="flex:1;min-width:220px;padding:12px 14px;border-radius:9px;border:1.5px solid var(--line);background:var(--washi-2);font-family:'Space Mono';font-size:13px;">
       <button class="btn btn-outline" id="copyReferralBtn">Скопировать</button>
     </div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+      <a class="btn btn-outline" id="shareWhatsappBtn" target="_blank" rel="noopener" style="text-decoration:none;">WhatsApp</a>
+      <a class="btn btn-outline" id="shareTelegramBtn" target="_blank" rel="noopener" style="text-decoration:none;">Telegram</a>
+      <button class="btn btn-outline" id="shareNativeBtn" type="button" style="display:none;">Поделиться</button>
+    </div>
     <p class="text-muted" style="font-size:12.5px;margin-top:10px;">Приглашено друзей: <b id="referralCount">0</b></p>
   </div>
 
@@ -480,8 +485,17 @@
   async function loadReferral() {
     try {
       const r = await api('/referral');
-      document.getElementById('referralLink').value = window.location.origin + r.referral_link;
+      const link = window.location.origin + r.referral_link;
+      document.getElementById('referralLink').value = link;
       document.getElementById('referralCount').textContent = r.referred_count;
+      const message = `Заезжай на Автомойку №1 в Закамске по моей ссылке — тебе понравится: ${link}`;
+      document.getElementById('shareWhatsappBtn').href = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      document.getElementById('shareTelegramBtn').href = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Заезжай на Автомойку №1 в Закамске по моей ссылке — тебе понравится')}`;
+      if (navigator.share) {
+        const nativeBtn = document.getElementById('shareNativeBtn');
+        nativeBtn.style.display = 'inline-flex';
+        nativeBtn.addEventListener('click', () => navigator.share({ title: 'Автомойка №1', text: message, url: link }).catch(() => {}));
+      }
     } catch (e) {}
   }
   document.getElementById('copyReferralBtn').addEventListener('click', () => {
