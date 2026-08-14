@@ -87,11 +87,12 @@ function initCustomCursor() {
   document.body.classList.add('custom-cursor-on');
   const cursor = document.createElement('div');
   cursor.className = 'custom-cursor';
-  cursor.innerHTML = '<span class="cursor-drop-shape"><span class="cursor-drop-fill"></span><svg viewBox="0 0 24 28" aria-hidden="true"><path d="M12 1.5C16.7 8 21 13.1 21 18a9 9 0 1 1-18 0C3 13.1 7.3 8 12 1.5Z"/></svg></span>';
+  cursor.innerHTML = '<span class="cursor-scale-wrap"><span class="cursor-drop-shape"><span class="cursor-drop-fill"></span><svg viewBox="0 0 24 28" aria-hidden="true"><path d="M12 1.5C16.7 8 21 13.1 21 18a9 9 0 1 1-18 0C3 13.1 7.3 8 12 1.5Z"/></svg></span></span>';
   document.body.appendChild(cursor);
   const shape = cursor.querySelector('.cursor-drop-shape');
   let targetX = innerWidth / 2, targetY = innerHeight / 2;
-  let currentX = targetX, currentY = targetY, velocityX = 0, velocityY = 0;
+  let currentX = targetX, currentY = targetY;
+  let lastAngle = 0;
   let started = false;
   const updateProgress = () => {
     const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
@@ -103,23 +104,23 @@ function initCustomCursor() {
     targetX = e.clientX; targetY = e.clientY;
     if (!started) {
       currentX = targetX; currentY = targetY; started = true;
+      cursor.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
     }
     cursor.classList.add('visible');
     const target = e.target.closest('a, button, .gallery-item, input, select, .service-card');
     cursor.classList.toggle('hover-target', !!target);
   });
   const animateDrop = () => {
-    velocityX = (velocityX + (targetX - currentX) * .17) * .7;
-    velocityY = (velocityY + (targetY - currentY) * .17) * .7;
-    currentX += velocityX;
-    currentY += velocityY;
-    const speed = Math.min(18, Math.hypot(velocityX, velocityY));
-    const angle = speed > .15 ? Math.atan2(velocityY, velocityX) * 180 / Math.PI + 90 : 0;
-    shape.style.setProperty('--drop-angle', `${angle}deg`);
-    shape.style.setProperty('--drop-stretch', String(1 + speed * .018));
-    shape.style.setProperty('--drop-squash', String(1 - Math.min(.18, speed * .009)));
-    cursor.style.left = `${currentX}px`;
-    cursor.style.top = `${currentY}px`;
+    const dx = targetX - currentX;
+    const dy = targetY - currentY;
+    currentX += dx * 0.22;
+    currentY += dy * 0.22;
+    const speed = Math.min(20, Math.hypot(dx, dy) * 0.22);
+    if (speed > .4) lastAngle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+    shape.style.setProperty('--drop-angle', `${lastAngle}deg`);
+    shape.style.setProperty('--drop-stretch', String(1 + speed * .02));
+    shape.style.setProperty('--drop-squash', String(1 - Math.min(.16, speed * .011)));
+    cursor.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
     requestAnimationFrame(animateDrop);
   };
   requestAnimationFrame(animateDrop);
