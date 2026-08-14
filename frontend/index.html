@@ -509,11 +509,19 @@
       <h2>Что у нас происходит</h2>
       <p>Последние посты из нашей группы ВКонтакте — акции, новые услуги, фото готовых машин.</p>
     </div>
-    <div class="gallery-grid reveal" id="newsGrid" style="grid-auto-rows:auto;">
-      <p class="text-muted" style="font-size:13.5px;">Загружаем новости…</p>
+    <div class="reveal" id="newsGrid">
+      <div id="vk_groups_widget"></div>
     </div>
   </div>
 </section>
+<script src="https://vk.com/js/api/openapi.js?169" async defer onload="window.__vkWidgetReady && window.__vkWidgetReady()"></script>
+<script>
+  window.__vkWidgetReady = function () {
+    try {
+      VK.Widgets.Group('vk_groups_widget', {mode: 4, width: '100%', height: '500', no_header: false}, 140749891);
+    } catch (e) {}
+  };
+</script>
 
 <section id="contacts" class="finale">
   <div class="finale-grid">
@@ -1115,7 +1123,6 @@
 
   loadServices();
   loadGis();
-  loadNews();
 </script>
 </body>
 </html>
