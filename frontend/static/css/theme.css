@@ -272,7 +272,7 @@ section{padding:86px 0;}
 
 /* ---------- кастомный курсор-капля (только десктоп, с тонким наведением) ---------- */
 @media (hover:hover) and (pointer:fine){
-  body.custom-cursor-on{cursor:none;}
+  body.custom-cursor-on,body.custom-cursor-on *{cursor:none !important;}
   .custom-cursor{
     --cursor-progress:8%;position:fixed;top:0;left:0;width:24px;height:28px;pointer-events:none;z-index:9998;
     will-change:transform;transition:opacity .2s ease;
