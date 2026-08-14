@@ -233,6 +233,31 @@ function initRevealObserver(selector = '.reveal') {
 
 // ---- Лайтбокс: клик по любой картинке внутри .gallery-item открывает
 // полноэкранный просмотр. Работает и с картинками, добавленными позже (делегирование).
+function initBeforeAfterSliders() {
+  document.querySelectorAll('[data-ba-slider]').forEach((slider) => {
+    if (slider.dataset.baReady) return;
+    slider.dataset.baReady = '1';
+    const before = slider.querySelector('[data-ba-before]');
+    const handle = slider.querySelector('[data-ba-handle]');
+    let dragging = false;
+    function setPercent(clientX) {
+      const rect = slider.getBoundingClientRect();
+      let pct = ((clientX - rect.left) / rect.width) * 100;
+      pct = Math.max(0, Math.min(100, pct));
+      before.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+      handle.style.left = pct + '%';
+    }
+    slider.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      slider.setPointerCapture(e.pointerId);
+      setPercent(e.clientX);
+    });
+    slider.addEventListener('pointermove', (e) => { if (dragging) setPercent(e.clientX); });
+    slider.addEventListener('pointerup', () => { dragging = false; });
+    slider.addEventListener('pointercancel', () => { dragging = false; });
+  });
+}
+
 function initLightbox() {
   if (document.getElementById('lightboxOverlay')) return;
   const overlay = document.createElement('div');

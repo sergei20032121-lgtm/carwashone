@@ -157,6 +157,18 @@
     .mobile-actions svg{width:21px;height:21px;color:#56D7D8;}
     .mobile-actions a.primary svg{color:#F04432;}
   }
+
+  .ba-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:28px;}
+  .ba-slider{position:relative;aspect-ratio:4/3;border-radius:16px;overflow:hidden;user-select:none;touch-action:pan-y;cursor:ew-resize;box-shadow:0 14px 34px rgba(20,20,20,.14);}
+  .ba-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}
+  .ba-before-wrap{position:absolute;inset:0;will-change:clip-path;}
+  .ba-handle{position:absolute;top:0;bottom:0;transform:translateX(-50%);pointer-events:none;}
+  .ba-handle::before{content:'';position:absolute;top:0;bottom:0;left:0;width:3px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.2);transform:translateX(-1.5px);}
+  .ba-handle span{position:absolute;top:50%;left:0;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:17px;color:#0f2024;box-shadow:0 8px 20px rgba(0,0,0,.28);}
+  .ba-tag{position:absolute;top:14px;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:6px 11px;border-radius:99px;background:rgba(8,13,16,.6);color:#fff;pointer-events:none;}
+  .ba-tag-left{left:14px;}
+  .ba-tag-right{right:14px;}
+  @media(max-width:760px){.ba-grid{grid-template-columns:1fr;}}
 </style>
 <link rel="stylesheet" href="static/css/site-v2.css">
 <link rel="stylesheet" href="static/css/interactions-v9.css">
@@ -396,6 +408,35 @@
       <figure class="gallery-item work-card"><img src="static/img/works-v22/03-headlight.webp" alt="Полировка автомобильной фары до и после" loading="lazy"></figure>
       <figure class="gallery-item work-card"><img src="static/img/works-v22/15-headlight-restoration.webp" alt="Восстановление прозрачности фары" loading="lazy"></figure>
       <figure class="gallery-item work-card work-wide"><img src="static/img/works-v22/04-trim.webp" alt="Восстановление внешнего пластика автомобиля" loading="lazy"></figure>
+    </div>
+  </div>
+</section>
+
+<section id="ba-compare" style="background:var(--washi-2);">
+  <div class="wrap">
+    <div class="works-head reveal">
+      <div><div class="kicker">Сравните сами</div><h2>Потяните<br>ползунок.</h2></div>
+      <p>Реальные диск и подкапотка — тяните за круг влево-вправо, чтобы увидеть разницу.</p>
+    </div>
+    <div class="ba-grid reveal">
+      <div class="ba-slider" data-ba-slider>
+        <img class="ba-img" src="static/img/compare/wheel-after.jpg" alt="Диск после мойки">
+        <div class="ba-before-wrap" data-ba-before style="clip-path:inset(0 50% 0 0);">
+          <img class="ba-img" src="static/img/compare/wheel-before.jpg" alt="Диск до мойки">
+        </div>
+        <div class="ba-handle" data-ba-handle style="left:50%;"><span>↔</span></div>
+        <span class="ba-tag ba-tag-left">До</span>
+        <span class="ba-tag ba-tag-right">После</span>
+      </div>
+      <div class="ba-slider" data-ba-slider>
+        <img class="ba-img" src="static/img/compare/engine-after.jpg" alt="Подкапотное пространство после мойки">
+        <div class="ba-before-wrap" data-ba-before style="clip-path:inset(0 50% 0 0);">
+          <img class="ba-img" src="static/img/compare/engine-before.jpg" alt="Подкапотное пространство до мойки">
+        </div>
+        <div class="ba-handle" data-ba-handle style="left:50%;"><span>↔</span></div>
+        <span class="ba-tag ba-tag-left">До</span>
+        <span class="ba-tag ba-tag-right">После</span>
+      </div>
     </div>
   </div>
 </section>
@@ -985,6 +1026,7 @@
 
   initRevealObserver();
   initLightbox();
+  initBeforeAfterSliders();
   initScrollSpy();
   initCustomCursor();
   initSoapTrail();
