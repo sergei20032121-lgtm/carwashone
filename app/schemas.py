@@ -575,11 +575,20 @@ class ManagerDashboard(BaseModel):
 
 # ---------- Поиск клиента (админ) ----------
 
+class TimelineEvent(BaseModel):
+    type: str
+    occurred_at: datetime
+    title: str
+    subtitle: str = ""
+    amount: float | None = None
+
+
 class ClientSearchResult(BaseModel):
     user: UserOut
     bookings: List[BookingOut] = []
     walk_in_orders: List[WalkInOrderOut] = []
     dry_cleaning_orders: List[DryCleaningOrderOut] = []
+    timeline: List[TimelineEvent] = []
 
 
 # ---------- Назначение сотрудников на заказ (много людей на одну машину) ----------

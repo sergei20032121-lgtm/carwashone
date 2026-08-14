@@ -1631,20 +1631,19 @@
           <div class="card client-kpi"><b>${Math.round(totalRevenue).toLocaleString('ru-RU')} ₽</b><span>оборот по клиенту</span></div>
           <div class="card client-kpi"><b>${visits[0] ? visits[0].toLocaleDateString('ru-RU') : '—'}</b><span>последний визит</span></div>
         </div>
-        <div class="card" style="padding:6px 16px;margin-bottom:16px;overflow-x:auto;">
-          <h3 style="font-size:14px;padding-top:14px;">Записи (${r.bookings.length})</h3>
-          <table><thead><tr><th>Дата</th><th>Услуга</th><th>Статус</th><th>Цена</th></tr></thead>
-          <tbody>${r.bookings.map(b => `<tr><td>${new Date(b.scheduled_at).toLocaleString('ru-RU')}</td><td>${escapeHtml(b.service_name || ('Услуга #' + b.service_id))}</td><td>${statusLabels2[b.status]||escapeHtml(b.status)}</td><td>${b.price!=null?Math.round(b.price)+' ₽':'—'}</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет записей</td></tr>'}</tbody></table>
-        </div>
-        <div class="card" style="padding:6px 16px;margin-bottom:16px;overflow-x:auto;">
-          <h3 style="font-size:14px;padding-top:14px;">Мойки без записи (${r.walk_in_orders.length})</h3>
-          <table><thead><tr><th>Дата</th><th>Услуга</th><th>Авто</th><th>Сумма</th></tr></thead>
-          <tbody>${r.walk_in_orders.map(o => `<tr><td>${o.order_date}</td><td>${escapeHtml(o.service_name_raw)}</td><td>${escapeHtml(o.car_model||'—')}</td><td>${Math.round(o.amount)} ₽</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет заказов</td></tr>'}</tbody></table>
-        </div>
         <div class="card" style="padding:6px 16px;overflow-x:auto;">
-          <h3 style="font-size:14px;padding-top:14px;">Химчистка (${r.dry_cleaning_orders.length})</h3>
-          <table><thead><tr><th>Дата</th><th>Авто</th><th>Работы</th><th>Сумма</th></tr></thead>
-          <tbody>${r.dry_cleaning_orders.map(o => `<tr><td>${o.order_date}</td><td>${escapeHtml(o.car_model)}</td><td>${escapeHtml(o.works_description)}</td><td>${Math.round(o.amount)} ₽</td></tr>`).join('') || '<tr><td colspan="4" class="text-muted">Нет заказов</td></tr>'}</tbody></table>
+          <h3 style="font-size:14px;padding-top:14px;">История взаимодействий (${r.timeline.length})</h3>
+          <div style="display:grid;gap:0;margin:8px 0 14px;">
+            ${(r.timeline || []).map(ev => {
+              const icons = {booking:'📅', walk_in:'🚗', dry_cleaning:'🧽', stamp:'🍍', call:'☎', sms:'✉'};
+              const bg = {booking:'rgba(47,169,157,.12)', walk_in:'rgba(47,169,157,.12)', dry_cleaning:'rgba(47,169,157,.12)', stamp:'rgba(230,168,44,.15)', call:'rgba(120,120,120,.12)', sms:'rgba(120,120,120,.12)'};
+              return `<div style="display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line-soft);">
+                <span style="width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:${bg[ev.type]||'rgba(120,120,120,.12)'};font-size:14px;">${icons[ev.type]||'•'}</span>
+                <div><b style="display:block;font-size:12.5px;">${escapeHtml(ev.title)}</b><small style="display:block;color:var(--ink-soft-2);font-size:10.5px;margin-top:2px;">${escapeHtml(ev.subtitle||'')} · ${new Date(ev.occurred_at).toLocaleString('ru-RU')}</small></div>
+                <span style="font-size:12px;font-weight:700;color:var(--ink-soft);">${ev.amount!=null?Math.round(ev.amount)+' ₽':''}</span>
+              </div>`;
+            }).join('') || '<p class="text-muted" style="font-size:13px;padding:12px 4px;">Пока нет истории по этому клиенту.</p>'}
+          </div>
         </div>`;
       resultEl.querySelector('[data-copy-client-phone]')?.addEventListener('click', async event => {
         await navigator.clipboard.writeText(event.currentTarget.dataset.copyClientPhone);

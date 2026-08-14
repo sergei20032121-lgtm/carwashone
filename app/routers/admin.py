@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,11 +8,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import (
     Booking, DryCleaningOrder, WalkInOrder, BookingStatus,
-    Employee, PineappleStampLog, Service, AuditLog, User, BusinessSettings,
+    Employee, PineappleStampLog, Service, AuditLog, User, BusinessSettings, CommunicationLog,
 )
 from app.schemas import (
     StatsSummary, ManagerDashboard, EmployeeRankingItem,
-    ClientSearchResult, AuditLogOut, BusinessSettingsOut, BusinessSettingsUpdate,
+    ClientSearchResult, TimelineEvent, AuditLogOut, BusinessSettingsOut, BusinessSettingsUpdate,
 )
 from app.dependencies import require_staff, require_admin, require_manager_or_admin
 from app import payroll
@@ -235,8 +235,63 @@ def search_client(phone: str, db: Session = Depends(get_db)):
     walk_ins = db.query(WalkInOrder).filter(WalkInOrder.client_id == user.id).order_by(WalkInOrder.order_date.desc()).all()
     # химчистка не всегда привязана к client_id напрямую — ищем по совпадению телефона
     dry_orders = db.query(DryCleaningOrder).filter(DryCleaningOrder.phone == user.phone).order_by(DryCleaningOrder.order_date.desc()).all()
+    stamps = db.query(PineappleStampLog).filter(PineappleStampLog.user_id == user.id).order_by(PineappleStampLog.created_at.desc()).all()
 
-    return ClientSearchResult(user=user, bookings=bookings, walk_in_orders=walk_ins, dry_cleaning_orders=dry_orders)
+    user_phone_tail = "".join(ch for ch in (user.phone or "") if ch.isdigit())[-10:]
+    comm_logs = []
+    if len(user_phone_tail) == 10:
+        for row in db.query(CommunicationLog).order_by(CommunicationLog.occurred_at.desc()).limit(2000).all():
+            row_tail = "".join(ch for ch in (row.phone or "") if ch.isdigit())[-10:]
+            if row_tail == user_phone_tail:
+                comm_logs.append(row)
+
+    call_labels = {"answered": "Звонок принят", "missed": "Пропущенный звонок", "rejected": "Звонок отклонён", "blocked": "Звонок заблокирован", "outgoing": "Исходящий звонок"}
+    booking_status_labels = {"pending": "ожидает", "confirmed": "подтверждена", "in_progress": "в работе", "done": "выполнена", "cancelled": "отменена"}
+    sms_labels = {"sent": "SMS отправлено", "delivered": "SMS доставлено", "failed": "Ошибка отправки SMS"}
+
+    timeline: List[TimelineEvent] = []
+    for b in bookings:
+        timeline.append(TimelineEvent(
+            type="booking", occurred_at=b.scheduled_at,
+            title=b.service.name if b.service else f"Услуга #{b.service_id}",
+            subtitle=f"Запись · {booking_status_labels.get(b.status.value if hasattr(b.status, 'value') else b.status, b.status)}",
+            amount=b.price,
+        ))
+    for o in walk_ins:
+        timeline.append(TimelineEvent(
+            type="walk_in", occurred_at=datetime.combine(o.order_date, time(12, 0)),
+            title=o.service_name_raw, subtitle=f"Мойка без записи · {o.car_model or ''}".strip(" ·"),
+            amount=o.amount,
+        ))
+    for o in dry_orders:
+        timeline.append(TimelineEvent(
+            type="dry_cleaning", occurred_at=datetime.combine(o.order_date, time(12, 0)),
+            title="Химчистка", subtitle=f"{o.car_model} · {o.works_description}",
+            amount=o.amount,
+        ))
+    for s in stamps:
+        subtitle = "Скидка 50% на мойку" if s.discount_applied_pct == 50 else ("Мойка бесплатно" if s.discount_applied_pct == 100 else "Ананас на карту")
+        timeline.append(TimelineEvent(
+            type="stamp", occurred_at=s.created_at,
+            title=f"Ананас №{s.stamp_number}", subtitle=subtitle,
+        ))
+    for row in comm_logs:
+        if row.channel == "call":
+            title = call_labels.get(row.status, row.status)
+            subtitle = f"{'Входящий' if row.direction == 'incoming' else 'Исходящий'}"
+            if row.duration_seconds:
+                subtitle += f" · {row.duration_seconds // 60} мин {row.duration_seconds % 60} сек"
+        else:
+            title = sms_labels.get(row.status, row.status)
+            subtitle = "SMS"
+        timeline.append(TimelineEvent(type=row.channel, occurred_at=row.occurred_at, title=title, subtitle=subtitle))
+
+    timeline.sort(key=lambda item: item.occurred_at, reverse=True)
+
+    return ClientSearchResult(
+        user=user, bookings=bookings, walk_in_orders=walk_ins, dry_cleaning_orders=dry_orders,
+        timeline=timeline[:200],
+    )
 
 
 # ---------------------------------------------------------------------------
