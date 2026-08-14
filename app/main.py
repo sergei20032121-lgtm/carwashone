@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
@@ -48,3 +49,28 @@ app.mount("/site", StaticFiles(directory=PROJECT_DIR / "frontend", html=True), n
 @app.get("/", tags=["Health"])
 def root():
     return {"status": "ok", "app": settings.app_name, "site": "/site/", "docs": "/docs"}
+
+
+@app.get("/robots.txt", include_in_schema=False)
+def robots_txt():
+    return PlainTextResponse(
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin.html\n"
+        "Disallow: /manager.html\n"
+        "Disallow: /master.html\n"
+        "Disallow: /docs\n"
+        "Disallow: /redoc\n"
+        "Sitemap: https://carwashone.ru/sitemap.xml\n"
+    )
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap_xml():
+    urls = ["", "cabinet.html", "privacy.html", "consent.html"]
+    body = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for path_part in urls:
+        loc = f"https://carwashone.ru/site/{path_part}" if path_part else "https://carwashone.ru/"
+        body += f"  <url><loc>{loc}</loc></url>\n"
+    body += "</urlset>\n"
+    return Response(content=body, media_type="application/xml")
