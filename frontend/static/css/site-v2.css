@@ -4,7 +4,7 @@ body{background:var(--v2-paper)}
 .nav .wrap{max-width:1480px}
 .navlinks a{font-size:11px;text-transform:uppercase;letter-spacing:.08em}
 .hero{min-height:calc(100svh - 76px);padding:0;background:var(--v2-ink)}
-.hero::before{background:linear-gradient(90deg,#080d10 0,rgba(8,13,16,.9) 30%,rgba(8,13,16,.22) 70%),linear-gradient(0deg,rgba(8,13,16,.64),transparent 50%),url("../img/hero-markii-premium.png") 58% center/cover no-repeat}
+.hero::before{background:linear-gradient(90deg,#080d10 0,rgba(8,13,16,.9) 30%,rgba(8,13,16,.22) 70%),linear-gradient(0deg,rgba(8,13,16,.64),transparent 50%),url("../img/hero-markii-premium.jpg") 58% center/cover no-repeat}
 .hero-grid{max-width:1480px;min-height:calc(100svh - 76px);align-items:center;grid-template-columns:minmax(0,1fr) 390px;padding:64px 0}
 .hero h1{font-size:clamp(58px,6.3vw,102px);line-height:.84;letter-spacing:-.055em}
 .hero h1 em{display:block;font-family:Georgia,serif;font-size:.58em;font-weight:400;font-style:italic;color:var(--v2-aqua);margin-top:.12em}
@@ -81,7 +81,7 @@ body.booking-open .booking-backdrop{opacity:1;visibility:visible}
   .nav .wrap{height:60px;padding:0 14px}
   .brand{gap:9px}.brand img{width:34px;height:34px;border-radius:9px}.brand b{font-size:12px}.brand small{font-size:7px}
   .hero{min-height:0;padding:0}
-  .hero::before{inset:0;background:linear-gradient(180deg,rgba(8,13,16,.02) 0,rgba(8,13,16,.28) 34%,#080d10 57%),url("../img/hero-markii-premium.png") 58% 0/auto 285px no-repeat;background-color:#080d10}
+  .hero::before{inset:0;background:linear-gradient(180deg,rgba(8,13,16,.02) 0,rgba(8,13,16,.28) 34%,#080d10 57%),url("../img/hero-markii-premium.jpg") 58% 0/auto 285px no-repeat;background-color:#080d10}
   .hero-grid{display:block;min-height:0;padding:225px 16px 34px}
   .eyebrow{font-size:9px;letter-spacing:.14em;margin-bottom:12px}
   .hero h1{font-size:clamp(38px,11.5vw,46px);line-height:.88;margin-bottom:17px;max-width:360px}

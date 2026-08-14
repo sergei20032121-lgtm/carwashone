@@ -16,7 +16,7 @@ const STATIC_ASSETS = [
   '/site/static/js/interactions-v9.js',
   '/site/static/js/hero-inspection-v15.js',
   '/site/static/img/logo.png',
-  '/site/static/img/hero-markii-premium.png',
+  '/site/static/img/hero-markii-premium.jpg',
   '/site/static/img/car-body-mask.svg'
 ];
 
