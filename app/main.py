@@ -73,6 +73,11 @@ def google_verification():
     return PlainTextResponse("google-site-verification: google176eee2444bab885.html")
 
 
+@app.get("/.well-known/acme-challenge/xW-fjc_kRbBKqquAdLGW9CE4zomaUh6S5SP89bb_i7o", include_in_schema=False)
+def yc_acme_challenge():
+    return PlainTextResponse("xW-fjc_kRbBKqquAdLGW9CE4zomaUh6S5SP89bb_i7o.b50gIctSTpCSkC3bzJFpdLh0naWEaGz_ikiL8DQKdF4")
+
+
 @app.get("/robots.txt", include_in_schema=False)
 def robots_txt():
     return PlainTextResponse(
