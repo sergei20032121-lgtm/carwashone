@@ -40,7 +40,7 @@ body[data-crm-theme="dark"] .ledger-table tr:hover td{background:#172529;}
 .crm-icon-button{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(255,255,255,.14);border-radius:10px;color:#fff;background:rgba(255,255,255,.04);cursor:pointer;}
 
 .layout{grid-template-columns:96px minmax(0,1fr)!important;}
-.sidebar{position:sticky;top:64px;height:calc(100vh - 64px);padding:13px 9px!important;background:var(--crm-panel)!important;box-shadow:8px 0 32px rgba(21,27,25,.04);z-index:35;}
+.sidebar{position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;overscroll-behavior:contain;padding:13px 9px!important;background:var(--crm-panel)!important;box-shadow:8px 0 32px rgba(21,27,25,.04);z-index:35;}
 .sidebar .tab-btn{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%!important;min-height:61px;padding:8px 4px!important;margin:0 0 4px!important;text-align:center!important;border-radius:12px!important;font-size:9px!important;line-height:1.12;color:var(--ink-soft)!important;}
 .sidebar .tab-btn .nav-icon{font-size:18px;line-height:1;}
 .sidebar .tab-btn .nav-label{max-width:76px;}
