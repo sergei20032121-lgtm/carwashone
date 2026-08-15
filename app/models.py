@@ -436,6 +436,11 @@ class VkSettings(Base):
     access_token = Column(String(255), nullable=True)    # НЕ храним в git, только в БД/переменных окружения
     last_synced_at = Column(DateTime, nullable=True)
 
+    # --- Сообщения сообщества (Callback API) ---
+    messages_access_token = Column(String(255), nullable=True)  # отдельный ключ с правом "Сообщения сообщества"
+    callback_secret = Column(String(64), nullable=True)         # передаём в VK Callback API настройках
+    callback_confirmation = Column(String(64), nullable=True)   # строка, которую VK покажет после сохранения адреса сервера
+
 
 class VkPost(Base):
     """Кэш постов со стены группы — рендерится как сетка новостей на сайте."""

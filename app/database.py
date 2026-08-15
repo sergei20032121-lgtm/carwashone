@@ -21,6 +21,11 @@ def ensure_compatible_schema():
         "services": {
             "price_negotiable": "BOOLEAN DEFAULT 0",
         },
+        "vk_settings": {
+            "messages_access_token": "VARCHAR(255)",
+            "callback_secret": "VARCHAR(64)",
+            "callback_confirmation": "VARCHAR(64)",
+        },
         "bookings": {
             "payment_method": "VARCHAR(20)",
             "payment_status": "VARCHAR(20) DEFAULT 'unmarked'",

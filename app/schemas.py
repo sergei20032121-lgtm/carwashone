@@ -453,6 +453,9 @@ class CurrentLoadOut(BaseModel):
 class VkSettingsOut(BaseModel):
     group_domain: Optional[str]
     last_synced_at: Optional[datetime]
+    messages_token_set: bool = False
+    callback_secret: Optional[str] = None
+    callback_confirmation: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -461,6 +464,21 @@ class VkSettingsOut(BaseModel):
 class VkSettingsUpdate(BaseModel):
     group_domain: Optional[str] = None
     access_token: Optional[str] = None
+    messages_access_token: Optional[str] = None
+    callback_confirmation: Optional[str] = None
+
+
+class VkMessageSendIn(BaseModel):
+    vk_user_id: int
+    text: str = Field(min_length=1, max_length=2000)
+
+
+class VkMessageOut(BaseModel):
+    id: int
+    direction: str
+    vk_user_id: int
+    text: str
+    occurred_at: datetime
 
 
 class VkPostOut(BaseModel):
