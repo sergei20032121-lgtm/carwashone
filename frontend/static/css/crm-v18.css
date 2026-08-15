@@ -32,6 +32,7 @@ body[data-crm-theme="dark"] tbody tr:hover,
 body[data-crm-theme="dark"] .ledger-table tr:hover td{background:#172529;}
 
 .topbar{background:#0b1417!important;border-bottom:1px solid rgba(255,255,255,.08);}
+.shift-panel,.ledger-day-head,.booking-view-switch button.active{background:#0b1417!important;}
 .topbar .wrap{max-width:none!important;padding:0 22px;}
 .brand img{box-shadow:0 0 0 1px rgba(104,223,216,.22),0 0 24px rgba(63,206,198,.14);}
 .crm-head-actions{display:flex;gap:8px;align-items:center;}
