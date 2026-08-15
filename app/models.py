@@ -106,6 +106,15 @@ class CarProfile(Base):
     owner = relationship("User", back_populates="cars")
 
 
+class LoginAttempt(Base):
+    """Неудачные попытки входа по логину/паролю — для защиты от перебора."""
+    __tablename__ = "login_attempts"
+
+    id = Column(Integer, primary_key=True)
+    login = Column(String(60), index=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class OTPCode(Base):
     """Одноразовый код для входа/записи по номеру телефона."""
     __tablename__ = "otp_codes"

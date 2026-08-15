@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import User, UserRole, OTPCode
+from app.models import User, UserRole, OTPCode, LoginAttempt
 from app.schemas import OTPRequest, OTPVerify, StaffLogin, SetPassword, Token, UserOut
 from app.security import generate_otp_code, create_access_token, verify_password, hash_password
 from app.sms import SMSDeliveryError, send_sms
@@ -101,14 +101,31 @@ def verify_otp(data: OTPVerify, db: Session = Depends(get_db)):
     return Token(access_token=token, role=user.role)
 
 
+LOGIN_MAX_ATTEMPTS_PER_15_MIN = 5
+
+
 @router.post("/login", response_model=Token, summary="Вход по логину+паролю (клиент, сотрудник или админ)")
 def login(data: StaffLogin, db: Session = Depends(get_db)):
+    login_key = data.login.strip().lower()
+    since = datetime.utcnow() - timedelta(minutes=15)
+    recent_failures = db.query(LoginAttempt).filter(
+        LoginAttempt.login == login_key,
+        LoginAttempt.created_at >= since,
+    ).count()
+    if recent_failures >= LOGIN_MAX_ATTEMPTS_PER_15_MIN:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Слишком много неудачных попыток входа. Попробуйте через 15 минут.",
+        )
+
     user = (
         db.query(User)
         .filter((User.username == data.login) | (User.phone == data.login))
         .first()
     )
     if not user or not user.password_hash or not verify_password(data.password, user.password_hash):
+        db.add(LoginAttempt(login=login_key))
+        db.commit()
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Неверный логин или пароль")
 
     token = create_access_token(subject=str(user.id), role=user.role.value)
