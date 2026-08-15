@@ -499,6 +499,40 @@
       </div>
       <h3 style="font-size:16px;margin-bottom:12px;">Последние синхронизированные посты</h3>
       <div class="gallery-grid" id="vkPostsPreview" style="grid-auto-rows:auto;"></div>
+
+      <h2 style="margin-top:34px;">Личные сообщения сообщества</h2>
+      <div class="card" style="padding:20px;margin-bottom:22px;">
+        <p class="text-muted" style="font-size:12.5px;margin-bottom:14px;">
+          Нужен отдельный ключ доступа с правом «Сообщения сообщества» (Ключи доступа в настройках VK-группы).
+          Адрес сервера для Callback API: <code id="vkCallbackUrl" style="font-size:11.5px;"></code>
+        </p>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr auto;">
+          <div class="field"><label for="vkMessagesToken">Токен для сообщений</label><input type="password" id="vkMessagesToken" placeholder="vk1.a...."></div>
+          <div class="field"><label for="vkCallbackConfirmation">Строка подтверждения из VK</label><input type="text" id="vkCallbackConfirmation" placeholder="a1b2c3d4"></div>
+          <button class="btn btn-dark" id="vkMessagesSaveBtn">Сохранить</button>
+        </div>
+        <p class="text-muted" style="font-size:12.5px;">
+          Secret key для Callback API (вставь в настройках VK): <code id="vkCallbackSecret" style="font-size:11.5px;"></code>
+        </p>
+        <div class="auth-status" id="vkMessagesStatus"></div>
+        <p class="text-muted" style="font-size:11.5px;margin-top:8px;">
+          Токен сообщений уже сохранён: <b id="vkMessagesTokenState">—</b>
+        </p>
+      </div>
+
+      <div class="card" style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 style="font-size:16px;margin:0;">Переписка</h3>
+          <button class="btn btn-outline" id="vkMessagesRefreshBtn" type="button">Обновить</button>
+        </div>
+        <div id="vkMessagesList" style="display:grid;gap:2px;max-height:420px;overflow:auto;margin-bottom:16px;"></div>
+        <div style="display:grid;grid-template-columns:200px 1fr auto;gap:10px;align-items:end;">
+          <div class="field" style="margin-bottom:0;"><label for="vkReplyUserId">ID пользователя VK</label><input type="text" id="vkReplyUserId" placeholder="123456789"></div>
+          <div class="field" style="margin-bottom:0;"><label for="vkReplyText">Сообщение</label><input type="text" id="vkReplyText" placeholder="Здравствуйте!"></div>
+          <button class="btn btn-primary" id="vkReplySendBtn" type="button">Отправить</button>
+        </div>
+        <div class="auth-status" id="vkReplyStatus"></div>
+      </div>
     </div>
 
     <!-- ПОИСК КЛИЕНТА -->
@@ -637,7 +671,7 @@
       document.getElementById('closeDayBtn').style.display = 'none';
       ['countedCash','countedCard','countedTransfer','closureNote'].forEach(id => document.getElementById(id).disabled = true);
     }
-    loadEmployees(); loadOverview(); loadBookings(); loadDry(); loadServices(); loadVk(); loadAuditLog(); loadCommunicationSummary();
+    loadEmployees(); loadOverview(); loadBookings(); loadDry(); loadServices(); loadVk(); loadVkMessages(); loadAuditLog(); loadCommunicationSummary();
     if (window.Notification && Notification.permission === 'default') { Notification.requestPermission(); }
     setInterval(loadCommunicationSummary, 30000);
     document.getElementById('payrollDay').value = new Date().toISOString().slice(0, 10);
@@ -1557,6 +1591,10 @@
       document.getElementById('vkLastSync').textContent = s.last_synced_at
         ? 'Последний синк: ' + new Date(s.last_synced_at).toLocaleString('ru-RU')
         : 'Синхронизации ещё не было';
+      document.getElementById('vkCallbackUrl').textContent = window.location.origin + '/vk/callback';
+      document.getElementById('vkCallbackSecret').textContent = s.callback_secret || '—';
+      document.getElementById('vkCallbackConfirmation').value = s.callback_confirmation || '';
+      document.getElementById('vkMessagesTokenState').textContent = s.messages_token_set ? 'да' : 'нет';
     } catch (e) {}
     try {
       const posts = await api('/vk/posts');
@@ -1590,6 +1628,57 @@
       vkStatusEl.textContent = res.detail; vkStatusEl.className = 'auth-status ok';
       loadVk();
     } catch (e) { vkStatusEl.textContent = e.message; vkStatusEl.className = 'auth-status err'; }
+  });
+
+  const vkMessagesStatusEl = document.getElementById('vkMessagesStatus');
+  document.getElementById('vkMessagesSaveBtn').addEventListener('click', async () => {
+    const messages_access_token = document.getElementById('vkMessagesToken').value.trim();
+    const callback_confirmation = document.getElementById('vkCallbackConfirmation').value.trim();
+    const body = { callback_confirmation };
+    if (messages_access_token) body.messages_access_token = messages_access_token;
+    try {
+      await api('/vk/settings', { method: 'PUT', body: JSON.stringify(body) });
+      vkMessagesStatusEl.textContent = 'Сохранено'; vkMessagesStatusEl.className = 'auth-status ok';
+      document.getElementById('vkMessagesToken').value = '';
+      loadVk();
+    } catch (e) { vkMessagesStatusEl.textContent = e.message; vkMessagesStatusEl.className = 'auth-status err'; }
+  });
+
+  const vkMessageLabels = { incoming: 'Входящее', outgoing: 'Исходящее' };
+  async function loadVkMessages() {
+    const list = document.getElementById('vkMessagesList');
+    list.innerHTML = '<div class="empty-state"><span class="empty-icon">💬</span><p>Загружаем переписку…</p></div>';
+    try {
+      const rows = await api('/vk/messages');
+      if (!rows.length) {
+        list.innerHTML = '<div class="empty-state"><span class="empty-icon">💬</span><p>Сообщений пока нет.</p></div>';
+        return;
+      }
+      list.innerHTML = rows.map(m => `
+        <div style="display:grid;grid-template-columns:90px 1fr auto;gap:10px;padding:10px 6px;border-bottom:1px solid var(--line-soft);align-items:start;">
+          <a href="https://vk.com/id${m.vk_user_id}" target="_blank" rel="noopener" style="font-size:11px;font-weight:800;color:${m.direction === 'incoming' ? 'var(--jade-dark)' : 'var(--ink-soft)'};">${m.direction === 'incoming' ? '← id' + m.vk_user_id : 'Мы →'}</a>
+          <span style="font-size:13px;">${escapeHtml(m.text)}</span>
+          <span style="font-size:10.5px;color:var(--ink-soft-2);white-space:nowrap;">${new Date(m.occurred_at).toLocaleString('ru-RU')}</span>
+        </div>`).join('');
+      const lastIncoming = rows.find(m => m.direction === 'incoming');
+      if (lastIncoming) document.getElementById('vkReplyUserId').value = lastIncoming.vk_user_id;
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state"><span class="empty-icon">⚠️</span><p>${escapeHtml(e.message || 'Не удалось загрузить переписку')}</p></div>`;
+    }
+  }
+  document.getElementById('vkMessagesRefreshBtn').addEventListener('click', loadVkMessages);
+
+  const vkReplyStatusEl = document.getElementById('vkReplyStatus');
+  document.getElementById('vkReplySendBtn').addEventListener('click', async () => {
+    const vk_user_id = parseInt(document.getElementById('vkReplyUserId').value.trim(), 10);
+    const text = document.getElementById('vkReplyText').value.trim();
+    if (!vk_user_id || !text) { vkReplyStatusEl.textContent = 'Укажи ID пользователя и текст'; vkReplyStatusEl.className = 'auth-status err'; return; }
+    try {
+      await api('/vk/messages/send', { method: 'POST', body: JSON.stringify({ vk_user_id, text }) });
+      vkReplyStatusEl.textContent = 'Отправлено'; vkReplyStatusEl.className = 'auth-status ok';
+      document.getElementById('vkReplyText').value = '';
+      loadVkMessages();
+    } catch (e) { vkReplyStatusEl.textContent = e.message || 'Не удалось отправить'; vkReplyStatusEl.className = 'auth-status err'; }
   });
 
   const statusLabels2 = {pending:'ожидает', confirmed:'подтверждена', in_progress:'в работе', done:'выполнена', cancelled:'отменена'};
