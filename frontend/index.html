@@ -974,11 +974,15 @@
     document.getElementById('line2').classList.toggle('done', n > 2);
   }
 
-  document.getElementById('sendCodeBtn').addEventListener('click', async () => {
+  const sendCodeBtn = document.getElementById('sendCodeBtn');
+  sendCodeBtn.addEventListener('click', async () => {
     const phone = document.getElementById('phoneInput').value.trim();
     if (phone.replace(/\D/g,'').length < 10) { setStatus('Введите корректный номер телефона', 'err'); return; }
     if (!document.getElementById('phoneConsent').checked) { setStatus('Подтвердите согласие на обработку данных', 'err'); return; }
     pendingPhone = phone;
+    sendCodeBtn.disabled = true;
+    const sendInitialText = sendCodeBtn.textContent;
+    sendCodeBtn.textContent = 'Отправляем…';
     try {
       await api('/auth/otp/request', { method: 'POST', body: JSON.stringify({ phone, consent: true, policy_version: '2026-07-31' }) });
       setStatus('Код отправлен по смс', 'ok');
@@ -986,10 +990,15 @@
       stepCode.style.display = 'block';
       setStep(2);
     } catch (e) { setStatus(e.message || 'Не удалось отправить код', 'err'); }
+    finally { sendCodeBtn.disabled = false; sendCodeBtn.textContent = sendInitialText; }
   });
   document.getElementById('resendBtn').addEventListener('click', () => document.getElementById('sendCodeBtn').click());
-  document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
+  const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+  verifyCodeBtn.addEventListener('click', async () => {
     const code = document.getElementById('codeInput').value.trim();
+    verifyCodeBtn.disabled = true;
+    const verifyInitialText = verifyCodeBtn.textContent;
+    verifyCodeBtn.textContent = 'Проверяем…';
     try {
       const refCode = new URLSearchParams(window.location.search).get('ref');
       const data = await api('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ phone: pendingPhone, code, referral_code: refCode }) });
@@ -1002,6 +1011,7 @@
       tactileFeedback(15);
       updatePublicLoyaltyDisplay();
     } catch (e) { setStatus(e.message || 'Неверный код, попробуйте снова', 'err'); }
+    finally { verifyCodeBtn.disabled = false; verifyCodeBtn.textContent = verifyInitialText; }
   });
 
   async function updatePublicLoyaltyDisplay() {

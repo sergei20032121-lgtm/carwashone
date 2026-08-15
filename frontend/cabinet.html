@@ -300,26 +300,36 @@
   function setAuthStatus(msg, type) { authStatusEl.textContent = msg; authStatusEl.className = 'auth-status ' + (type || ''); }
 
   let pendingPhone = null;
-  document.getElementById('loginSendCodeBtn').addEventListener('click', async () => {
+  const loginSendCodeBtn = document.getElementById('loginSendCodeBtn');
+  loginSendCodeBtn.addEventListener('click', async () => {
     const phone = document.getElementById('loginPhoneInput').value.trim();
     if (phone.replace(/\D/g,'').length < 10) { setAuthStatus('Введите корректный номер телефона', 'err'); return; }
     if (!document.getElementById('loginPhoneConsent').checked) { setAuthStatus('Подтвердите согласие на обработку данных', 'err'); return; }
     pendingPhone = phone;
+    loginSendCodeBtn.disabled = true;
+    const sendInitialText = loginSendCodeBtn.textContent;
+    loginSendCodeBtn.textContent = 'Отправляем…';
     try {
       await api('/auth/otp/request', { method: 'POST', body: JSON.stringify({ phone, consent: true, policy_version: '2026-07-31' }) });
       setAuthStatus('Код отправлен по смс', 'ok');
       document.getElementById('phoneStep1').style.display = 'none';
       document.getElementById('phoneStep2').style.display = 'block';
     } catch (e) { setAuthStatus('Не удалось отправить код', 'err'); }
+    finally { loginSendCodeBtn.disabled = false; loginSendCodeBtn.textContent = sendInitialText; }
   });
   document.getElementById('loginResendBtn').addEventListener('click', () => document.getElementById('loginSendCodeBtn').click());
-  document.getElementById('loginVerifyBtn').addEventListener('click', async () => {
+  const loginVerifyBtn = document.getElementById('loginVerifyBtn');
+  loginVerifyBtn.addEventListener('click', async () => {
     const code = document.getElementById('loginCodeInput').value.trim();
+    loginVerifyBtn.disabled = true;
+    const verifyInitialText = loginVerifyBtn.textContent;
+    loginVerifyBtn.textContent = 'Проверяем…';
     try {
       const data = await api('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ phone: pendingPhone, code }) });
       setAuthToken(data.access_token, data.role);
       showCabinet();
     } catch (e) { setAuthStatus('Неверный код, попробуйте снова', 'err'); }
+    finally { loginVerifyBtn.disabled = false; loginVerifyBtn.textContent = verifyInitialText; }
   });
 
   document.getElementById('pwLoginBtn').addEventListener('click', async () => {
