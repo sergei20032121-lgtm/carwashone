@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import PlainTextResponse, Response, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
@@ -50,6 +50,14 @@ app.mount("/site", StaticFiles(directory=PROJECT_DIR / "frontend", html=True), n
 @app.get("/", tags=["Health"])
 def root():
     return {"status": "ok", "app": settings.app_name, "site": "/site/", "docs": "/docs"}
+
+
+@app.get("/yandex_09248566dfae592c.html", include_in_schema=False)
+def yandex_verification():
+    return HTMLResponse(
+        "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"></head>"
+        "<body>Verification: 09248566dfae592c</body></html>"
+    )
 
 
 @app.get("/robots.txt", include_in_schema=False)
