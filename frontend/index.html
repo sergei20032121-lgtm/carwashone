@@ -279,7 +279,7 @@
       <div id="stepPhone">
         <div class="field">
           <label>Номер телефона</label>
-          <input type="tel" id="phoneInput" placeholder="+7 900 000-00-00">
+          <input type="tel" id="phoneInput" inputmode="tel" autocomplete="tel" placeholder="+7 900 000-00-00">
         </div>
         <label class="consent-check">
           <input type="checkbox" id="phoneConsent">
@@ -293,7 +293,7 @@
         <div class="field">
           <label>Код из смс</label>
           <div class="otp-row">
-            <input type="text" id="codeInput" maxlength="4" placeholder="0000">
+            <input type="text" id="codeInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" placeholder="0000">
             <button class="btn btn-outline" id="resendBtn">Ещё раз</button>
           </div>
         </div>

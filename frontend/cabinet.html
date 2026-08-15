@@ -101,7 +101,7 @@
 
     <div id="tabPhone">
       <div id="phoneStep1">
-        <div class="field"><label>Номер телефона</label><input type="tel" id="loginPhoneInput" placeholder="+7 900 000-00-00"></div>
+        <div class="field"><label>Номер телефона</label><input type="tel" id="loginPhoneInput" inputmode="tel" autocomplete="tel" placeholder="+7 900 000-00-00"></div>
         <label class="consent-check">
           <input type="checkbox" id="loginPhoneConsent">
           <span>Согласен на <a href="consent.html" target="_blank" rel="noopener">обработку персональных данных</a>
@@ -113,7 +113,7 @@
         <div class="field">
           <label>Код из смс</label>
           <div class="otp-row" style="display:flex;gap:8px;">
-            <input type="text" id="loginCodeInput" maxlength="4" placeholder="0000">
+            <input type="text" id="loginCodeInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" placeholder="0000">
             <button class="btn btn-outline" id="loginResendBtn">Ещё раз</button>
           </div>
         </div>
