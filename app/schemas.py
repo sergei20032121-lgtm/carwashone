@@ -477,6 +477,7 @@ class VkMessageOut(BaseModel):
     id: int
     direction: str
     vk_user_id: int
+    vk_user_name: Optional[str] = None
     text: str
     occurred_at: datetime
 

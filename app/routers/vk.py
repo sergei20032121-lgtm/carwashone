@@ -18,6 +18,32 @@ router = APIRouter(prefix="/vk", tags=["Новости ВК"])
 VK_API_VERSION = "5.199"
 VK_API_URL = "https://api.vk.com/method/wall.get"
 VK_MESSAGES_SEND_URL = "https://api.vk.com/method/messages.send"
+VK_USERS_GET_URL = "https://api.vk.com/method/users.get"
+
+
+def _resolve_vk_name(db: Session, token: str, vk_user_id: int) -> str:
+    cached = (
+        db.query(CommunicationLog)
+        .filter(CommunicationLog.channel == "vk", CommunicationLog.phone == f"vk:{vk_user_id}")
+        .order_by(CommunicationLog.id.desc())
+        .all()
+    )
+    for row in cached:
+        name = (row.details or {}).get("vk_user_name")
+        if name:
+            return name
+    if not token:
+        return ""
+    try:
+        resp = httpx.get(VK_USERS_GET_URL, params={
+            "user_ids": vk_user_id, "access_token": token, "v": VK_API_VERSION,
+        }, timeout=10)
+        data = resp.json()
+        person = (data.get("response") or [{}])[0]
+        name = f"{person.get('first_name', '')} {person.get('last_name', '')}".strip()
+        return name
+    except (httpx.HTTPError, ValueError, IndexError):
+        return ""
 
 
 def _get_or_create_settings(db: Session) -> VkSettings:
@@ -168,10 +194,11 @@ async def vk_callback(request: Request, db: Session = Depends(get_db)):
         occurred = datetime.utcfromtimestamp(date_ts) if date_ts else datetime.utcnow()
         external_id = f"vk-in-{vk_message_id}" if vk_message_id else f"vk-in-{vk_user_id}-{date_ts}"
         if vk_user_id and not db.query(CommunicationLog).filter(CommunicationLog.external_id == external_id).first():
+            vk_user_name = _resolve_vk_name(db, row.messages_access_token, vk_user_id)
             db.add(CommunicationLog(
                 external_id=external_id, channel="vk", direction="incoming",
                 phone=f"vk:{vk_user_id}", status="received", occurred_at=occurred,
-                details={"text": text, "vk_user_id": vk_user_id},
+                details={"text": text, "vk_user_id": vk_user_id, "vk_user_name": vk_user_name},
             ))
             db.commit()
 
@@ -196,6 +223,7 @@ def list_vk_messages(db: Session = Depends(get_db)):
             vk_user_id = int(r.phone[3:])
         result.append(VkMessageOut(
             id=r.id, direction=r.direction, vk_user_id=vk_user_id or 0,
+            vk_user_name=details.get("vk_user_name") or None,
             text=details.get("text", ""), occurred_at=r.occurred_at,
         ))
     return result
@@ -228,11 +256,12 @@ def send_vk_message(data: VkMessageSendIn, db: Session = Depends(get_db)):
     if "error" in result:
         raise HTTPException(400, f"VK отклонил отправку: {result['error'].get('error_msg', result['error'])}")
 
+    vk_user_name = _resolve_vk_name(db, row.messages_access_token, data.vk_user_id)
     external_id = f"vk-out-{result.get('response')}-{int(datetime.utcnow().timestamp() * 1000)}"
     db.add(CommunicationLog(
         external_id=external_id, channel="vk", direction="outgoing",
         phone=f"vk:{data.vk_user_id}", status="sent", occurred_at=datetime.utcnow(),
-        details={"text": data.text, "vk_user_id": data.vk_user_id},
+        details={"text": data.text, "vk_user_id": data.vk_user_id, "vk_user_name": vk_user_name},
     ))
     db.commit()
     return {"ok": True}

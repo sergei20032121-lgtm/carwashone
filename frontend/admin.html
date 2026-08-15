@@ -1689,7 +1689,7 @@
     if (!convs.length) { listEl.innerHTML = '<div class="vk-chat-empty">Диалогов пока нет.</div>'; return; }
     listEl.innerHTML = convs.map(c => `
       <button type="button" class="vk-conv-item ${c.userId === vkSelectedUserId ? 'active' : ''}" data-vk-conv="${c.userId}">
-        <span class="vk-conv-name">id${c.userId}</span>
+        <span class="vk-conv-name">${escapeHtml(c.name || ('id' + c.userId))}</span>
         <span class="vk-conv-preview">${escapeHtml(c.lastText)}</span>
       </button>`).join('');
     listEl.querySelectorAll('[data-vk-conv]').forEach(btn => btn.addEventListener('click', () => {
@@ -1707,10 +1707,11 @@
       vkConversations = new Map();
       rows.forEach(m => {
         if (!vkConversations.has(m.vk_user_id)) {
-          vkConversations.set(m.vk_user_id, { userId: m.vk_user_id, messages: [], lastAt: m.occurred_at, lastText: m.text });
+          vkConversations.set(m.vk_user_id, { userId: m.vk_user_id, name: '', messages: [], lastAt: m.occurred_at, lastText: m.text });
         }
         const conv = vkConversations.get(m.vk_user_id);
         conv.messages.push(m);
+        if (m.vk_user_name && !conv.name) conv.name = m.vk_user_name;
         if (new Date(m.occurred_at) > new Date(conv.lastAt)) { conv.lastAt = m.occurred_at; conv.lastText = m.text; }
       });
       if (!vkConversations.has(vkSelectedUserId)) {
