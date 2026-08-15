@@ -60,6 +60,14 @@ def yandex_verification():
     )
 
 
+@app.get("/yandex_89d2f80bdbb396f3.html", include_in_schema=False)
+def yandex_verification_2():
+    return HTMLResponse(
+        "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"></head>"
+        "<body>Verification: 89d2f80bdbb396f3</body></html>"
+    )
+
+
 @app.get("/robots.txt", include_in_schema=False)
 def robots_txt():
     return PlainTextResponse(
