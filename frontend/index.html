@@ -265,9 +265,9 @@
       </div>
     </div>
 
-    <div class="book-widget" id="bookWidget">
+    <div class="book-widget" id="bookWidget" role="dialog" aria-modal="true" aria-labelledby="bookWidgetTitle">
       <button class="booking-close" id="bookingClose" aria-label="Закрыть">×</button>
-      <h3>Быстрая запись</h3>
+      <h3 id="bookWidgetTitle">Быстрая запись</h3>
       <div class="stepper" id="bookStepper">
         <div class="step active" data-step="1"><div class="dot">1</div><span class="label">Телефон</span></div>
         <div class="line" id="line1"></div>
@@ -805,7 +805,24 @@
   });
   document.getElementById('bookingClose').addEventListener('click', closeBooking);
   document.getElementById('bookingBackdrop').addEventListener('click', closeBooking);
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeBooking(); });
+  document.addEventListener('keydown', event => {
+    if (!document.body.classList.contains('booking-open')) return;
+    if (event.key === 'Escape') { closeBooking(); return; }
+    if (event.key !== 'Tab') return;
+    const widget = document.getElementById('bookWidget');
+    const focusable = [...widget.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+      .filter(el => el.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault(); last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault(); first.focus();
+    } else if (!widget.contains(document.activeElement)) {
+      event.preventDefault(); first.focus();
+    }
+  });
   document.getElementById('goalBook').addEventListener('click', () => openBooking(selectedGoalServiceId));
   document.getElementById('goalButtons').addEventListener('click', event => {
     const button = event.target.closest('button[data-goal]');

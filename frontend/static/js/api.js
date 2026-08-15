@@ -295,6 +295,9 @@ function initLightbox() {
   const overlay = document.createElement('div');
   overlay.className = 'lightbox-overlay';
   overlay.id = 'lightboxOverlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', 'Просмотр фотографии');
   overlay.innerHTML = `
     <button class="lightbox-close" aria-label="Закрыть">✕</button>
     <button class="lightbox-prev" aria-label="Предыдущая фотография">‹</button>
@@ -307,9 +310,14 @@ function initLightbox() {
   const imgEl = overlay.querySelector('img');
   const capEl = overlay.querySelector('.lightbox-caption');
   const counterEl = overlay.querySelector('.lightbox-counter');
-  let items = [], currentIndex = 0, touchStartX = 0;
+  const closeBtn = overlay.querySelector('.lightbox-close');
+  let items = [], currentIndex = 0, touchStartX = 0, lightboxOpener = null;
 
-  function close() { overlay.classList.remove('open'); document.body.classList.remove('lightbox-open'); }
+  function close() {
+    overlay.classList.remove('open');
+    document.body.classList.remove('lightbox-open');
+    if (lightboxOpener && typeof lightboxOpener.focus === 'function') lightboxOpener.focus({ preventScroll: true });
+  }
   function show(index) {
     if (!items.length) return;
     currentIndex = (index + items.length) % items.length;
@@ -344,9 +352,20 @@ function initLightbox() {
     const img = item.querySelector('img');
     if (!img) return;
     items = [...document.querySelectorAll('.gallery-item')].filter(node => node.querySelector('img'));
+    lightboxOpener = e.target.closest('a, button') || item;
     show(items.indexOf(item));
     overlay.classList.add('open');
     document.body.classList.add('lightbox-open');
+    closeBtn.focus({ preventScroll: true });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!overlay.classList.contains('open') || e.key !== 'Tab') return;
+    const focusable = [...overlay.querySelectorAll('button')];
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    else if (!overlay.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
   });
 }
 
