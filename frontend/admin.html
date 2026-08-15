@@ -77,6 +77,16 @@
   .stat-box b{display:block;font-family:'Spectral',serif;font-size:26px;}
   .stat-box span{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px;}
   .shift-panel{background:var(--sumi);color:#fff;border-radius:16px;padding:22px;margin-bottom:22px;}
+  .vk-chat{display:flex;flex-direction:column;gap:10px;padding:6px 2px;}
+  .vk-msg{display:flex;flex-direction:column;max-width:72%;gap:3px;}
+  .vk-msg.in{align-self:flex-start;align-items:flex-start;}
+  .vk-msg.out{align-self:flex-end;align-items:flex-end;}
+  .vk-msg .vk-bubble{padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.4;word-break:break-word;}
+  .vk-msg.in .vk-bubble{background:var(--washi-2);color:var(--sumi);border-bottom-left-radius:4px;}
+  .vk-msg.out .vk-bubble{background:#0f8f95;color:#fff;border-bottom-right-radius:4px;}
+  .vk-msg .vk-meta{font-size:10px;color:var(--ink-soft-2);padding:0 4px;}
+  .vk-msg .vk-meta a{color:var(--jade-dark);font-weight:700;text-decoration:none;}
+  .vk-chat-empty{padding:30px 6px;text-align:center;color:var(--ink-soft);font-size:13px;}
   .shift-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:18px;}
   .shift-panel h3{font-family:'Spectral',serif;font-size:20px;margin:0 0 4px;}
   .shift-panel p{margin:0;color:#9ca8aa;font-size:12px;}
@@ -525,9 +535,9 @@
           <h3 style="font-size:16px;margin:0;">Переписка</h3>
           <button class="btn btn-outline" id="vkMessagesRefreshBtn" type="button">Обновить</button>
         </div>
-        <div id="vkMessagesList" style="display:grid;gap:2px;max-height:420px;overflow:auto;margin-bottom:16px;"></div>
-        <div style="display:grid;grid-template-columns:200px 1fr auto;gap:10px;align-items:end;">
-          <div class="field" style="margin-bottom:0;"><label for="vkReplyUserId">ID пользователя VK</label><input type="text" id="vkReplyUserId" placeholder="123456789"></div>
+        <div id="vkMessagesList" class="vk-chat" style="max-height:420px;overflow:auto;margin-bottom:16px;"></div>
+        <div style="display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:end;">
+          <div class="field" style="margin-bottom:0;"><label for="vkReplyUserId">ID собеседника</label><input type="text" id="vkReplyUserId" placeholder="123456789"></div>
           <div class="field" style="margin-bottom:0;"><label for="vkReplyText">Сообщение</label><input type="text" id="vkReplyText" placeholder="Здравствуйте!"></div>
           <button class="btn btn-primary" id="vkReplySendBtn" type="button">Отправить</button>
         </div>
@@ -1644,26 +1654,26 @@
     } catch (e) { vkMessagesStatusEl.textContent = e.message; vkMessagesStatusEl.className = 'auth-status err'; }
   });
 
-  const vkMessageLabels = { incoming: 'Входящее', outgoing: 'Исходящее' };
   async function loadVkMessages() {
     const list = document.getElementById('vkMessagesList');
-    list.innerHTML = '<div class="empty-state"><span class="empty-icon">💬</span><p>Загружаем переписку…</p></div>';
+    list.innerHTML = '<div class="vk-chat-empty">Загружаем переписку…</div>';
     try {
       const rows = await api('/vk/messages');
       if (!rows.length) {
-        list.innerHTML = '<div class="empty-state"><span class="empty-icon">💬</span><p>Сообщений пока нет.</p></div>';
+        list.innerHTML = '<div class="vk-chat-empty">Сообщений пока нет.</div>';
         return;
       }
-      list.innerHTML = rows.map(m => `
-        <div style="display:grid;grid-template-columns:90px 1fr auto;gap:10px;padding:10px 6px;border-bottom:1px solid var(--line-soft);align-items:start;">
-          <a href="https://vk.com/id${m.vk_user_id}" target="_blank" rel="noopener" style="font-size:11px;font-weight:800;color:${m.direction === 'incoming' ? 'var(--jade-dark)' : 'var(--ink-soft)'};">${m.direction === 'incoming' ? '← id' + m.vk_user_id : 'Мы →'}</a>
-          <span style="font-size:13px;">${escapeHtml(m.text)}</span>
-          <span style="font-size:10.5px;color:var(--ink-soft-2);white-space:nowrap;">${new Date(m.occurred_at).toLocaleString('ru-RU')}</span>
+      const ordered = [...rows].reverse();
+      list.innerHTML = ordered.map(m => `
+        <div class="vk-msg ${m.direction === 'incoming' ? 'in' : 'out'}">
+          <div class="vk-bubble">${escapeHtml(m.text)}</div>
+          <div class="vk-meta">${m.direction === 'incoming' ? `<a href="https://vk.com/id${m.vk_user_id}" target="_blank" rel="noopener">id${m.vk_user_id}</a> · ` : ''}${new Date(m.occurred_at).toLocaleString('ru-RU')}</div>
         </div>`).join('');
+      list.scrollTop = list.scrollHeight;
       const lastIncoming = rows.find(m => m.direction === 'incoming');
       if (lastIncoming) document.getElementById('vkReplyUserId').value = lastIncoming.vk_user_id;
     } catch (e) {
-      list.innerHTML = `<div class="empty-state"><span class="empty-icon">⚠️</span><p>${escapeHtml(e.message || 'Не удалось загрузить переписку')}</p></div>`;
+      list.innerHTML = `<div class="vk-chat-empty">${escapeHtml(e.message || 'Не удалось загрузить переписку')}</div>`;
     }
   }
   document.getElementById('vkMessagesRefreshBtn').addEventListener('click', loadVkMessages);
