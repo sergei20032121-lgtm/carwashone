@@ -101,7 +101,7 @@
 
     <div id="tabPhone">
       <div id="phoneStep1">
-        <div class="field"><label>Номер телефона</label><input type="tel" id="loginPhoneInput" inputmode="tel" autocomplete="tel" placeholder="+7 900 000-00-00"></div>
+        <div class="field"><label for="loginPhoneInput">Номер телефона</label><input type="tel" id="loginPhoneInput" inputmode="tel" autocomplete="tel" placeholder="+7 900 000-00-00"></div>
         <label class="consent-check">
           <input type="checkbox" id="loginPhoneConsent">
           <span>Согласен на <a href="consent.html" target="_blank" rel="noopener">обработку персональных данных</a>
@@ -111,7 +111,7 @@
       </div>
       <div id="phoneStep2" style="display:none;">
         <div class="field">
-          <label>Код из смс</label>
+          <label for="loginCodeInput">Код из смс</label>
           <div class="otp-row" style="display:flex;gap:8px;">
             <input type="text" id="loginCodeInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" placeholder="0000">
             <button class="btn btn-outline" id="loginResendBtn">Ещё раз</button>
@@ -122,8 +122,8 @@
     </div>
 
     <div id="tabPassword" style="display:none;">
-      <div class="field"><label>Логин</label><input type="text" id="pwUsernameInput" placeholder="username"></div>
-      <div class="field"><label>Пароль</label><input type="password" id="pwPasswordInput" placeholder="••••••••"></div>
+      <div class="field"><label for="pwUsernameInput">Логин</label><input type="text" id="pwUsernameInput" placeholder="username"></div>
+      <div class="field"><label for="pwPasswordInput">Пароль</label><input type="password" id="pwPasswordInput" placeholder="••••••••"></div>
       <button class="btn btn-primary" style="width:100%;" id="pwLoginBtn">Войти</button>
     </div>
 
@@ -175,9 +175,9 @@
     <h3><span class="section-icon">🚗</span>Мои машины</h3>
     <div id="carsList" style="margin-bottom:16px;"><div class="empty-state" style="padding:12px 4px;"><span class="empty-icon">🚗</span><p>Машины ещё не добавлены — впишите первую ниже.</p></div></div>
     <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
-      <div class="field" style="margin-bottom:0;"><label>Марка</label><input type="text" id="carBrand" placeholder="Toyota Mark II"></div>
-      <div class="field" style="margin-bottom:0;"><label>Номер</label><input type="text" id="carPlate" placeholder="А123ВС 197"></div>
-      <div class="field" style="margin-bottom:0;"><label>Метка</label><input type="text" id="carNickname" placeholder="основная"></div>
+      <div class="field" style="margin-bottom:0;"><label for="carBrand">Марка</label><input type="text" id="carBrand" placeholder="Toyota Mark II"></div>
+      <div class="field" style="margin-bottom:0;"><label for="carPlate">Номер</label><input type="text" id="carPlate" placeholder="А123ВС 197"></div>
+      <div class="field" style="margin-bottom:0;"><label for="carNickname">Метка</label><input type="text" id="carNickname" placeholder="основная"></div>
       <button class="btn btn-dark" id="carAddBtn">Добавить</button>
     </div>
   </div>
@@ -201,7 +201,7 @@
     <h3><span class="section-icon">🎂</span>День рождения</h3>
     <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Укажите дату — сделаем подарок в этот день.</p>
     <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
-      <div class="field" style="margin-bottom:0;"><label>Дата рождения</label><input type="date" id="birthdayInput"></div>
+      <div class="field" style="margin-bottom:0;"><label for="birthdayInput">Дата рождения</label><input type="date" id="birthdayInput"></div>
       <button class="btn btn-dark" id="birthdaySaveBtn">Сохранить</button>
     </div>
     <div class="auth-status" id="birthdayStatus"></div>
@@ -211,12 +211,12 @@
     <h3><span class="section-icon">🎁</span>Подарочный сертификат</h3>
     <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Купите сертификат в подарок или погасите свой код в счёт оплаты.</p>
     <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:16px;">
-      <div class="field" style="margin-bottom:0;"><label>Сумма ₽</label><input type="number" id="certAmount" placeholder="2000"></div>
-      <div class="field" style="margin-bottom:0;"><label>Телефон получателя (необязательно)</label><input type="tel" id="certPhone" placeholder="+7900..."></div>
+      <div class="field" style="margin-bottom:0;"><label for="certAmount">Сумма ₽</label><input type="number" id="certAmount" placeholder="2000"></div>
+      <div class="field" style="margin-bottom:0;"><label for="certPhone">Телефон получателя (необязательно)</label><input type="tel" id="certPhone" placeholder="+7900..."></div>
       <button class="btn btn-dark" id="certBuyBtn">Купить</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
-      <div class="field" style="margin-bottom:0;"><label>Код сертификата (погасить)</label><input type="text" id="certRedeemCode" placeholder="GIFT-XXXXXXXX"></div>
+      <div class="field" style="margin-bottom:0;"><label for="certRedeemCode">Код сертификата (погасить)</label><input type="text" id="certRedeemCode" placeholder="GIFT-XXXXXXXX"></div>
       <button class="btn btn-outline" id="certRedeemBtn">Погасить</button>
     </div>
     <div class="auth-status" id="certStatus"></div>
@@ -226,8 +226,8 @@
     <h3><span class="section-icon">🔒</span>Вход по логину и паролю</h3>
     <p class="text-muted" style="font-size:13px;margin-bottom:14px;">Задайте логин и пароль один раз — и в следующий раз можно будет не ждать смс.</p>
     <div class="set-pass-row">
-      <div class="field" style="margin-bottom:0;"><label>Логин</label><input type="text" id="setUsername" placeholder="username"></div>
-      <div class="field" style="margin-bottom:0;"><label>Пароль</label><input type="password" id="setPassword" placeholder="••••••••"></div>
+      <div class="field" style="margin-bottom:0;"><label for="setUsername">Логин</label><input type="text" id="setUsername" placeholder="username"></div>
+      <div class="field" style="margin-bottom:0;"><label for="setPassword">Пароль</label><input type="password" id="setPassword" placeholder="••••••••"></div>
       <button class="btn btn-dark" id="setPassBtn">Сохранить</button>
     </div>
     <div class="auth-status" id="setPassStatus"></div>

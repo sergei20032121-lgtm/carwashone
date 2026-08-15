@@ -278,7 +278,7 @@
 
       <div id="stepPhone">
         <div class="field">
-          <label>Номер телефона</label>
+          <label for="phoneInput">Номер телефона</label>
           <input type="tel" id="phoneInput" inputmode="tel" autocomplete="tel" placeholder="+7 900 000-00-00">
         </div>
         <label class="consent-check">
@@ -291,7 +291,7 @@
 
       <div id="stepCode" style="display:none;">
         <div class="field">
-          <label>Код из смс</label>
+          <label for="codeInput">Код из смс</label>
           <div class="otp-row">
             <input type="text" id="codeInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" placeholder="0000">
             <button class="btn btn-outline" id="resendBtn">Ещё раз</button>
@@ -302,7 +302,7 @@
 
       <div id="stepBooking" style="display:none;">
         <div class="field">
-          <label>Услуга</label>
+          <label for="serviceSelect">Услуга</label>
           <select id="serviceSelect"></select>
         </div>
         <div class="field">
