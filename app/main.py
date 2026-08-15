@@ -68,6 +68,11 @@ def yandex_verification_2():
     )
 
 
+@app.get("/google176eee2444bab885.html", include_in_schema=False)
+def google_verification():
+    return PlainTextResponse("google-site-verification: google176eee2444bab885.html")
+
+
 @app.get("/robots.txt", include_in_schema=False)
 def robots_txt():
     return PlainTextResponse(
