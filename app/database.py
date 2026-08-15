@@ -26,6 +26,7 @@ def ensure_compatible_schema():
             "payment_status": "VARCHAR(20) DEFAULT 'unmarked'",
             "amount_paid": "FLOAT DEFAULT 0",
             "payment_note": "VARCHAR(255)",
+            "reminder_sent_at": "DATETIME",
         },
         "walk_in_orders": {
             "payment_method": "VARCHAR(20)",

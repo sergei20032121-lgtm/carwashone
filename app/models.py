@@ -284,6 +284,7 @@ class Booking(Base):
 
     rating = Column(Integer, nullable=True)          # оценка мастера клиентом, 1-5
     rating_comment = Column(String(255), nullable=True)
+    reminder_sent_at = Column(DateTime, nullable=True)  # когда отправили SMS-напоминание о записи
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
